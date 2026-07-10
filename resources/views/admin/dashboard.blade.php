@@ -235,19 +235,17 @@
 
 @push('scripts')
 <script>
-
-        // Simple Micro-interaction: Update time and simulate real-time stats
-        document.addEventListener('DOMContentLoaded', () => {
-            const revenueDisplay = document.querySelector('h3.font-headline-md');
-            if(revenueDisplay) {
-                let currentVal = 42908;
-                setInterval(() => {
-                    const change = (Math.random() * 5).toFixed(2);
-                    currentVal += parseFloat(change);
-                    revenueDisplay.textContent = `$${currentVal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                }, 5000);
-            }
-        });
-    
+    // Simple Micro-interaction: Update time and simulate real-time stats
+    document.addEventListener('DOMContentLoaded', () => {
+        const revenueDisplay = document.querySelector('h3.font-headline-md');
+        if(revenueDisplay) {
+            let currentVal = 42908;
+            setInterval(() => {
+                const change = (Math.random() * 5).toFixed(2);
+                currentVal += parseFloat(change);
+                revenueDisplay.textContent = `$${currentVal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            }, 5000);
+        }
+    });
 </script>
 @endpush
