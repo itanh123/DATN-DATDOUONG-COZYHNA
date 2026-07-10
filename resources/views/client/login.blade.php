@@ -234,7 +234,11 @@
                         <p class="font-body-md text-body-md text-on-surface-variant" id="authSubtext">Please enter your
                             details to access your account.</p>
                     </header>
-                    <!-- Social Login -->
+                    @if($errors->any())
+                        <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
+                            {{ $errors->first() }}
+                        </div>
+                    @endif
                     <div class="grid grid-cols-2 gap-md mb-lg">
                         <button
                             class="flex items-center justify-center gap-xs border border-outline-variant rounded-xl py-sm hover:bg-surface-container transition-colors active:scale-95 duration-200">
@@ -273,6 +277,7 @@
                     </div>
                     <!-- Main Form -->
 <form class="space-y-md" method="POST" action="/login">
+                        @csrf
                         <div class="hidden transform transition-all duration-300" id="nameField">
                             <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full
                                 Name</label>
@@ -419,49 +424,14 @@ function togglePasswordVisibility() {
         return false;
     }
 
-    // Simple button interaction
-    document.getElementById('submitBtn').addEventListener('click', function() {
-        const btn = this;
-        const originalContent = btn.innerHTML;
+    // Loading state on form submit
+    document.querySelector('form').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-        btn.disabled = true;
-
-        setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
-        }, 1500);
+        btn.classList.add('opacity-70', 'pointer-events-none');
     });
 
-    // Prevent default button submit issues
-    document.querySelector('form').addEventListener('submit', function(){
-        return true;
-    });
-
-    /*
-        const input = document.getElementById('passwordInput');
-        const icon = document.getElementById('passIcon');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.innerText = 'visibility_off';
-        } else {
-            input.type = 'password';
-            icon.innerText = 'visibility';
-        }
-    }
-
-    // Simple button interaction
-    document.getElementById('submitBtn').addEventListener('click', function() {
-        const btn = this;
-        const originalContent = btn.innerHTML;
-        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-        btn.disabled = true;
-
-        setTimeout(() => {
-            btn.innerHTML = originalContent;
-            btn.disabled = false;
-        }, 1500);
-    });
-    </script>
+</script>
 </body>
 
 </html>
