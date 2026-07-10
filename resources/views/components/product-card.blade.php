@@ -25,10 +25,9 @@
 
         <div class="flex items-center gap-xs mb-sm">
             <span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-            <span class="text-label-sm">{{ $product->code }}</span>
+            <span class="text-label-sm">{{ $product->code ?? 'N/A' }}</span>
         </div>
 
-        <span class="font-headline-md text-primary"> </span>
+        <span class="font-headline-md text-primary">{{ number_format($product->price ?? 0, 0, ',', '.') }} đ</span>
     </div>
 @endif
-

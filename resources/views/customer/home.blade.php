@@ -98,64 +98,11 @@
 <a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả</a>
 </div>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
-<!-- Product Card -->
-<div class="group cursor-pointer">
-<div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
-<div class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700" data-alt="A professional beverage photo of a classic iced caramel macchiato with visible layers of milk, coffee, and caramel drizzle. High-key lighting, bright minimalist cafe environment, clean aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4-MGYFaDGPZqdeeQfZYeaWt1pKJPcKIhZVUeyUSZg1LWnCRzKlvx2rfvw9wUABmln82J2CbJwqIEr5vfCfeepy3kKHWriezOdTWCLxl-ef6EZZ3E720VAywZkVO5pC5yW8_mkqWpvGaQfnZuiMwKEGAcz_OkbteDT581KojiPYzPeXpB-9Cv0UReacO2oJ6SFFBO2GjXzkh87S8RxACPVEnECZ-siokUbiDIIAHk03Za7HO4hM7RjVZryq-1puNwM55TDK_aS')"></div>
-<button class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors">
-<span class="material-symbols-outlined text-[20px]">favorite</span>
-</button>
-</div>
-<h3 class="font-title-lg text-title-lg mb-xs group-hover:text-primary transition-colors">Caramel Macchiato</h3>
-<div class="flex items-center gap-xs mb-sm">
-<span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm">4.9 (1.2k)</span>
-</div>
-<span class="font-headline-md text-primary">$5.50</span>
-</div>
-<!-- Repeat Product Cards -->
-<div class="group cursor-pointer">
-<div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
-<div class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700" data-alt="A crisp image of an organic green tea in a clear glass teapot with floating tea leaves. The background is soft and white, highlighting the purity and freshness of the beverage. Premium minimalist style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBvH58JTC-E_tzlftX6tVVAz4mJQ_fzNWN0rK3vkFeyTaJXk0t5L7rBTM6hDnPX4bhq6eRCs36s_dILKO2E23QvbYbZtNi3txdgP1egh730jiTnaH4jKXpnl5Bcm3w7gPSzi3YUdzmHVTgk24Ys__IZtVXYsEqlERqbkkxUE18SNh-iX5_KwlQVXozkGXrGnA-xwcGN7lIUtMW5Tz-p87-DUTqLrTxaNn6ErFNMEJDNVJ-i-6g2t7RG7qDmyX7Xf_aNk7WJTDZN')"></div>
-<button class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors">
-<span class="material-symbols-outlined text-[20px]">favorite</span>
-</button>
-</div>
-<h3 class="font-title-lg text-title-lg mb-xs group-hover:text-primary transition-colors">Matcha Ngọc Tinh Khiết</h3>
-<div class="flex items-center gap-xs mb-sm">
-<span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm">4.8 (850)</span>
-</div>
-<span class="font-headline-md text-primary">$6.25</span>
-</div>
-<div class="group cursor-pointer">
-<div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
-<div class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700" data-alt="A modern presentation of an avocado smoothie with a swirl of honey and almond flakes on top. Soft, diffused lighting, clean light-mode aesthetic, healthy and organic vibes." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDheuJmhfv3BMiWiXHpGMP7yhWubVhVii8PRRXsT_CN5rap_qrLDV-RZ0zuS7gkZ_koFIXih8vgZcRRr_77pKe9Dw0hqm-RUt0tSvpgZ-MGkTgIT8hBElEtqPQpAVKMbP2NXmJAR8QrPdeGIEpg4v5LCY_Ej8K6A1TQID_UTg5YzplLrKKNW7AWYM2oY2k9X4GnV8hcgnaJrKXAlDoJE6yEFenocxFsaIhRqhQbX0OjbiD9IGxAh6P6_p8oXU7aC7GBVMOcei2q')"></div>
-<button class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors">
-<span class="material-symbols-outlined text-[20px]">favorite</span>
-</button>
-</div>
-<h3 class="font-title-lg text-title-lg mb-xs group-hover:text-primary transition-colors">Bơ Siêu Xanh</h3>
-<div class="flex items-center gap-xs mb-sm">
-<span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm">4.7 (2.1k)</span>
-</div>
-<span class="font-headline-md text-primary">$7.50</span>
-</div>
-<div class="group cursor-pointer">
-<div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
-<div class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700" data-alt="A refreshing lychee and lime sparkling water with fresh mint and ice cubes. The lighting is bright and sunny, showing the effervescence of the drink. Phútimalist aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBo2ekGSLNu2uZzO0H9OBrZc6ImhcSsTPhTeC4kTveDJzC6s7OUV8OQt5am-ev5GYU-IyUrzU4zATOs13IVHm549tnNUdBQ3v1hpf2R67eMwZ7v6b7OPJnpeXA1BZCknAOFCEQVS3Cg0NelXxmSOKDmrzNKOJuLaQDvlgn9DOOSvjHnbuiy3yPoC7UUFqnlsfzkyA80wbluoAb6Fpb2QOxmrj5IzzEoLxdaiCjFggqYRZZmvhsfnoVzzYRckvD8q2WfdXoNH_7x')"></div>
-<button class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors">
-<span class="material-symbols-outlined text-[20px]">favorite</span>
-</button>
-</div>
-<h3 class="font-title-lg text-title-lg mb-xs group-hover:text-primary transition-colors">Vải Thiều Lấp Lánh</h3>
-<div class="flex items-center gap-xs mb-sm">
-<span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm">4.9 (430)</span>
-</div>
-<span class="font-headline-md text-primary">$4.75</span>
-</div>
+    @forelse($products ?? [] as $product)
+        <x-product-card :product="$product" />
+    @empty
+        <p class="text-on-surface-variant font-body-md col-span-full">Chưa có sản phẩm nào.</p>
+    @endforelse
 </div>
 </section>
 <!-- Promotion Banner -->
