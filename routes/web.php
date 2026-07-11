@@ -20,49 +20,16 @@ Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin'])
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
-Route::get('/admin/dashboard', function () {
-    $role = session('role_code');
-    if ($role !== 'admin') {
-        return redirect('/login');
-    }
+Route::middleware(['admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    });
 
-    return view('admin.dashboard');
-});
+    Route::get('/product', [\App\Http\Controllers\ProductController::class, 'index']);
+    Route::post('/product/store', [\App\Http\Controllers\ProductController::class, 'store']);
+    Route::post('/product/{product}/update', [\App\Http\Controllers\ProductController::class, 'update']);
+    Route::post('/product/{product}/delete', [\App\Http\Controllers\ProductController::class, 'destroy']);
 
-Route::get('/admin/product', function () {
-    $role = session('role_code');
-    if ($role !== 'admin') {
-        return redirect('/login');
-    }
-
-    return app('App\Http\Controllers\ProductController')->index();
-});
-
-Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
-    $role = session('role_code');
-    if ($role !== 'admin') {
-        return redirect('/login');
-    }
-
-    return app('App\Http\Controllers\ProductController')->store($request);
-});
-
-Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-    $role = session('role_code');
-    if ($role !== 'admin') {
-        return redirect('/login');
-    }
-
-    return app('App\Http\Controllers\ProductController')->update($request, $product);
-});
-
-Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-    $role = session('role_code');
-    if ($role !== 'admin') {
-        return redirect('/login');
-    }
-
-    return app('App\Http\Controllers\ProductController')->destroy($product);
 });
 
 // ---------------------------------------------------------
@@ -76,14 +43,16 @@ Route::get('/customer/orders', function () { return view('customer.orders'); });
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 
-Route::get('/admin/add_product', function () { return view('admin.add_product'); });
-Route::get('/admin/customers', function () { return view('admin.customers'); });
-Route::get('/admin/employees', function () { return view('admin.employees'); });
-Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-Route::get('/admin/orders', function () { return view('admin.orders'); });
-Route::get('/admin/products', function () { return view('admin.products'); });
-Route::get('/admin/promotions', function () { return view('admin.promotions'); });
-Route::get('/admin/reports', function () { return view('admin.reports'); });
+Route::middleware(['admin'])->prefix('admin')->group(function () {
+    Route::get('/add_product', function () { return view('admin.add_product'); });
+    Route::get('/customers', function () { return view('admin.customers'); });
+    Route::get('/employees', function () { return view('admin.employees'); });
+    Route::get('/inventory', function () { return view('admin.inventory'); });
+    Route::get('/orders', function () { return view('admin.orders'); });
+    Route::get('/products', function () { return view('admin.products'); });
+    Route::get('/promotions', function () { return view('admin.promotions'); });
+    Route::get('/reports', function () { return view('admin.reports'); });
+});
 
 Route::get('/staff/dashboard', function () { return view('staff.dashboard'); });
 Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
