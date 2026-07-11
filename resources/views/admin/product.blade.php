@@ -1,8 +1,9 @@
-@extends('admin.layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Product Management')
 
 @section('content')
+<main class="ml-[280px] h-screen flex flex-col overflow-hidden p-xl">
     @if (session('success'))
         <div class="mb-lg px-xl py-lg bg-green-50 border border-green-200 text-green-800 rounded-xl">
             {{ session('success') }}
@@ -123,7 +124,16 @@
                                         {{ $product->category->name ?? '' }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-on-surface font-semibold">$0.00</td>
+                                <td class="p-4 text-on-surface font-semibold">
+                                    @php
+                                        $defaultSize = $product->productSizes->firstWhere('is_default', true) ?? $product->productSizes->first();
+                                    @endphp
+                                    @if($defaultSize)
+                                        {{ number_format($defaultSize->selling_price, 0, ',', '.') }} đ
+                                    @else
+                                        <span class="text-on-surface-variant text-label-sm">No size</span>
+                                    @endif
+                                </td>
                                 <td class="p-4 text-on-surface-variant text-body-md">N/A</td>
                                 <td class="p-4">
                                     @if($product->status)
@@ -158,6 +168,13 @@
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
                                                 onclick="openEditModalFromButton(this)"
                                             >Edit</button>
+                                            <button
+                                                type="button"
+                                                class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-primary"
+                                                onclick="openProductSizeModal(this)"
+                                                data-id="{{ $product->id }}"
+                                                data-sizes="{{ $product->productSizes->toJson() }}"
+                                            >Manage Sizes</button>
                                             <form action="/admin/product/{{ $product->id }}/delete" method="POST" class="m-0">
                                                 @csrf
                                                 <button
@@ -184,7 +201,74 @@
         <!-- Categories/Recipes/Sizes placeholders giữ nguyên từ giao diện hiện tại -->
         <section class="tab-pane hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg" id="categories-content"></section>
         <section class="tab-pane hidden flex flex-col lg:flex-row gap-lg" id="recipes-content"></section>
-        <section class="tab-pane hidden" id="sizes-content"></section>
+        <section class="tab-pane hidden space-y-lg" id="sizes-content">
+            <div class="flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Manage Sizes</h3>
+                <button
+                    class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
+                    type="button" onclick="toggleModal('sizeModal')">
+                    <span class="material-symbols-outlined">add</span> Add Size
+                </button>
+            </div>
+            
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant/30">
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Name</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Volume (ml)</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Description</th>
+                            <th class="p-4 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/10">
+                        @forelse($sizes ?? [] as $size)
+                            <tr class="hover:bg-surface-container-lowest transition-colors group">
+                                <td class="p-4 text-on-surface-variant">{{ $size->id }}</td>
+                                <td class="p-4 font-semibold text-on-surface">{{ $size->name }}</td>
+                                <td class="p-4 text-on-surface">{{ $size->volume_ml ?? 'N/A' }}</td>
+                                <td class="p-4 text-on-surface-variant">{{ $size->description }}</td>
+                                <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        class="p-1 hover:bg-surface-container rounded transition-colors action-more-size"
+                                        type="button"
+                                        data-id="{{ $size->id }}"
+                                        data-name="{{ $size->name }}"
+                                        data-volume="{{ $size->volume_ml }}"
+                                        data-description="{{ $size->description }}"
+                                        onclick="openSizeActions(this)"
+                                    >
+                                        <span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+                                    </button>
+                                    <div class="relative inline-block" style="position: relative;">
+                                        <div class="absolute right-0 mt-2 w-40 bg-white border border-outline-variant/30 rounded-lg shadow-sm z-10 hidden size-action-menu" role="menu">
+                                            <button
+                                                type="button"
+                                                class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
+                                                onclick="openSizeEditModalFromButton(this)"
+                                            >Edit</button>
+                                            <form action="/admin/size/{{ $size->id }}/delete" method="POST" class="m-0">
+                                                @csrf
+                                                <button
+                                                    type="submit"
+                                                    class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-error"
+                                                    onclick="return confirm('Are you sure you want to delete this size?')"
+                                                >Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-4 text-on-surface-variant text-center">No sizes found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <!-- Modal: Edit Product -->
@@ -338,7 +422,175 @@
         </div>
     </div>
 
+    <!-- Modal: Manage Product Sizes -->
+    <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productSizeManageModal">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Manage Sizes & Prices</h3>
+                <button type="button" onclick="toggleModal('productSizeManageModal')" class="p-2 hover:bg-surface-container rounded-full">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-xl overflow-y-auto flex-1">
+                <form id="product_size_form" action="" method="POST" class="space-y-md">
+                    @csrf
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant/30">
+                                <th class="p-3 w-10">Active</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Size</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Price (Sell)</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Price (Cost)</th>
+                                <th class="p-3 w-10 font-label-sm text-label-sm text-on-surface-variant uppercase text-center">Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($sizes as $s)
+                                <tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
+                                    <td class="p-3 text-center">
+                                        <input type="checkbox" id="ps_active_{{ $s->id }}" name="sizes[{{ $s->id }}][active]" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="toggleSizeRow({{ $s->id }})" />
+                                    </td>
+                                    <td class="p-3 font-semibold text-on-surface">
+                                        {{ $s->name }} <span class="text-xs text-on-surface-variant font-normal">({{ $s->volume_ml }}ml)</span>
+                                    </td>
+                                    <td class="p-3">
+                                        <input type="number" id="ps_sell_{{ $s->id }}" name="sizes[{{ $s->id }}][selling_price]" class="w-24 px-2 py-1 rounded border border-gray-300 focus:border-green-500 outline-none disabled:bg-gray-100" disabled>
+                                    </td>
+                                    <td class="p-3">
+                                        <input type="number" id="ps_cost_{{ $s->id }}" name="sizes[{{ $s->id }}][cost_price]" class="w-24 px-2 py-1 rounded border border-gray-300 focus:border-green-500 outline-none disabled:bg-gray-100" disabled>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <input type="radio" id="ps_default_{{ $s->id }}" name="default_size_id" value="{{ $s->id }}" class="text-primary focus:ring-primary border-outline disabled:bg-gray-100" disabled>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <div class="pt-4 border-t flex justify-end gap-3 mt-lg">
+                        <button onclick="toggleModal('productSizeManageModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Sizes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Size -->
+    <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="sizeModal">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Add Size</h3>
+                <button type="button" onclick="toggleModal('sizeModal')" class="p-2 hover:bg-surface-container rounded-full">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-xl space-y-lg">
+                <form action="/admin/size/store" method="POST" class="space-y-lg">
+                    @csrf
+                    <div>
+                        <label class="block mb-2 font-medium">Name</label>
+                        <input type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="e.g. M, L, XL" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium">Volume (ml)</label>
+                        <input type="number" name="volume_ml" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="e.g. 500">
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium">Description</label>
+                        <textarea name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Optional description"></textarea>
+                    </div>
+                    <div class="pt-4 border-t flex justify-end gap-3">
+                        <button onclick="toggleModal('sizeModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Size -->
+    <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="sizeEditModal">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Edit Size</h3>
+                <button type="button" onclick="toggleModal('sizeEditModal')" class="p-2 hover:bg-surface-container rounded-full">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-xl space-y-lg">
+                <form id="edit_size_form" action="" method="POST" class="space-y-lg">
+                    @csrf
+                    <div>
+                        <label class="block mb-2 font-medium">Name</label>
+                        <input id="edit_size_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium">Volume (ml)</label>
+                        <input id="edit_size_volume" type="number" name="volume_ml" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium">Description</label>
+                        <textarea id="edit_size_description" name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none"></textarea>
+                    </div>
+                    <div class="pt-4 border-t flex justify-end gap-3">
+                        <button onclick="toggleModal('sizeEditModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function toggleSizeRow(sizeId) {
+            const isActive = document.getElementById('ps_active_' + sizeId).checked;
+            document.getElementById('ps_sell_' + sizeId).disabled = !isActive;
+            document.getElementById('ps_cost_' + sizeId).disabled = !isActive;
+            document.getElementById('ps_default_' + sizeId).disabled = !isActive;
+            if (!isActive) {
+                document.getElementById('ps_sell_' + sizeId).value = '';
+                document.getElementById('ps_cost_' + sizeId).value = '';
+                document.getElementById('ps_default_' + sizeId).checked = false;
+            }
+        }
+
+        function openProductSizeModal(btn) {
+            const id = btn.getAttribute('data-id');
+            let sizes = [];
+            try { sizes = JSON.parse(btn.getAttribute('data-sizes')); } catch(e) {}
+
+            document.getElementById('product_size_form').action = `/admin/product/${id}/sizes`;
+
+            // Reset all first
+            const allSizeIds = {!! json_encode($sizes->pluck('id')) !!};
+            allSizeIds.forEach(sId => {
+                const chk = document.getElementById('ps_active_' + sId);
+                if (chk) {
+                    chk.checked = false;
+                    toggleSizeRow(sId);
+                }
+            });
+
+            // Populate existing
+            sizes.forEach(ps => {
+                const chk = document.getElementById('ps_active_' + ps.size_id);
+                if (chk) {
+                    chk.checked = true;
+                    toggleSizeRow(ps.size_id);
+                    document.getElementById('ps_sell_' + ps.size_id).value = Number(ps.selling_price);
+                    document.getElementById('ps_cost_' + ps.size_id).value = Number(ps.cost_price);
+                    if (ps.is_default) {
+                        document.getElementById('ps_default_' + ps.size_id).checked = true;
+                    }
+                }
+            });
+
+            document.querySelectorAll('.product-action-menu').forEach(m => m.classList.add('hidden'));
+            const modal = document.getElementById('productSizeManageModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
         function toggleModal(id) {
             const modal = document.getElementById(id);
             if (!modal) return;
@@ -432,6 +684,42 @@
             modal.classList.remove('hidden');
         }
 
+        function openSizeActions(button) {
+            if (!button) return;
+            const row = button.closest('tr');
+            if (!row) return;
+
+            const menu = row.querySelector('.size-action-menu');
+            if (!menu) return;
+
+            // Close others
+            document.querySelectorAll('.size-action-menu').forEach(m => {
+                if (m !== menu) m.classList.add('hidden');
+            });
+
+            menu.classList.toggle('hidden');
+        }
+
+        function openSizeEditModalFromButton(btn) {
+            const row = btn.closest('tr');
+            if (!row) return;
+            const moreBtn = row.querySelector('.action-more-size');
+            if (!moreBtn) return;
+
+            const modal = document.getElementById('sizeEditModal');
+            if (!modal) return;
+
+            const id = moreBtn.getAttribute('data-id');
+            document.getElementById('edit_size_name').value = moreBtn.getAttribute('data-name') || '';
+            document.getElementById('edit_size_volume').value = moreBtn.getAttribute('data-volume') || '';
+            document.getElementById('edit_size_description').value = moreBtn.getAttribute('data-description') || '';
+            
+            document.getElementById('edit_size_form').action = `/admin/size/${id}/update`;
+
+            document.querySelectorAll('.size-action-menu').forEach(m => m.classList.add('hidden'));
+            modal.classList.remove('hidden');
+        }
+
         // Close action menu on outside click
         document.addEventListener('click', (e) => {
             const menu = e.target?.closest?.('.product-action-menu');
@@ -439,7 +727,14 @@
             if (!menu && !more) {
                 document.querySelectorAll('.product-action-menu').forEach(m => m.classList.add('hidden'));
             }
+            
+            const sizeMenu = e.target?.closest?.('.size-action-menu');
+            const sizeMore = e.target?.closest?.('.action-more-size');
+            if (!sizeMenu && !sizeMore) {
+                document.querySelectorAll('.size-action-menu').forEach(m => m.classList.add('hidden'));
+            }
         });
     </script>
+</main>
 @endsection
 

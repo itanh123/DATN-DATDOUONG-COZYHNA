@@ -5,7 +5,7 @@
 @endphp
 
 @if((int)$status === 1)
-    <div class="group cursor-pointer">
+    <div class="group cursor-pointer" data-product="{{ json_encode($product) }}" onclick="openDrawer(this)">
         <div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
             <div
                 class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700"
@@ -28,6 +28,10 @@
             <span class="text-label-sm">{{ $product->code ?? 'N/A' }}</span>
         </div>
 
-        <span class="font-headline-md text-primary">{{ number_format($product->price ?? 0, 0, ',', '.') }} đ</span>
+        @php
+            $defaultSize = $product->productSizes->firstWhere('is_default', true) ?? $product->productSizes->first();
+            $displayPrice = $defaultSize ? $defaultSize->selling_price : 0;
+        @endphp
+        <span class="font-headline-md text-primary">{{ number_format($displayPrice, 0, ',', '.') }} đ</span>
     </div>
 @endif

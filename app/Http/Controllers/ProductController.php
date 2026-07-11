@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Size;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,8 +13,9 @@ class ProductController extends Controller
     public function index()
     {
         $categories = Category::query()->whereNull('deleted_at')->get();
-        $products = Product::query()->whereNull('deleted_at')->with('category')->get();
-        return view('admin.product', compact('categories', 'products'));
+        $products = Product::query()->whereNull('deleted_at')->with('category', 'productSizes.size')->get();
+        $sizes = Size::orderBy('name')->get();
+        return view('admin.product', compact('categories', 'products', 'sizes'));
     }
 
 
@@ -77,6 +79,60 @@ class ProductController extends Controller
     {
         $product->delete();
         return redirect('/admin/product')->with('success', 'Product deleted successfully');
+    }
+
+    public function storeSize(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:20', 'unique:sizes,name'],
+            'volume_ml' => ['nullable', 'integer', 'min:0'],
+            'description' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        Size::create($validated);
+
+        return redirect('/admin/product')->with('success', 'Size created successfully');
+    }
+
+    public function updateSize(Request $request, Size $size)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:20', 'unique:sizes,name,' . $size->id],
+            'volume_ml' => ['nullable', 'integer', 'min:0'],
+            'description' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $size->update($validated);
+
+        return redirect('/admin/product')->with('success', 'Size updated successfully');
+    }
+
+    public function destroySize(Size $size)
+    {
+        $size->delete();
+        return redirect('/admin/product')->with('success', 'Size deleted successfully');
+    }
+
+    public function syncSizes(Request $request, Product $product)
+    {
+        $sizesData = $request->input('sizes', []);
+        $defaultSizeId = $request->input('default_size_id');
+
+        $product->productSizes()->delete();
+
+        foreach ($sizesData as $sizeId => $data) {
+            if (isset($data['active']) && $data['active'] == '1') {
+                $product->productSizes()->create([
+                    'size_id' => $sizeId,
+                    'selling_price' => $data['selling_price'] ?: 0,
+                    'cost_price' => $data['cost_price'] ?? 0,
+                    'is_default' => ($defaultSizeId == $sizeId),
+                    'status' => true,
+                ]);
+            }
+        }
+
+        return redirect('/admin/product')->with('success', 'Product sizes updated successfully');
     }
 }
 

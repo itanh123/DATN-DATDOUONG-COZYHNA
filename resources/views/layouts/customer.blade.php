@@ -208,6 +208,7 @@
             © 2024 CozyHNA. Bảo lưu mọi quyền.
         </div>
 </footer>
+@include('partials.product_drawer')
 @stack('scripts')
 </body>
 </html>

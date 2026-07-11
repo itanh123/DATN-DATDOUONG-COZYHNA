@@ -137,7 +137,7 @@
 <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
 <span class="font-label-md text-label-md">Kho hàng</span>
 </a>
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/products">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/product">
 <span class="material-symbols-outlined" data-icon="category">category</span>
 <span class="font-label-md text-label-md">Sản phẩm</span>
 </a>

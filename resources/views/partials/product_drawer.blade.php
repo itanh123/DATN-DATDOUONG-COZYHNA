@@ -1,23 +1,3 @@
-@extends('layouts.customer')
-
-@section('title', 'Product Detail')
-
-@section('content')
-<main class="max-w-container-max mx-auto px-md py-lg">
-<header class="flex justify-between items-center mb-xl">
-<h1 class="font-headline-lg text-headline-lg text-primary">CozyHNA</h1>
-<div class="flex gap-md">
-<span class="material-symbols-outlined text-on-surface-variant">search</span>
-<span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
-</div>
-</header>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
-<div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
-<div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
-<div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
-<div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
-</div>
-</main>
     <!-- Slide-over Overlay Mask -->
     <div class="fixed inset-0 z-[60] flex justify-end drawer-mask transition-opacity duration-300 bg-black/40" id="drawerOverlay" style="opacity: 0; display: none;" onclick="closeDrawer()">
         <!-- Product Detail Drawer -->
@@ -64,8 +44,8 @@
                 <!-- Product Info Header -->
                 <section class="px-lg pt-lg pb-md border-b border-outline-variant/10">
                     <div class="flex justify-between items-start mb-xs">
-                        <h2 class="font-headline-md text-headline-md text-on-surface">Honey Lavender Cold Brew</h2>
-                        <span class="font-headline-md text-headline-md text-primary">$4.20</span>
+                        <h2 id="drawerProductName" class="font-headline-md text-headline-md text-on-surface">Honey Lavender Cold Brew</h2>
+                        <span id="drawerProductPrice" class="font-headline-md text-headline-md text-primary">$4.20</span>
                     </div>
                     <div class="flex items-center gap-xs mb-md">
                         <span class="material-symbols-outlined text-tertiary text-sm"
@@ -73,7 +53,7 @@
                         <span class="font-label-sm text-label-sm text-on-surface font-bold">4.9</span>
                         <span class="font-label-sm text-label-sm text-on-surface-variant">(1.2k reviews)</span>
                     </div>
-                    <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    <p id="drawerProductDesc" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
                         Our signature brew with floral notes and natural honey. Hand-crafted daily for a smooth,
                         refreshing experience that balances organic sweetness with bold caffeine.
                     </p>
@@ -81,50 +61,16 @@
                 <!-- Customization Options -->
                 <section class="px-lg py-md space-y-xl">
                     <!-- Size Selector -->
-                    <div>
+                    <div id="drawerSizeSection" style="display: none;">
                         <label
                             class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Size</label>
-                        <div class="flex gap-sm">
-                            <button
-                                class="flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all">Small</button>
-                            <button
-                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">Medium</button>
-                            <button
-                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">Large</button>
+                        <div class="flex gap-sm" id="drawerSizeSelector">
+                            <!-- Dynamically generated size buttons -->
                         </div>
                     </div>
                     
-                    
-                    <!-- Expandable Info Sections -->
-                    <div class="space-y-xs">
-                        <details class="group">
-                            <summary
-                                class="flex justify-between items-center py-md cursor-pointer list-none border-b border-outline-variant/10">
-                                <span
-                                    class="font-label-md text-label-md text-on-surface font-semibold">Ingredients</span>
-                                <span
-                                    class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                            </summary>
-                            <div class="py-md text-body-md text-on-surface-variant leading-relaxed px-base">
-                                Organic cold brew coffee beans, pure spring water, lavender blossom extract, raw
-                                wildflower honey, a splash of oat milk.
-                            </div>
-                        </details>
-                        <details class="group">
-                            <summary
-                                class="flex justify-between items-center py-md cursor-pointer list-none border-b border-outline-variant/10">
-                                <span class="font-label-md text-label-md text-on-surface font-semibold">Nutrition
-                                    Facts</span>
-                                <span
-                                    class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
-                            </summary>
-                            <div class="py-md text-body-md text-on-surface-variant px-base">
-                                <div class="flex justify-between mb-xs"><span>Calories</span><span>120 kcal</span></div>
-                                <div class="flex justify-between mb-xs"><span>Total Sugar</span><span>14g</span></div>
-                                <div class="flex justify-between"><span>Caffeine</span><span>180mg</span></div>
-                            </div>
-                        </details>
-                    </div>
+                  
+                 
                     <!-- Special Notes -->
                     <div>
                         <label
@@ -135,44 +81,12 @@
                             placeholder="e.g., extra lavender sprig, separate honey..."></textarea>
                     </div>
                     <!-- Related Products Section -->
-                    <div class="pb-xl">
+                    <div class="pb-xl" id="drawerRelatedSection" style="display: none;">
                         <label
                             class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">You
                             May Also Like</label>
-                        <div class="flex gap-md overflow-x-auto hide-scrollbar pb-xs">
-                            <div class="min-w-[140px] group cursor-pointer">
-                                <div
-                                    class="aspect-square rounded-2xl bg-surface-container overflow-hidden mb-xs relative">
-                                    <div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="A glass of Matcha Latte with a beautiful swirl of green and white, set against a bright, airy cafe background. The design is modern and clean with a focus on fresh organic ingredients."
-                                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLEH1KcISZu2xppB1WP_8so5ZEL9HehNCi9tuAFQJpITDBX7I0Q4IbYpSDtIDBun7uRAB73H5TjaSnco9hrc7LVW75MkTBMkkPk3UmAnNueyGmon9w6g5qkDKyyG8IFQnBj8DNAL3SoBR4igkcGzDClu5fIO2aQfnkbTdddq4kbe8pn1WVssXe6PFSZeQFsvgvU7OTZ-pttiAjbx1cdQAtTHXbWMUDuWHrYYDjsEkhKIfKN2zAXhK9ljwYDOLeni860MdN_erX')">
-                                    </div>
-                                </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Matcha Latte</p>
-                                <p class="text-label-sm text-primary">$5.50</p>
-                            </div>
-                            <div class="min-w-[140px] group cursor-pointer">
-                                <div
-                                    class="aspect-square rounded-2xl bg-surface-container overflow-hidden mb-xs relative">
-                                    <div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="A delicious looking Cinnamon Swirl latte with steam rising from the top, decorated with a sprinkle of spice. Minimalist and high-end photographic style."
-                                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkVljJ2rohy2SC6VjitJmpOYPd1ZXc-cfX1UOg0NJBUJ2pI6iJ3isNE7ZvQPZH8QIQq01H9KAkSpdnil8WuHxK4EVjkoArlTPAZf2ndD3x_JgadJlHYWT1GWJjdsCT0L06GxiMwX_pIuD1lG1xWZIVK_tvsncCeMzr0p_3a1QkPs3T2anmh44lqDRa4EHy1MfNOe4zI4AH0DlRPcgEDCw8ZK1skO8LMCznos3owr_nJ8DRU5tX6sCGgAsmM4hqsn45Vzl2-aV-')">
-                                    </div>
-                                </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Cinnamon Swirl</p>
-                                <p class="text-label-sm text-primary">$4.80</p>
-                            </div>
-                            <div class="min-w-[140px] group cursor-pointer">
-                                <div
-                                    class="aspect-square rounded-2xl bg-surface-container overflow-hidden mb-xs relative">
-                                    <div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                                        data-alt="Refreshing Rose Petal Hibiscus iced tea in a tall glass with floating petals, bright vibrant pink color."
-                                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0G_2FJ_ZJj7MH8dQRKX0wsoiEontRx7TCDMVnzCXjRUSq6IQxi_rDSkad0C9A7f3VlAsDivzAXuhu74WIlAuHDbTti8vaePW9vMKNIiIuoPHzcIXe4-6Efglton9Mu7yVgwgR8tFUGdVhb8OSl1SO1RClPgoMWOSKQE6qdeC0I2sfe_X-eevOs2R6_ANx5Ij1O5ZWtA_O4Srv2czdf65L2Mr0j1YNKcXv1nHs7E-9pH8zYkLkbtAGwcvQ8ZsL8nbQyddifUUx')">
-                                    </div>
-                                </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Hibiscus Rose</p>
-                                <p class="text-label-sm text-primary">$4.50</p>
-                            </div>
+                        <div class="flex gap-md overflow-x-auto hide-scrollbar pb-xs" id="drawerRelatedProducts">
+                            <!-- Dynamically generated related products -->
                         </div>
                     </div>
                 </section>
@@ -203,17 +117,20 @@
             </footer>
         </aside>
     </div>
-@endsection
+
 
 @push('scripts')
 <script>
-
+        window.allStoreProducts = {!! isset($products) ? $products->toJson() : '[]' !!};
         let quantity = 1;
-        const unitPrice = 4.20;
+        let unitPrice = 0;
 
         function updateTotals() {
             document.getElementById('qtyVal').innerText = quantity;
-            document.getElementById('totalPrice').innerText = '$' + (quantity * unitPrice).toFixed(2);
+            // Format total to Vietnamese Dong format if it's a large number, else keep default
+            let total = quantity * unitPrice;
+            let formattedTotal = total > 100 ? new Intl.NumberFormat('vi-VN').format(total) + ' đ' : '$' + total.toFixed(2);
+            document.getElementById('totalPrice').innerText = formattedTotal;
         }
 
         function incrementQty() {
@@ -243,14 +160,133 @@
             }
         }
 
-        function openDrawer() {
+        function openDrawer(element = null) {
             const drawer = document.getElementById('productDrawer');
             const overlay = document.getElementById('drawerOverlay');
-            overlay.style.display = 'flex';
+            
+            if (element && element.dataset.product) {
+                try {
+                    const product = JSON.parse(element.dataset.product);
+                    document.getElementById('drawerProductName').innerText = product.name || 'Sản phẩm';
+                    
+                    const sizeSection = document.getElementById('drawerSizeSection');
+                    const sizeSelector = document.getElementById('drawerSizeSelector');
+                    
+                    if (sizeSelector) sizeSelector.innerHTML = '';
+                    
+                    if (product.product_sizes && product.product_sizes.length > 0) {
+                        if (sizeSection) sizeSection.style.display = 'block';
+                        
+                        let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
+                        unitPrice = parseFloat(defaultPs.selling_price) || 0;
+                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+
+                        product.product_sizes.forEach(ps => {
+                            if (!ps.status) return; // Skip inactive sizes
+                            
+                            const btn = document.createElement('button');
+                            const isSelected = (ps.id === defaultPs.id);
+                            
+                            btn.className = isSelected 
+                                ? 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all'
+                                : 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                            
+                            // Safe fallback in case size object is missing
+                            btn.innerText = ps.size ? ps.size.name : 'Size';
+                            
+                            btn.onclick = () => {
+                                Array.from(sizeSelector.children).forEach(b => {
+                                    b.className = 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                                });
+                                btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
+                                
+                                unitPrice = parseFloat(ps.selling_price) || 0;
+                                document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                                updateTotals();
+                            };
+                            
+                            if (sizeSelector) sizeSelector.appendChild(btn);
+                        });
+                    } else {
+                        if (sizeSection) sizeSection.style.display = 'none';
+                        unitPrice = parseFloat(product.price) || 0;
+                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                    }
+
+                    if (product.description) {
+                        const descEl = document.getElementById('drawerProductDesc');
+                        if (descEl) descEl.innerHTML = product.description;
+                    }
+                    
+                    if (product.image) {
+                        const track = document.getElementById('carouselTrack');
+                        if (track) {
+                            const images = track.querySelectorAll('.bg-cover');
+                            images.forEach(img => {
+                                img.style.backgroundImage = `url('${product.image}')`;
+                            });
+                        }
+                    }
+                    
+                    // Related Products
+                    const relatedContainer = document.getElementById('drawerRelatedProducts');
+                    if (relatedContainer) {
+                        relatedContainer.innerHTML = '';
+                        const categoryId = product.category_id;
+                        const relatedProducts = (window.allStoreProducts || []).filter(p => p.category_id === categoryId && p.id !== product.id).slice(0, 4);
+
+                        if (relatedProducts.length > 0) {
+                            document.getElementById('drawerRelatedSection').style.display = 'block';
+                            relatedProducts.forEach(rp => {
+                                let defaultPs = rp.product_sizes && rp.product_sizes.length > 0 
+                                    ? (rp.product_sizes.find(ps => ps.is_default) || rp.product_sizes[0]) 
+                                    : null;
+                                let displayPrice = defaultPs ? parseFloat(defaultPs.selling_price) : 0;
+                                let priceStr = new Intl.NumberFormat('vi-VN').format(displayPrice) + ' đ';
+
+                                const div = document.createElement('div');
+                                div.className = 'min-w-[140px] group cursor-pointer';
+                                div.onclick = () => {
+                                    const mockEl = document.createElement('div');
+                                    mockEl.dataset.product = JSON.stringify(rp);
+                                    openDrawer(mockEl);
+                                    
+                                    // Scroll drawer back to top for better UX
+                                    const drawerContainer = document.getElementById('productDrawer');
+                                    if (drawerContainer) {
+                                        const scrollable = drawerContainer.querySelector('.overflow-y-auto');
+                                        if (scrollable) scrollable.scrollTop = 0;
+                                    }
+                                };
+
+                                div.innerHTML = `
+                                    <div class="aspect-square rounded-2xl bg-surface-container overflow-hidden mb-xs relative">
+                                        <div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                                            style="background-image: url('${rp.image || ''}')">
+                                        </div>
+                                    </div>
+                                    <p class="text-label-md font-bold text-on-surface truncate">${rp.name}</p>
+                                    <p class="text-label-sm text-primary">${priceStr}</p>
+                                `;
+                                relatedContainer.appendChild(div);
+                            });
+                        } else {
+                            document.getElementById('drawerRelatedSection').style.display = 'none';
+                        }
+                    }
+
+                    quantity = 1;
+                    updateTotals();
+                } catch(e) {
+                    console.error('Error parsing product data', e);
+                }
+            }
+
+            if (overlay) overlay.style.display = 'flex';
             // Force a reflow
-            void overlay.offsetWidth;
-            overlay.style.opacity = '1';
-            drawer.style.transform = 'translateX(0)';
+            if (overlay) void overlay.offsetWidth;
+            if (overlay) overlay.style.opacity = '1';
+            if (drawer) drawer.style.transform = 'translateX(0)';
         }
 
         function closeDrawer() {
