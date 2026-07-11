@@ -276,18 +276,22 @@
                             email</span>
                     </div>
                     <!-- Main Form -->
-<form class="space-y-md" method="POST" action="/login">
+<form id="authForm" class="space-y-md" method="POST" action="/login">
                         @csrf
-                        <div class="hidden transform transition-all duration-300" id="nameField">
-                            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full
-                                Name</label>
-                            <div class="relative">
-                                <span
-                                    class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant"
-                                    style="font-size: 20px;">person</span>
-                                <input
-                                    class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
-                                    placeholder="John Doe" type="text" />
+                        <div class="hidden transform transition-all duration-300 space-y-md" id="signupFields">
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full Name</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">person</span>
+                                    <input name="username" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Phone Number</label>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">phone</span>
+                                    <input name="phone" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="0901234567" type="tel" />
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -362,11 +366,12 @@ type="password" name="password" required />
         const signupTab = document.getElementById('signupTab');
         const heading = document.getElementById('authHeading');
         const subtext = document.getElementById('authSubtext');
-        const nameField = document.getElementById('nameField');
+        const signupFields = document.getElementById('signupFields');
         const termsCheck = document.getElementById('termsCheck');
         const submitBtn = document.getElementById('submitBtn');
         const toggleHint = document.getElementById('toggleHint');
         const forgotPass = document.getElementById('forgotPass');
+        const authForm = document.getElementById('authForm');
 
         if (mode === 'signup') {
             // Style Tabs
@@ -378,14 +383,15 @@ type="password" name="password" required />
             // Content change
             heading.innerText = 'Create Account';
             subtext.innerText = 'Join the CozyHNA community for exclusive rewards.';
-            nameField.classList.remove('hidden');
-            nameField.classList.add('block');
+            signupFields.classList.remove('hidden');
+            signupFields.classList.add('block');
             termsCheck.classList.remove('hidden');
             termsCheck.classList.add('flex');
             forgotPass.classList.add('opacity-0', 'pointer-events-none');
             submitBtn.querySelector('span:first-child').innerText = 'Get Started';
             toggleHint.innerHTML =
-                'Already have an account? <button onclick="toggleAuth(\'login\')" class="text-primary font-bold hover:underline">Log in here</button>';
+                'Already have an account? <button type="button" onclick="toggleAuth(\'login\')" class="text-primary font-bold hover:underline">Log in here</button>';
+            authForm.action = '/register';
         } else {
             // Style Tabs
             signupTab.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
@@ -396,16 +402,25 @@ type="password" name="password" required />
             // Content change
             heading.innerText = 'Welcome Back';
             subtext.innerText = 'Please enter your details to access your account.';
-            nameField.classList.add('hidden');
-            nameField.classList.remove('block');
+            signupFields.classList.add('hidden');
+            signupFields.classList.remove('block');
             termsCheck.classList.add('hidden');
             termsCheck.classList.remove('flex');
             forgotPass.classList.remove('opacity-0', 'pointer-events-none');
             submitBtn.querySelector('span:first-child').innerText = 'Sign In';
             toggleHint.innerHTML =
-                "Don't have an account? <button onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">Sign up for free</button>";
+                "Don't have an account? <button type=\"button\" onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">Sign up for free</button>";
+            authForm.action = '/login';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(old('username') || old('phone'))
+            toggleAuth('signup');
+        @else
+            toggleAuth('login');
+        @endif
+    });
 
 function togglePasswordVisibility() {
         const input = document.getElementById('passwordInput');

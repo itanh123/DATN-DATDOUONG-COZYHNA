@@ -10,10 +10,21 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $categories = Category::query()->whereNull('deleted_at')->get();
-        $products = Product::query()->whereNull('deleted_at')->with('category', 'productSizes.size')->get();
+        
+        $query = Product::query()->whereNull('deleted_at')->with('category', 'productSizes.size');
+        
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        
+        if ($request->has('status') && $request->status !== null) {
+            $query->where('status', $request->status);
+        }
+        
+        $products = $query->paginate(10);
         $sizes = Size::orderBy('name')->get();
         return view('admin.product', compact('categories', 'products', 'sizes'));
     }
@@ -48,27 +59,34 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:30', 'unique:products,code,' . $product->id],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'status' => ['required', 'in:0,1'],
-        ]);
+        $role = session('role_code');
+        
+        if ($role === 'admin') {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'code' => ['required', 'string', 'max:30', 'unique:products,code,' . $product->id],
+                'category_id' => ['required', 'integer', 'exists:categories,id'],
+                'description' => ['nullable', 'string'],
+                'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+                'status' => ['required', 'in:0,1'],
+            ]);
 
+            $product->category_id = $validated['category_id'];
+            $product->code = $validated['code'];
+            $product->name = $validated['name'];
+            $product->description = $validated['description'] ?? null;
 
-        $product->category_id = $validated['category_id'];
-        $product->code = $validated['code'];
-        $product->name = $validated['name'];
-        $product->description = $validated['description'] ?? null;
-        // Eloquent/DB thường lưu status dạng 0/1, validate trả về boolean nhưng đôi khi form gửi string.
-        $product->status = (int) $validated['status'];
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $product->image = Storage::url($path);
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('products', 'public');
+                $product->image = Storage::url($path);
+            }
+        } else {
+            $validated = $request->validate([
+                'status' => ['required', 'in:0,1'],
+            ]);
         }
+
+        $product->status = (int) $validated['status'];
 
         $product->save();
 
@@ -133,6 +151,46 @@ class ProductController extends Controller
         }
 
         return redirect('/admin/product')->with('success', 'Product sizes updated successfully');
+    }
+
+    // --- Category Management ---
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
+            'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'string'],
+            'status' => ['boolean'],
+        ]);
+
+        $validated['status'] = $request->has('status');
+
+        Category::create($validated);
+
+        return redirect('/admin/product')->with('success', 'Category created successfully');
+    }
+
+    public function updateCategory(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100', 'unique:categories,name,' . $category->id],
+            'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'string'],
+            'status' => ['boolean'],
+        ]);
+
+        $validated['status'] = $request->has('status');
+
+        $category->update($validated);
+
+        return redirect('/admin/product')->with('success', 'Category updated successfully');
+    }
+
+    public function destroyCategory(Category $category)
+    {
+        $category->delete();
+        return redirect('/admin/product')->with('success', 'Category deleted successfully');
     }
 }
 

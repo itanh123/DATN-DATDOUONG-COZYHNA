@@ -124,15 +124,35 @@
 <p class="font-label-md text-label-md text-on-surface-variant">Cổng quản trị</p>
 </div>
 <nav class="flex-1 flex flex-col gap-xs">
-<!-- Hoạt động Tab: Bảng điều khiển -->
+@php
+    $roleCode = session('role_code');
+    $userPermissions = [];
+    if ($roleCode) {
+        $role = \Illuminate\Support\Facades\DB::table('roles')->where('code', $roleCode)->first();
+        if ($role) {
+            $userPermissions = \Illuminate\Support\Facades\DB::table('role_permissions')
+                ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+                ->where('role_permissions.role_id', $role->id)
+                ->pluck('permissions.code')->toArray();
+        }
+    }
+@endphp
+
+@if(in_array('view_dashboard', $userPermissions))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="/admin/dashboard">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-label-md text-label-md">Bảng điều khiển</span>
 </a>
+@endif
+
+@if(in_array('view_orders', $userPermissions))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/orders">
 <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
 <span class="font-label-md text-label-md">Đơn hàng</span>
 </a>
+@endif
+
+@if(in_array('view_products', $userPermissions))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/inventory">
 <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
 <span class="font-label-md text-label-md">Kho hàng</span>
@@ -141,14 +161,23 @@
 <span class="material-symbols-outlined" data-icon="category">category</span>
 <span class="font-label-md text-label-md">Sản phẩm</span>
 </a>
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/customers">
-<span class="material-symbols-outlined" data-icon="group">group</span>
-<span class="font-label-md text-label-md">Khách hàng</span>
+@endif
+
+@if(in_array('view_users', $userPermissions))
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/users">
+<span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
+<span class="font-label-md text-label-md">Người dùng</span>
 </a>
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/employees">
-<span class="material-symbols-outlined" data-icon="badge">badge</span>
-<span class="font-label-md text-label-md">Nhân viên</span>
+@endif
+
+@if(in_array('view_roles', $userPermissions))
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/roles">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md text-label-md">Phân quyền</span>
 </a>
+@endif
+
+@if($roleCode === 'admin')
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/promotions">
 <span class="material-symbols-outlined" data-icon="campaign">campaign</span>
 <span class="font-label-md text-label-md">Khuyến mãi</span>
@@ -157,6 +186,7 @@
 <span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
 <span class="font-label-md text-label-md">Báo cáo</span>
 </a>
+@endif
 </nav>
 <div class="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
 <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all" href="#">

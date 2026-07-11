@@ -91,20 +91,33 @@
 </div>
 </div>
 </section>
-<!-- Sản Phẩm Bán Chạy Giâytion -->
-<section class="mb-2xl">
-<div class="flex justify-between items-center mb-xl">
-<h2 class="font-headline-lg text-headline-lg">Sản Phẩm Bán Chạy</h2>
-<a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả</a>
-</div>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
-    @forelse($products ?? [] as $product)
-        <x-product-card :product="$product" />
-    @empty
+<!-- Danh Mục Sản Phẩm -->
+@php
+    $groupedProducts = collect($products ?? [])->groupBy(function($item) {
+        return $item->category ? $item->category->name : 'Khác';
+    });
+@endphp
+
+@forelse($groupedProducts as $categoryName => $categoryProducts)
+    <section class="mb-2xl">
+        <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-sm">
+            <h3 class="font-headline-lg text-headline-lg">{{ $categoryName }}</h3>
+            <a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả {{ $categoryName }}</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
+            @foreach($categoryProducts as $product)
+                <x-product-card :product="$product" />
+            @endforeach
+        </div>
+    </section>
+@empty
+    <section class="mb-2xl">
+        <div class="flex justify-between items-center mb-xl">
+            <h2 class="font-headline-lg text-headline-lg">Thực Đơn</h2>
+        </div>
         <p class="text-on-surface-variant font-body-md col-span-full">Chưa có sản phẩm nào.</p>
-    @endforelse
-</div>
-</section>
+    </section>
+@endforelse
 <!-- Promotion Banner -->
 <section class="mb-2xl">
 <div class="w-full bg-primary h-48 rounded-3xl relative overflow-hidden flex items-center px-2xl group cursor-pointer">

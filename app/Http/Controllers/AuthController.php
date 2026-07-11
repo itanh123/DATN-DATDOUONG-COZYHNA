@@ -37,7 +37,7 @@ class AuthController extends Controller
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', $roleCode);
 
-        if ($roleCode === 'admin') {
+        if (in_array($roleCode, ['admin', 'staff', 'shipper'])) {
             return redirect('/admin/dashboard');
         }
 
@@ -47,6 +47,32 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->session()->forget(['user_id', 'role_code']);
+        return redirect('/');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'username' => ['required', 'string', 'max:50', 'unique:users,username'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $roleId = DB::table('roles')->where('code', 'customer')->value('id');
+
+        $user = User::create([
+            'username' => $request->input('username'),
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+            'password' => Hash::make($request->input('password')),
+            'role_id' => $roleId,
+            'status' => true,
+        ]);
+
+        $request->session()->put('user_id', $user->id);
+        $request->session()->put('role_code', 'customer');
+
         return redirect('/');
     }
 }

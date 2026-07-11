@@ -68,19 +68,39 @@
 <span class="absolute bg-surface px-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">or email</span>
 </div>
 <!-- Main Form -->
-<form class="space-y-md" onsubmit="return false;">
-<div class="hidden transform transition-all duration-300" id="nameField">
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full Name</label>
-<div class="relative">
-<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">person</span>
-<input class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text"/>
-</div>
+<form id="authForm" action="/login" method="POST" class="space-y-md">
+@csrf
+@if($errors->any())
+    <div class="p-3 bg-error-container text-on-error-container rounded-lg text-label-md">
+        <ul class="list-disc pl-5">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<div class="hidden transform transition-all duration-300 space-y-md" id="signupFields">
+    <div>
+        <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full Name</label>
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">person</span>
+            <input name="username" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text"/>
+        </div>
+    </div>
+    <div>
+        <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Phone Number</label>
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">phone</span>
+            <input name="phone" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="0901234567" type="tel"/>
+        </div>
+    </div>
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email Address</label>
 <div class="relative">
 <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">mail</span>
-<input class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="name@example.com" type="email"/>
+<input name="email" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="name@example.com" type="email" required/>
 </div>
 </div>
 <div>
@@ -90,7 +110,7 @@
 </div>
 <div class="relative">
 <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">lock</span>
-<input class="w-full pl-11 pr-11 py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" id="passwordInput" placeholder="••••••••" type="password"/>
+<input name="password" class="w-full pl-11 pr-11 py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" id="passwordInput" placeholder="••••••••" type="password" required/>
 <button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" onclick="toggleMật khẩuVisibility()" type="button">
 <span class="material-symbols-outlined" id="passIcon" style="font-size: 20px;">visibility</span>
 </button>
@@ -100,7 +120,7 @@
 <input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
 <label class="font-label-sm text-label-sm text-on-surface-variant">I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.</label>
 </div>
-<button class="w-full py-md rounded-xl bg-primary-container text-on-primary-container font-headline-md text-headline-md shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm mt-xl" id="submitBtn">
+<button type="submit" class="w-full py-md rounded-xl bg-primary-container text-on-primary-container font-headline-md text-headline-md shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm mt-xl" id="submitBtn">
 <span>Đăng Nhập</span>
 <span class="material-symbols-outlined">arrow_forward</span>
 </button>
@@ -131,11 +151,12 @@
             const signupTab = document.getElementById('signupTab');
             const heading = document.getElementById('authHeading');
             const subtext = document.getElementById('authSubtext');
-            const nameField = document.getElementById('nameField');
+            const signupFields = document.getElementById('signupFields');
             const termsCheck = document.getElementById('termsCheck');
             const submitBtn = document.getElementById('submitBtn');
             const toggleHint = document.getElementById('toggleHint');
             const forgotPass = document.getElementById('forgotPass');
+            const authForm = document.getElementById('authForm');
 
             if (mode === 'signup') {
                 // Style Tabs
@@ -147,13 +168,15 @@
                 // Content change
                 heading.innerText = 'Create Account';
                 subtext.innerText = 'Join the CozyHNA community for exclusive rewards.';
-                nameField.classList.remove('hidden');
-                nameField.classList.add('block');
+                signupFields.classList.remove('hidden');
+                signupFields.classList.add('block');
                 termsCheck.classList.remove('hidden');
                 termsCheck.classList.add('flex');
                 forgotPass.classList.add('opacity-0', 'pointer-events-none');
                 submitBtn.querySelector('span:first-child').innerText = 'Get Started';
-                toggleHint.innerHTML = 'Already have an account? <button onclick="toggleAuth(\'login\')" class="text-primary font-bold hover:underline">Log in here</button>';
+                toggleHint.innerHTML = 'Already have an account? <button type="button" onclick="toggleAuth(\'login\')" class="text-primary font-bold hover:underline">Log in here</button>';
+                
+                authForm.action = '/register';
             } else {
                 // Style Tabs
                 signupTab.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
@@ -164,13 +187,15 @@
                 // Content change
                 heading.innerText = 'Welcome Back';
                 subtext.innerText = 'Please enter your details to access your account.';
-                nameField.classList.add('hidden');
-                nameField.classList.remove('block');
+                signupFields.classList.add('hidden');
+                signupFields.classList.remove('block');
                 termsCheck.classList.add('hidden');
                 termsCheck.classList.remove('flex');
                 forgotPass.classList.remove('opacity-0', 'pointer-events-none');
                 submitBtn.querySelector('span:first-child').innerText = 'Đăng Nhập';
-                toggleHint.innerHTML = "Don't have an account? <button onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">Sign up for free</button>";
+                toggleHint.innerHTML = "Don't have an account? <button type=\"button\" onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">Sign up for free</button>";
+
+                authForm.action = '/login';
             }
         }
 
@@ -186,17 +211,20 @@
             }
         }
 
-        // Simple button interaction
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const btn = this;
+        // Loading state on submit
+        document.getElementById('authForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-            btn.disabled = true;
-            
-            setTimeout(() => {
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            }, 1500);
+            // Không disable btn ngay lập tức để form vẫn submit được
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(old('username') || old('phone'))
+                toggleAuth('signup');
+            @else
+                toggleAuth('login');
+            @endif
         });
     
 </script>
