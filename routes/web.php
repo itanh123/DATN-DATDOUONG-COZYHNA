@@ -11,6 +11,7 @@ Route::get('/', function () {
     $products = \App\Models\Product::query()
         ->whereNull('deleted_at')
         ->where('status', true)
+        ->with(['productSizes.size', 'category'])
         ->get();
 
     return view('customer.home', compact('products'));
@@ -63,6 +64,43 @@ Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Reques
     }
 
     return app('App\Http\Controllers\ProductController')->destroy($product);
+});
+
+Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+    $role = session('role_code');
+    if ($role !== 'admin') {
+        return redirect('/login');
+    }
+
+    return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
+});
+
+// Size Routes
+Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
+    $role = session('role_code');
+    if ($role !== 'admin') {
+        return redirect('/login');
+    }
+
+    return app('App\Http\Controllers\ProductController')->storeSize($request);
+});
+
+Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+    $role = session('role_code');
+    if ($role !== 'admin') {
+        return redirect('/login');
+    }
+
+    return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
+});
+
+Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+    $role = session('role_code');
+    if ($role !== 'admin') {
+        return redirect('/login');
+    }
+
+    return app('App\Http\Controllers\ProductController')->destroySize($size);
 });
 
 // ---------------------------------------------------------
