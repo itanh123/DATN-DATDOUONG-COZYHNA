@@ -33,7 +33,9 @@ Route::get('/', function () {
         ->with(['productSizes.size', 'category'])
         ->get();
 
-    return view('customer.home', compact('products'));
+    $categories = \App\Models\Category::where('status', true)->get();
+
+    return view('customer.home', compact('products', 'categories'));
 });
 
 // Authentication
@@ -44,13 +46,22 @@ Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
 // Customer Pages
 Route::get('/customer/auth', function () { return view('customer.auth'); });
-Route::get('/customer/checkout', [\App\Http\Controllers\CheckoutController::class, 'index']);
+Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
 Route::post('/customer/checkout/apply-voucher', [\App\Http\Controllers\CheckoutController::class, 'applyVoucher']);
-Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
-Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
+Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 Route::get('/customer/contact', function () { return view('customer.contact'); });
-Route::get('/customer/account', function () { return view('customer.account'); });
-Route::get('/customer/orders', function () { return view('customer.orders'); });
+Route::get('/customer/account', function () {
+    $userId = session('user_id');
+    if (!$userId) return redirect('/login');
+    $user = \App\Models\User::with('customerProfile')->find($userId);
+    if (!$user) return redirect('/login');
+    return view('customer.account', compact('user'));
+})->name('customer.account');
+Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'history'])->name('customer.orders');
+Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'place'])->name('orders.place');
+Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 
@@ -163,8 +174,10 @@ Route::prefix('admin')->group(function () {
 // Staff Routes
 // ---------------------------------------------------------
 Route::prefix('staff')->group(function () {
-    Route::get('/dashboard', function () { return view('staff.dashboard'); });
-    Route::get('/order_fulfillment', function () { return view('staff.order_fulfillment'); });
+    Route::get('/dashboard', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+    Route::get('/order_fulfillment', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+    Route::post('/orders/{id}/confirm', [\App\Http\Controllers\StaffController::class, 'confirm'])->name('staff.orders.confirm');
+    Route::post('/orders/{id}/complete', [\App\Http\Controllers\StaffController::class, 'complete'])->name('staff.orders.complete');
 });
 
 // ---------------------------------------------------------

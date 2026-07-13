@@ -21,13 +21,11 @@
 </section>
 <div class="max-w-container-max mx-auto px-lg">
 <!-- Category Chips -->
-<div class="flex gap-md overflow-x-auto no-scrollbar py-xl -mx-lg px-lg">
-<button class="bg-primary text-on-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Tất Cả</button>
-<button class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Latte Đặc Trưng</button>
-<button class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Cold Brew</button>
-<button class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Trà Hữu Cơ</button>
-<button class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Trái Cây Giải Nhiệt</button>
-<button class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Sinh Tố Thuần Chay</button>
+<div class="flex gap-md overflow-x-auto no-scrollbar py-xl -mx-lg px-lg" id="categoryChips">
+    <button class="category-chip bg-primary text-on-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform" data-category="all">Tất Cả</button>
+    @foreach($categories as $category)
+        <button class="category-chip bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform" data-category="{{ $category->name }}">{{ $category->name }}</button>
+    @endforeach
 </div>
 <!-- Khuyến Mãi Khủng Bento Grid -->
 <section class="mb-2xl">
@@ -99,7 +97,7 @@
 @endphp
 
 @forelse($groupedProducts as $categoryName => $categoryProducts)
-    <section class="mb-2xl">
+    <section class="mb-2xl category-section" data-category="{{ $categoryName }}">
         <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-sm">
             <h3 class="font-headline-lg text-headline-lg">{{ $categoryName }}</h3>
             <a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả {{ $categoryName }}</a>
@@ -370,11 +368,30 @@
         }
         setInterval(updateTimer, 1000);
 
-        // Simple smooth scroll for category chips
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.classList.add('scale-95');
-                setTimeout(() => this.classList.remove('scale-95'), 100);
+        // Category filtering logic
+        const chips = document.querySelectorAll('.category-chip');
+        const sections = document.querySelectorAll('.category-section');
+
+        chips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Remove active classes from all chips
+                chips.forEach(c => {
+                    c.className = 'category-chip bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform';
+                });
+                
+                // Add active classes to current chip
+                this.className = 'category-chip bg-primary text-on-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform';
+
+                const targetCategory = this.getAttribute('data-category');
+
+                sections.forEach(section => {
+                    const sectionCategory = section.getAttribute('data-category');
+                    if (targetCategory === 'all' || sectionCategory === targetCategory) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
             });
         });
     

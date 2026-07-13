@@ -148,7 +148,12 @@
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
     <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
 </a>
-<a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle">account_circle</a>
+@if(session('user_id'))
+    <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="person" title="Hồ sơ">person</a>
+    <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
+@else
+    <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
+@endif
 </div>
 </header>
 

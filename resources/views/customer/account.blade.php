@@ -14,32 +14,32 @@
 <!-- Avatar Card -->
 <div class="glass-card p-lg rounded-xl flex flex-col items-center text-center">
 <div class="relative w-32 h-32 mb-md">
-<img class="w-full h-full object-cover rounded-full border-4 border-primary/10" data-alt="A professional and clean studio headshot of a friendly individual with soft, warm lighting. The style is modern minimalist, focusing on a bright, airy aesthetic with subtle greens and natural skin tones to match the CozyHNA organic vitality theme. High-end lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuKYZVnCZM7sUwO1cpNa1rdotTiwAVpCuVQjGSdPLD1cAQ10OdvU0m1G3psRcb6tqmUr0ZsViV4Ce-LnFRgUfhfDU6FTp8rX1PbJKwsybqN2nU68MEuYa9RX10SRxiRo5f6kPGISO9bFlBVDHuRvyDerWCf9J9uGeyjfgkQTArZ7b_eFmeQEWSkqLM5lggVILSkUbPawAKYhRwmj5GPaqnVkYv1CpxJkq3c_fD1_jnOo1TegL5__T1cYD_sv_Qxfq1pGty-ekJ"/>
+<img class="w-full h-full object-cover rounded-full border-4 border-primary/10" src="{{ $user->avatar ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCuKYZVnCZM7sUwO1cpNa1rdotTiwAVpCuVQjGSdPLD1cAQ10OdvU0m1G3psRcb6tqmUr0ZsViV4Ce-LnFRgUfhfDU6FTp8rX1PbJKwsybqN2nU68MEuYa9RX10SRxiRo5f6kPGISO9bFlBVDHuRvyDerWCf9J9uGeyjfgkQTArZ7b_eFmeQEWSkqLM5lggVILSkUbPawAKYhRwmj5GPaqnVkYv1CpxJkq3c_fD1_jnOo1TegL5__T1cYD_sv_Qxfq1pGty-ekJ' }}"/>
 <button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg">
 <span class="material-symbols-outlined text-sm">edit</span>
 </button>
 </div>
-<h3 class="font-title-lg">Alex Rivera</h3>
-<p class="font-body-md text-on-surface-variant">Thành viên từ Jan 2023</p>
+<h3 class="font-title-lg">{{ $user->customerProfile->full_name ?? $user->username }}</h3>
+<p class="font-body-md text-on-surface-variant">Thành viên từ {{ $user->created_at->format('M Y') }}</p>
 </div>
 <!-- Details Card -->
 <div class="md:col-span-2 glass-card p-lg rounded-xl space-y-md">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
 <div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Full Name</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="Alex Rivera"/>
+<label class="font-label-sm text-on-surface-variant ml-1">Họ và Tên</label>
+<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="{{ $user->customerProfile->full_name ?? '' }}"/>
 </div>
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Email Address</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="email" value="alex.rivera@example.com"/>
+<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="email" value="{{ $user->email ?? '' }}"/>
 </div>
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Số điện thoại Number</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="+1 (555) 123-4567"/>
+<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="{{ $user->phone ?? '' }}"/>
 </div>
 <div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Birthday</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="date" value="1992-05-14"/>
+<label class="font-label-sm text-on-surface-variant ml-1">Ngày sinh</label>
+<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="date" value="{{ $user->customerProfile->birthday ? \Carbon\Carbon::parse($user->customerProfile->birthday)->format('Y-m-d') : '' }}"/>
 </div>
 </div>
 </div>
