@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         RolePermissionSeeder::class,
         UserSeeder::class,
         CategorySeeder::class,
-        SizeSeeder::class,
+        ProductSeeder::class,
         MeasurementUnitSeeder::class,
         SupplierSeeder::class,
         VoucherSeeder::class,

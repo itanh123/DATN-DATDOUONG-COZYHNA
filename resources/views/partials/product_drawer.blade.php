@@ -178,42 +178,58 @@
                     if (product.product_sizes && product.product_sizes.length > 0) {
                         if (sizeSection) sizeSection.style.display = 'block';
                         
-                        let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
-                        unitPrice = parseFloat(defaultPs.selling_price) || 0;
-                        selectedProductSizeId = defaultPs.id;
-                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                        // Filter to only ACTIVE sizes (status can be boolean true OR integer 1)
+                        const activeSizes = product.product_sizes.filter(ps => ps.status == 1 || ps.status === true);
+                        
+                        if (activeSizes.length === 0) {
+                            // All sizes inactive — disable add to cart
+                            selectedProductSizeId = null;
+                            unitPrice = 0;
+                            document.getElementById('drawerProductPrice').innerText = 'Liên hệ';
+                            const addBtn = document.getElementById('addToCartBtn');
+                            if (addBtn) { addBtn.disabled = true; addBtn.innerText = 'Sản phẩm tạm ngưng'; }
+                        } else {
+                            // Auto-select default size (or first active)
+                            let defaultPs = activeSizes.find(ps => ps.is_default == 1 || ps.is_default === true) || activeSizes[0];
+                            unitPrice = parseFloat(defaultPs.selling_price) || 0;
+                            selectedProductSizeId = defaultPs.id;
+                            document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                            const addBtn = document.getElementById('addToCartBtn');
+                            if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>'; }
 
-                        product.product_sizes.forEach(ps => {
-                            if (!ps.status) return; // Skip inactive sizes
-                            
-                            const btn = document.createElement('button');
-                            const isSelected = (ps.id === defaultPs.id);
-                            
-                            btn.className = isSelected 
-                                ? 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all'
-                                : 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
-                            
-                            // Safe fallback in case size object is missing
-                            btn.innerText = ps.size ? ps.size.name : 'Size';
-                            
-                            btn.onclick = () => {
-                                Array.from(sizeSelector.children).forEach(b => {
-                                    b.className = 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
-                                });
-                                btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
+                            activeSizes.forEach(ps => {
+                                const btn = document.createElement('button');
+                                const isSelected = (ps.id === defaultPs.id);
+                                btn.type = 'button';
+                                btn.className = isSelected 
+                                    ? 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all'
+                                    : 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
                                 
-                                selectedProductSizeId = ps.id;
-                                unitPrice = parseFloat(ps.selling_price) || 0;
-                                document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
-                                updateTotals();
-                            };
-                            
-                            if (sizeSelector) sizeSelector.appendChild(btn);
-                        });
+                                btn.innerText = ps.size ? ps.size.name : 'Size';
+                                
+                                btn.onclick = () => {
+                                    Array.from(sizeSelector.children).forEach(b => {
+                                        b.className = 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                                    });
+                                    btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
+                                    
+                                    selectedProductSizeId = ps.id;
+                                    unitPrice = parseFloat(ps.selling_price) || 0;
+                                    document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                                    updateTotals();
+                                };
+                                
+                                if (sizeSelector) sizeSelector.appendChild(btn);
+                            });
+                        }
                     } else {
+                        // Product has no sizes at all
                         if (sizeSection) sizeSection.style.display = 'none';
+                        selectedProductSizeId = null;
                         unitPrice = parseFloat(product.price) || 0;
-                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                        document.getElementById('drawerProductPrice').innerText = unitPrice > 0 ? new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ' : 'Liên hệ';
+                        const addBtn = document.getElementById('addToCartBtn');
+                        if (addBtn) { addBtn.disabled = true; addBtn.innerText = 'Chưa có size'; }
                     }
 
                     if (product.description) {
