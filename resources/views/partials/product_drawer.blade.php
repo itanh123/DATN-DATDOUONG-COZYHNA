@@ -125,13 +125,14 @@
         let quantity = 1;
         let unitPrice = 0;
         let selectedProductSizeId = null;
+        let currentProductId = null;  // always set when drawer opens
 
         function updateTotals() {
             document.getElementById('qtyVal').innerText = quantity;
-            // Format total to Vietnamese Dong format if it's a large number, else keep default
             let total = quantity * unitPrice;
-            let formattedTotal = total > 100 ? new Intl.NumberFormat('vi-VN').format(total) + ' đ' : '$' + total.toFixed(2);
-            document.getElementById('totalPrice').innerText = formattedTotal;
+            document.getElementById('totalPrice').innerText = total > 0
+                ? new Intl.NumberFormat('vi-VN').format(total) + ' đ'
+                : '0 đ';
         }
 
         function incrementQty() {
@@ -165,9 +166,16 @@
             const drawer = document.getElementById('productDrawer');
             const overlay = document.getElementById('drawerOverlay');
             
+            // Reset state
+            quantity = 1;
+            unitPrice = 0;
+            selectedProductSizeId = null;
+            currentProductId = null;
+            
             if (element && element.dataset.product) {
                 try {
                     const product = JSON.parse(element.dataset.product);
+                    currentProductId = product.id;  // always capture product ID
                     document.getElementById('drawerProductName').innerText = product.name || 'Sản phẩm';
                     
                     const sizeSection = document.getElementById('drawerSizeSection');
@@ -223,13 +231,28 @@
                             });
                         }
                     } else {
-                        // Product has no sizes at all
+                        // Product has NO sizes configured—allow adding with base_price
                         if (sizeSection) sizeSection.style.display = 'none';
                         selectedProductSizeId = null;
-                        unitPrice = parseFloat(product.price) || 0;
-                        document.getElementById('drawerProductPrice').innerText = unitPrice > 0 ? new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ' : 'Liên hệ';
+                        unitPrice = parseFloat(product.base_price) || 0;
+
                         const addBtn = document.getElementById('addToCartBtn');
-                        if (addBtn) { addBtn.disabled = true; addBtn.innerText = 'Chưa có size'; }
+                        if (unitPrice > 0) {
+                            // Has a base price — can be added to cart
+                            document.getElementById('drawerProductPrice').innerText =
+                                new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                            if (addBtn) {
+                                addBtn.disabled = false;
+                                addBtn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
+                            }
+                        } else {
+                            // No price at all — contact required
+                            document.getElementById('drawerProductPrice').innerText = 'Liên hệ';
+                            if (addBtn) {
+                                addBtn.disabled = true;
+                                addBtn.innerHTML = '<span>Liên hệđể đặt</span>';
+                            }
+                        }
                     }
 
                     if (product.description) {
@@ -294,6 +317,7 @@
                         }
                     }
 
+                    // Reset quantity after all state is set
                     quantity = 1;
                     updateTotals();
                 } catch(e) {
@@ -333,15 +357,32 @@
         }, 5000);
         // Add to Cart handler
         document.getElementById('addToCartBtn').addEventListener('click', function() {
-            if (!selectedProductSizeId) {
-                alert('Vui lòng chọn size!');
-                return;
+            // Must have a product
+            if (!currentProductId) return;
+
+            let data;
+            if (selectedProductSizeId) {
+                // Product WITH a size selected
+                data = {
+                    product_size_id: selectedProductSizeId,
+                    quantity: quantity
+                };
+            } else {
+                // Product WITHOUT sizes — send product_id + unit_price
+                if (unitPrice <= 0) {
+                    alert('Sản phẩm này chưa có giá, vui lòng liên hệ quầy.');
+                    return;
+                }
+                data = {
+                    product_id: currentProductId,
+                    unit_price: unitPrice,
+                    quantity: quantity
+                };
             }
 
-            const data = {
-                product_size_id: selectedProductSizeId,
-                quantity: quantity
-            };
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span>Đang thêm...</span>';
 
             fetch('{{ route("cart.add") }}', {
                 method: 'POST',
@@ -361,14 +402,22 @@
             })
             .then(res => {
                 if (res.success) {
-                    alert(res.message);
-                    closeDrawer();
+                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1">check_circle</span><span>Đã thêm!</span>';
+                    setTimeout(() => {
+                        closeDrawer();
+                        btn.disabled = false;
+                        btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
+                    }, 800);
                 } else {
                     alert(res.error || 'Có lỗi xảy ra, vui lòng thử lại.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
                 }
             })
             .catch(err => {
                 console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
             });
         });
     

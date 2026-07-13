@@ -51,7 +51,7 @@
                     <div class="space-y-sm mb-lg">
                         @foreach($order->items as $item)
                         @php
-                            $product = $item->productSize->product ?? null;
+                            $product = $item->productSize->product ?? $item->product;
                             $size    = $item->productSize->size ?? null;
                         @endphp
                         <div class="flex items-center gap-md">

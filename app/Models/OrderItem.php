@@ -11,7 +11,8 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
-        'product_size_id',
+        'product_id',       // always filled
+        'product_size_id',  // nullable
         'quantity',
         'unit_price',
         'total_price',
@@ -21,6 +22,11 @@ class OrderItem extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
     public function productSize()

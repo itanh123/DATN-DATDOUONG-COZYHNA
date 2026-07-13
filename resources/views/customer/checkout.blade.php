@@ -42,9 +42,10 @@
             <div class="divide-y divide-outline-variant/20">
                 @foreach($cartItems as $item)
                 @php
-                    $product = $item->productSize->product ?? null;
+                    // Support both sized and no-size products
+                    $product = $item->productSize->product ?? $item->product;
                     $size    = $item->productSize->size ?? null;
-                    $price   = $item->productSize->selling_price ?? 0;
+                    $price   = $item->unit_price;  // always use stored unit_price
                 @endphp
                 <div class="py-md flex items-center gap-md">
                     <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">

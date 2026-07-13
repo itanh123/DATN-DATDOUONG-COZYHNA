@@ -41,7 +41,7 @@ class OrderController extends Controller
         }
 
         $cartItems = CartItem::where('cart_id', $cart->id)
-            ->with(['productSize'])
+            ->with(['product', 'productSize.product', 'productSize.size'])
             ->get();
 
         if ($cartItems->isEmpty()) {
@@ -58,12 +58,10 @@ class OrderController extends Controller
                 'is_default'     => false,
             ]);
 
-            // Calculate totals
+            // Calculate totals using stored unit_price (works for both sized & no-size products)
             $subtotal = 0;
             foreach ($cartItems as $item) {
-                if ($item->productSize) {
-                    $subtotal += $item->productSize->selling_price * $item->quantity;
-                }
+                $subtotal += $item->unit_price * $item->quantity;
             }
             $shippingFee = 15000;
             $discount    = 0;
@@ -84,16 +82,19 @@ class OrderController extends Controller
                 'ordered_at'      => now(),
             ]);
 
-            // Create Order Items
+            // Create Order Items — works for both sized and no-size products
             foreach ($cartItems as $item) {
-                if (!$item->productSize) continue;
-                $unitPrice = $item->productSize->selling_price;
+                $productId = $item->product_id
+                    ?? $item->productSize?->product_id
+                    ?? null;
+
                 OrderItem::create([
                     'order_id'        => $order->id,
-                    'product_size_id' => $item->product_size_id,
+                    'product_id'      => $productId,
+                    'product_size_id' => $item->product_size_id, // nullable
                     'quantity'        => $item->quantity,
-                    'unit_price'      => $unitPrice,
-                    'total_price'     => $unitPrice * $item->quantity,
+                    'unit_price'      => $item->unit_price,
+                    'total_price'     => $item->unit_price * $item->quantity,
                     'note'            => null,
                 ]);
             }
@@ -121,7 +122,7 @@ class OrderController extends Controller
 
         if ($profile) {
             $orders = Order::where('customer_id', $profile->id)
-                ->with(['items.productSize.product', 'items.productSize.size'])
+                ->with(['items.productSize.product', 'items.productSize.size', 'items.product'])
                 ->orderByDesc('ordered_at')
                 ->get();
         }
