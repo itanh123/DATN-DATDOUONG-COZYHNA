@@ -175,7 +175,13 @@ Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->
 Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 Route::get('/customer/contact', function () { return view('customer.contact'); });
-Route::get('/customer/account', function () { return view('customer.account'); });
+Route::get('/customer/account', function () {
+    $userId = session('user_id');
+    if (!$userId) return redirect('/login');
+    $user = \App\Models\User::with('customerProfile')->find($userId);
+    if (!$user) return redirect('/login');
+    return view('customer.account', compact('user'));
+})->name('customer.account');
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'history'])->name('customer.orders');
 Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'place'])->name('orders.place');
 Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
