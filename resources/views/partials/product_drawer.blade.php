@@ -109,7 +109,7 @@
                         <span class="font-headline-md text-headline-md text-on-surface" id="totalPrice">$4.20</span>
                     </div>
                 </div>
-                <button
+                <button id="addToCartBtn"
                     class="w-full py-lg bg-primary text-on-primary font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex justify-center items-center gap-md">
                     <span>Add to Cart</span>
                     <span class="material-symbols-outlined">shopping_bag</span>
@@ -124,6 +124,7 @@
         window.allStoreProducts = {!! isset($products) ? $products->toJson() : '[]' !!};
         let quantity = 1;
         let unitPrice = 0;
+        let selectedProductSizeId = null;
 
         function updateTotals() {
             document.getElementById('qtyVal').innerText = quantity;
@@ -179,6 +180,7 @@
                         
                         let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
                         unitPrice = parseFloat(defaultPs.selling_price) || 0;
+                        selectedProductSizeId = defaultPs.id;
                         document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
 
                         product.product_sizes.forEach(ps => {
@@ -200,6 +202,7 @@
                                 });
                                 btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
                                 
+                                selectedProductSizeId = ps.id;
                                 unitPrice = parseFloat(ps.selling_price) || 0;
                                 document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                                 updateTotals();
@@ -312,6 +315,46 @@
                 ind.classList.toggle('bg-outline-variant', idx !== currentSlide);
             });
         }, 5000);
+        // Add to Cart handler
+        document.getElementById('addToCartBtn').addEventListener('click', function() {
+            if (!selectedProductSizeId) {
+                alert('Vui lòng chọn size!');
+                return;
+            }
+
+            const data = {
+                product_size_id: selectedProductSizeId,
+                quantity: quantity
+            };
+
+            fetch('{{ route("cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
+                    window.location.href = '/login';
+                    throw new Error('Unauthorized');
+                }
+                return response.json();
+            })
+            .then(res => {
+                if (res.success) {
+                    alert(res.message);
+                    closeDrawer();
+                } else {
+                    alert(res.error || 'Có lỗi xảy ra, vui lòng thử lại.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
+        });
     
 </script>
 @endpush
