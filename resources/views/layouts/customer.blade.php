@@ -144,8 +144,13 @@
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
 </div>
-<a href="/customer/checkout" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="shopping_cart">shopping_cart</a>
-<a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle">account_circle</a>
+<a href="/customer/checkout" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="shopping_cart" title="Giỏ hàng">shopping_cart</a>
+@if(session('user_id'))
+    <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="person" title="Hồ sơ">person</a>
+    <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
+@else
+    <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
+@endif
 </div>
 </header>
 
