@@ -163,6 +163,10 @@
         }
 
         function openDrawer(element = null) {
+            if (!element || !element.dataset.product) {
+                alert("Đây là sản phẩm minh họa. Vui lòng chọn các sản phẩm thực tế trong phần Danh Mục bên dưới.");
+                return;
+            }
             const drawer = document.getElementById('productDrawer');
             const overlay = document.getElementById('drawerOverlay');
             
