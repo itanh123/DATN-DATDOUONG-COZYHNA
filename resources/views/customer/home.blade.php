@@ -309,26 +309,7 @@
 <script>
     function addStaticToCart(event, name, price) {
         event.stopPropagation(); // Prevent drawer from opening
-        const cart = getCart();
-        
-        // Mock a product ID for static items
-        const staticId = 'static_' + name.replace(/\s+/g, '').toLowerCase();
-        
-        const existingItemIndex = cart.findIndex(item => item.product.id === staticId);
-        
-        if (existingItemIndex > -1) {
-            cart[existingItemIndex].quantity += 1;
-        } else {
-            cart.push({
-                product: { id: staticId, name: name },
-                size: null,
-                price: price,
-                quantity: 1
-            });
-        }
-        
-        saveCart(cart);
-        alert('Đã thêm ' + name + ' vào giỏ hàng!');
+        alert('Đây là sản phẩm minh họa. Vui lòng chọn các sản phẩm thực tế trong phần Danh Mục bên dưới.');
     }
 </script>
 @endpush

@@ -140,7 +140,7 @@
 <span class="text-primary font-bold">+$1.5k</span>
 </div>
 </div>
-<button class="mt-lg w-full py-2 text-primary font-label-md border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">Xem Tất Cả Sản phẩm</button>
+<a href="/admin/product" class="mt-lg w-full py-2 text-primary font-label-md border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors text-center block">Xem Tất Cả Sản phẩm</a>
 </div>
 </div>
 <!-- Đơn Hàng Gần Đây Table -->
