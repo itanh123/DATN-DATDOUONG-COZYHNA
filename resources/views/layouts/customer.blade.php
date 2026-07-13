@@ -144,7 +144,10 @@
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
 </div>
-<a href="/customer/checkout" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="shopping_cart">shopping_cart</a>
+<a href="/customer/checkout" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+    <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+    <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
+</a>
 <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle">account_circle</a>
 </div>
 </header>
@@ -208,6 +211,25 @@
             © 2024 CozyHNA. Bảo lưu mọi quyền.
         </div>
 </footer>
+
+<script>
+    window.serverCartCount = {{ $cartItemCount ?? 0 }};
+
+    function updateCartBadge() {
+        const badge = document.getElementById('cart-badge');
+        if (badge) {
+            if (window.serverCartCount > 0) {
+                badge.innerText = window.serverCartCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCartBadge);
+</script>
+
 @include('partials.product_drawer')
 @stack('scripts')
 </body>

@@ -145,7 +145,7 @@
 <p class="text-on-surface-variant text-body-md line-clamp-2">Trà ô long nhẹ nhàng với lớp bọt đào béo ngậy.</p>
 <div class="mt-md flex items-center justify-between">
 <span class="font-bold text-primary">$6.75</span>
-<button class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary">add_shopping_cart</button>
+<button onclick="addStaticToCart(event, 'Trà Ô Long Đào Mây', 6.75)" class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary hover:bg-primary hover:text-white transition-colors">add_shopping_cart</button>
 </div>
 </div>
 </div>
@@ -157,7 +157,7 @@
 <p class="text-on-surface-variant text-body-md line-clamp-2">Cacao 70% với một chút muối biển.</p>
 <div class="mt-md flex items-center justify-between">
 <span class="font-bold text-primary">$7.25</span>
-<button class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary">add_shopping_cart</button>
+<button onclick="addStaticToCart(event, 'Mocha Truffle Bóng Đêm', 7.25)" class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary hover:bg-primary hover:text-white transition-colors">add_shopping_cart</button>
 </div>
 </div>
 </div>
@@ -307,6 +307,33 @@
 </section>
 </div>
 </main>
+@push('scripts')
+<script>
+    function addStaticToCart(event, name, price) {
+        event.stopPropagation(); // Prevent drawer from opening
+        const cart = getCart();
+        
+        // Mock a product ID for static items
+        const staticId = 'static_' + name.replace(/\s+/g, '').toLowerCase();
+        
+        const existingItemIndex = cart.findIndex(item => item.product.id === staticId);
+        
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += 1;
+        } else {
+            cart.push({
+                product: { id: staticId, name: name },
+                size: null,
+                price: price,
+                quantity: 1
+            });
+        }
+        
+        saveCart(cart);
+        alert('Đã thêm ' + name + ' vào giỏ hàng!');
+    }
+</script>
+@endpush
 @endsection
 
 @push('scripts')

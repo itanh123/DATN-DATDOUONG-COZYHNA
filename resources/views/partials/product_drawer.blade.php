@@ -110,6 +110,7 @@
                     </div>
                 </div>
                 <button
+                    onclick="addToCartFromDrawer()"
                     class="w-full py-lg bg-primary text-on-primary font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex justify-center items-center gap-md">
                     <span>Add to Cart</span>
                     <span class="material-symbols-outlined">shopping_bag</span>
@@ -160,6 +161,47 @@
             }
         }
 
+        let currentProductForCart = null;
+        let currentSizeForCart = null;
+
+        async function addToCartFromDrawer() {
+            if (!currentProductForCart) return;
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: currentProductForCart.id,
+                        size_id: currentSizeForCart ? currentSizeForCart.id : null,
+                        quantity: quantity
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    window.serverCartCount = data.cartCount;
+                    if (typeof updateCartBadge === 'function') {
+                        updateCartBadge();
+                    }
+
+                    alert('Đã thêm ' + currentProductForCart.name + ' vào giỏ hàng!');
+                    closeDrawer();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra');
+                    if (data.message === 'Vui lòng đăng nhập') {
+                        window.location.href = '/login';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi kết nối mạng khi thêm vào giỏ hàng');
+            }
+        }
+
         function openDrawer(element = null) {
             const drawer = document.getElementById('productDrawer');
             const overlay = document.getElementById('drawerOverlay');
@@ -174,11 +216,15 @@
                     
                     if (sizeSelector) sizeSelector.innerHTML = '';
                     
+                    currentProductForCart = product;
+                    currentSizeForCart = null;
+
                     if (product.product_sizes && product.product_sizes.length > 0) {
                         if (sizeSection) sizeSection.style.display = 'block';
                         
                         let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
                         unitPrice = parseFloat(defaultPs.selling_price) || 0;
+                        currentSizeForCart = defaultPs.size || null;
                         document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
 
                         product.product_sizes.forEach(ps => {
@@ -201,6 +247,7 @@
                                 btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
                                 
                                 unitPrice = parseFloat(ps.selling_price) || 0;
+                                currentSizeForCart = ps.size || null;
                                 document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                                 updateTotals();
                             };

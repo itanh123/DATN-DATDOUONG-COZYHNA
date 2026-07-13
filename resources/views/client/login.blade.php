@@ -303,7 +303,7 @@
                                     style="font-size: 20px;">mail</span>
                                 <input
                                     class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
-placeholder="name@example.com" type="email" name="email" required />
+placeholder="nhập email của bạn" type="email" name="email" required />
                             </div>
                         </div>
                         <div>

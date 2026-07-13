@@ -182,6 +182,10 @@
 <span class="material-symbols-outlined" data-icon="campaign">campaign</span>
 <span class="font-label-md text-label-md">Khuyến mãi</span>
 </a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/voucher">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-label-md text-label-md">Voucher</span>
+</a>
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/reports">
 <span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
 <span class="font-label-md text-label-md">Báo cáo</span>

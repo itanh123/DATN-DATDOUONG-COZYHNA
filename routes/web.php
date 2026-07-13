@@ -168,7 +168,10 @@ Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) 
 // Static UI Routes (From branch anhvh)
 // ---------------------------------------------------------
 Route::get('/customer/auth', function () { return view('customer.auth'); });
-Route::get('/customer/checkout', function () { return view('customer.checkout'); });
+Route::get('/customer/checkout', [\App\Http\Controllers\CheckoutController::class, 'index']);
+Route::post('/customer/checkout/apply-voucher', [\App\Http\Controllers\CheckoutController::class, 'applyVoucher']);
+Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
+Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/account', function () { return view('customer.account'); });
 Route::get('/customer/orders', function () { return view('customer.orders'); });
@@ -181,6 +184,14 @@ Route::get('/admin/orders', function () { return view('admin.orders'); });
 Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });
+
+// Voucher Routes
+Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
+Route::get('/admin/voucher/add', [\App\Http\Controllers\VoucherController::class, 'create']);
+Route::post('/admin/voucher/store', [\App\Http\Controllers\VoucherController::class, 'store']);
+Route::get('/admin/voucher/{voucher}/edit', [\App\Http\Controllers\VoucherController::class, 'edit']);
+Route::post('/admin/voucher/{voucher}/update', [\App\Http\Controllers\VoucherController::class, 'update']);
+Route::post('/admin/voucher/{voucher}/delete', [\App\Http\Controllers\VoucherController::class, 'destroy']);
 
 Route::get('/staff/dashboard', function () { return view('staff.dashboard'); });
 Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
