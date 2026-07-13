@@ -58,33 +58,44 @@
 
     <div class="flex-1 overflow-y-auto custom-scrollbar bg-surface-container-lowest p-xl">
         <!-- Products Tab Content -->
-        <section class="tab-pane space-y-lg" id="products-content">
+        <section class="tab-pane space-y-lg pb-32" id="products-content">
             <div class="flex justify-between items-center">
-                <div class="flex gap-2">
-                    <div class="flex items-center gap-2 px-3 py-2 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md cursor-pointer hover:bg-surface-container-low transition-colors">
+                <form action="/admin/product" method="GET" class="m-0 flex gap-2">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors">
                         <span class="material-symbols-outlined text-body-md">filter_list</span>
-                        <span>Status: All</span>
+                        <select name="status" onchange="this.form.submit()" class="border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
+                            <option value="">Status: All</option>
+                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
+                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
+                        </select>
                     </div>
-                    <div class="flex items-center gap-2 px-3 py-2 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md cursor-pointer hover:bg-surface-container-low transition-colors">
+                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors">
                         <span class="material-symbols-outlined text-body-md">category</span>
-                        <span>Category: All</span>
+                        <select name="category_id" onchange="this.form.submit()" class="border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
+                            <option value="">Category: All</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </div>
+                </form>
 
                 <div class="flex gap-2">
                     <button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/30 rounded-lg text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all" type="button">
                         <span class="material-symbols-outlined">download</span> Export
                     </button>
+                    @if(check_permission('create_products'))
                     <button
                         class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
                         type="button" onclick="toggleModal('productModal')">
                         <span class="material-symbols-outlined">add</span> Add Product
                     </button>
+                    @endif
                 </div>
             </div>
 
 
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
@@ -147,6 +158,7 @@
                                     @endif
                                 </td>
                                 <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                    @if(check_permission('edit_products') || check_permission('delete_products'))
                                     <button
                                         class="p-1 hover:bg-surface-container rounded transition-colors action-more"
                                         type="button"
@@ -163,6 +175,7 @@
                                     </button>
                                     <div class="relative inline-block" style="position: relative;">
                                         <div class="absolute right-0 mt-2 w-40 bg-white border border-outline-variant/30 rounded-lg shadow-sm z-10 hidden product-action-menu" role="menu">
+                                            @if(check_permission('edit_products'))
                                             <button
                                                 type="button"
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
@@ -175,6 +188,8 @@
                                                 data-id="{{ $product->id }}"
                                                 data-sizes="{{ $product->productSizes->toJson() }}"
                                             >Manage Sizes</button>
+                                            @endif
+                                            @if(check_permission('delete_products'))
                                             <form action="/admin/product/{{ $product->id }}/delete" method="POST" class="m-0">
                                                 @csrf
                                                 <button
@@ -183,8 +198,10 @@
                                                     onclick="return confirm('Are you sure you want to delete this product?')"
                                                 >Delete</button>
                                             </form>
+                                            @endif
                                         </div>
                                     </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -195,23 +212,103 @@
                     </tbody>
                 </table>
             </div>
+            @if($products->hasPages())
+                <div class="p-4 border-t border-outline-variant/30">
+                    {{ $products->appends(request()->query())->links() }}
+                </div>
+            @endif
         </section>
 
 
         <!-- Categories/Recipes/Sizes placeholders giữ nguyên từ giao diện hiện tại -->
-        <section class="tab-pane hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg" id="categories-content"></section>
+        <section class="tab-pane hidden space-y-lg pb-32" id="categories-content">
+            <div class="flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Manage Categories</h3>
+                @if(check_permission('create_categories'))
+                <button
+                    class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
+                    type="button" onclick="toggleModal('categoryModal')">
+                    <span class="material-symbols-outlined">add</span> Add Category
+                </button>
+                @endif
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+                @forelse($categories as $category)
+                    <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm overflow-visible flex flex-col group hover:shadow-md transition-shadow relative">
+                        <div class="h-32 bg-surface-container-high overflow-hidden rounded-t-2xl">
+                            @if($category->image)
+                                <img src="{{ $category->image }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
+                                    <span class="material-symbols-outlined text-4xl">category</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-title-md text-title-md text-on-surface truncate pr-2">{{ $category->name }}</h4>
+                                @if(check_permission('edit_categories') || check_permission('delete_categories'))
+                                <div class="relative">
+                                    <button class="p-1 text-on-surface-variant hover:bg-surface-container rounded-full" onclick="openCategoryActions(this)">
+                                        <span class="material-symbols-outlined">more_vert</span>
+                                    </button>
+                                    <div class="absolute right-0 mt-1 w-32 bg-white border border-outline-variant/30 rounded-lg shadow-sm z-10 hidden category-action-menu">
+                                        @if(check_permission('edit_categories'))
+                                        <button type="button" class="w-full text-left px-3 py-2 text-label-md hover:bg-surface-container-low transition-colors"
+                                            onclick="openCategoryEditModalFromButton(this)"
+                                            data-id="{{ $category->id }}"
+                                            data-name="{{ $category->name }}"
+                                            data-description="{{ $category->description }}"
+                                            data-image="{{ $category->image }}"
+                                            data-status="{{ $category->status }}"
+                                        >Edit</button>
+                                        @endif
+                                        @if(check_permission('delete_categories'))
+                                        <form action="/admin/category/{{ $category->id }}/delete" method="POST" class="m-0">
+                                            @csrf
+                                            <button type="submit" class="w-full text-left px-3 py-2 text-label-md text-error hover:bg-surface-container-low transition-colors" onclick="return confirm('Delete this category?')">Delete</button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                            <p class="text-body-sm text-on-surface-variant line-clamp-2 mb-3">{{ $category->description ?: 'No description' }}</p>
+                            <div class="mt-auto">
+                                @if($category->status)
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-label-sm font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-error text-label-sm font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Inactive
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full p-8 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
+                        No categories found.
+                    </div>
+                @endforelse
+            </div>
+        </section>
         <section class="tab-pane hidden flex flex-col lg:flex-row gap-lg" id="recipes-content"></section>
-        <section class="tab-pane hidden space-y-lg" id="sizes-content">
+        <section class="tab-pane hidden space-y-lg pb-32" id="sizes-content">
             <div class="flex justify-between items-center">
                 <h3 class="font-headline-md text-headline-md">Manage Sizes</h3>
+                @if(check_permission('create_sizes'))
                 <button
                     class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
                     type="button" onclick="toggleModal('sizeModal')">
                     <span class="material-symbols-outlined">add</span> Add Size
                 </button>
+                @endif
             </div>
             
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
@@ -230,6 +327,7 @@
                                 <td class="p-4 text-on-surface">{{ $size->volume_ml ?? 'N/A' }}</td>
                                 <td class="p-4 text-on-surface-variant">{{ $size->description }}</td>
                                 <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                    @if(check_permission('edit_sizes') || check_permission('delete_sizes'))
                                     <button
                                         class="p-1 hover:bg-surface-container rounded transition-colors action-more-size"
                                         type="button"
@@ -243,11 +341,14 @@
                                     </button>
                                     <div class="relative inline-block" style="position: relative;">
                                         <div class="absolute right-0 mt-2 w-40 bg-white border border-outline-variant/30 rounded-lg shadow-sm z-10 hidden size-action-menu" role="menu">
+                                            @if(check_permission('edit_sizes'))
                                             <button
                                                 type="button"
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
                                                 onclick="openSizeEditModalFromButton(this)"
                                             >Edit</button>
+                                            @endif
+                                            @if(check_permission('delete_sizes'))
                                             <form action="/admin/size/{{ $size->id }}/delete" method="POST" class="m-0">
                                                 @csrf
                                                 <button
@@ -256,8 +357,10 @@
                                                     onclick="return confirm('Are you sure you want to delete this size?')"
                                                 >Delete</button>
                                             </form>
+                                            @endif
                                         </div>
                                     </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -282,25 +385,27 @@
             </div>
 
             <div class="p-xl space-y-lg">
-                <form id="edit_product_form" action="/admin/product/0/update" method="POST" enctype="multipart/form-data" class="space-y-lg">
+                <form id="edit_product_form" action="" method="POST" enctype="multipart/form-data" class="space-y-lg">
                     @csrf
-
                     <input type="hidden" id="edit_product_id" name="product_id" />
+                    @php
+                        $isAdmin = session('role_code') === 'admin';
+                    @endphp
 
                     <div>
                         <label class="block mb-2 font-medium">Product Name</label>
-                        <input id="edit_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Enter product name" required>
+                        <input id="edit_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Enter product name" {{ $isAdmin ? 'required' : 'disabled' }}>
                     </div>
 
                     <div class="grid grid-cols-2 gap-lg">
                         <div>
                             <label class="block mb-2 font-medium">Product Code</label>
-                            <input id="edit_code" type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="CF001" required>
+                            <input id="edit_code" type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="CF001" {{ $isAdmin ? 'required' : 'disabled' }}>
                         </div>
 
                         <div>
                             <label class="block mb-2 font-medium">Category</label>
-                            <select id="edit_category_id" name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" required>
+                            <select id="edit_category_id" name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" {{ $isAdmin ? 'required' : 'disabled' }}>
                                 <option value="">Select category</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -311,7 +416,7 @@
 
                     <div>
                         <label class="block mb-2 font-medium">Description</label>
-                        <textarea id="edit_description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Product description"></textarea>
+                        <textarea id="edit_description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Product description" {{ $isAdmin ? '' : 'disabled' }}></textarea>
                     </div>
 
                     <div>
@@ -323,7 +428,7 @@
 
                     <div>
                         <label class="block mb-2 font-medium">Product Image (optional)</label>
-                        <input type="file" name="image" accept="image/*" class="block w-full border border-gray-300 rounded-xl p-3">
+                        <input type="file" name="image" accept="image/*" class="block w-full border border-gray-300 rounded-xl p-3 disabled:opacity-50" {{ $isAdmin ? '' : 'disabled' }}>
                     </div>
 
                     <div>
@@ -476,6 +581,80 @@
         </div>
     </div>
 
+    <!-- Modal: Add Category -->
+    <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="categoryModal">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Add Category</h3>
+                <button type="button" onclick="toggleModal('categoryModal')" class="p-2 hover:bg-surface-container rounded-full">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-xl space-y-lg">
+                <form action="/admin/category/store" method="POST" class="space-y-lg">
+                    @csrf
+                    <div>
+                        <label class="block font-label-md mb-2">Category Name *</label>
+                        <input name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="E.g. Coffee">
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">Image URL</label>
+                        <input name="image" type="text" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="https://...">
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">Description</label>
+                        <textarea name="description" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl h-24" placeholder="Brief description"></textarea>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input name="status" type="checkbox" checked value="1" class="rounded w-5 h-5 text-primary border-outline focus:ring-primary">
+                        <label class="font-label-md">Active Category</label>
+                    </div>
+                    <div class="flex justify-end gap-md pt-4">
+                        <button onclick="toggleModal('categoryModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Cancel</button>
+                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Category -->
+    <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="categoryEditModal">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
+                <h3 class="font-headline-md text-headline-md">Edit Category</h3>
+                <button type="button" onclick="toggleModal('categoryEditModal')" class="p-2 hover:bg-surface-container rounded-full">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-xl space-y-lg">
+                <form id="categoryEditForm" method="POST" class="space-y-lg">
+                    @csrf
+                    <div>
+                        <label class="block font-label-md mb-2">Category Name *</label>
+                        <input id="edit_category_name" name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">Image URL</label>
+                        <input id="edit_category_image" name="image" type="text" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">Description</label>
+                        <textarea id="edit_category_description" name="description" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl h-24"></textarea>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input id="edit_category_status" name="status" type="checkbox" value="1" class="rounded w-5 h-5 text-primary border-outline focus:ring-primary">
+                        <label class="font-label-md">Active Category</label>
+                    </div>
+                    <div class="flex justify-end gap-md pt-4">
+                        <button onclick="toggleModal('categoryEditModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Cancel</button>
+                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Add Size -->
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="sizeModal">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
@@ -607,6 +786,16 @@
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
             const el = document.getElementById(`${tabId}-content`);
             if (el) el.classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active-tab', 'bg-white', 'shadow-sm', 'text-primary');
+                    btn.classList.remove('text-on-surface-variant', 'hover:text-on-surface');
+                } else {
+                    btn.classList.remove('active-tab', 'bg-white', 'shadow-sm', 'text-primary');
+                    btn.classList.add('text-on-surface-variant', 'hover:text-on-surface');
+                }
+            });
         }
 
         function openProductActions(button) {
@@ -615,14 +804,43 @@
             if (!row) return;
 
             const menu = row.querySelector('.product-action-menu');
-            if (!menu) return;
-
-            // Close others
+            
             document.querySelectorAll('.product-action-menu').forEach(m => {
                 if (m !== menu) m.classList.add('hidden');
             });
+            
+            if (menu) menu.classList.toggle('hidden');
+        }
 
-            menu.classList.toggle('hidden');
+        function openCategoryActions(button) {
+            if (!button) return;
+            document.querySelectorAll('.category-action-menu').forEach(menu => {
+                if (menu !== button.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
+            });
+            const menu = button.nextElementSibling;
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        function openCategoryEditModalFromButton(button) {
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const description = button.getAttribute('data-description');
+            const image = button.getAttribute('data-image');
+            const status = button.getAttribute('data-status');
+
+            document.getElementById('categoryEditForm').action = '/admin/category/' + id + '/update';
+            document.getElementById('edit_category_name').value = name || '';
+            document.getElementById('edit_category_description').value = description || '';
+            document.getElementById('edit_category_image').value = image || '';
+            document.getElementById('edit_category_status').checked = (status == 1);
+
+            document.querySelectorAll('.category-action-menu').forEach(m => m.classList.add('hidden'));
+            const modal = document.getElementById('categoryEditModal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function openEditModalFromButton(btn) {
@@ -732,6 +950,12 @@
             const sizeMore = e.target?.closest?.('.action-more-size');
             if (!sizeMenu && !sizeMore) {
                 document.querySelectorAll('.size-action-menu').forEach(m => m.classList.add('hidden'));
+            }
+
+            const catMenu = e.target?.closest?.('.category-action-menu');
+            const catMore = e.target?.closest?.('button[onclick*="openCategoryActions"]');
+            if (!catMenu && !catMore) {
+                document.querySelectorAll('.category-action-menu').forEach(m => m.classList.add('hidden'));
             }
         });
     </script>

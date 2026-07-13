@@ -91,20 +91,33 @@
 </div>
 </div>
 </section>
-<!-- Sản Phẩm Bán Chạy Giâytion -->
-<section class="mb-2xl">
-<div class="flex justify-between items-center mb-xl">
-<h2 class="font-headline-lg text-headline-lg">Sản Phẩm Bán Chạy</h2>
-<a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả</a>
-</div>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
-    @forelse($products ?? [] as $product)
-        <x-product-card :product="$product" />
-    @empty
+<!-- Danh Mục Sản Phẩm -->
+@php
+    $groupedProducts = collect($products ?? [])->groupBy(function($item) {
+        return $item->category ? $item->category->name : 'Khác';
+    });
+@endphp
+
+@forelse($groupedProducts as $categoryName => $categoryProducts)
+    <section class="mb-2xl">
+        <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-sm">
+            <h3 class="font-headline-lg text-headline-lg">{{ $categoryName }}</h3>
+            <a class="text-primary font-label-md hover:underline" href="#">Xem Tất Cả {{ $categoryName }}</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
+            @foreach($categoryProducts as $product)
+                <x-product-card :product="$product" />
+            @endforeach
+        </div>
+    </section>
+@empty
+    <section class="mb-2xl">
+        <div class="flex justify-between items-center mb-xl">
+            <h2 class="font-headline-lg text-headline-lg">Thực Đơn</h2>
+        </div>
         <p class="text-on-surface-variant font-body-md col-span-full">Chưa có sản phẩm nào.</p>
-    @endforelse
-</div>
-</section>
+    </section>
+@endforelse
 <!-- Promotion Banner -->
 <section class="mb-2xl">
 <div class="w-full bg-primary h-48 rounded-3xl relative overflow-hidden flex items-center px-2xl group cursor-pointer">
@@ -132,7 +145,7 @@
 <p class="text-on-surface-variant text-body-md line-clamp-2">Trà ô long nhẹ nhàng với lớp bọt đào béo ngậy.</p>
 <div class="mt-md flex items-center justify-between">
 <span class="font-bold text-primary">$6.75</span>
-<button class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary">add_shopping_cart</button>
+<button onclick="addStaticToCart(event, 'Trà Ô Long Đào Mây', 6.75)" class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary hover:bg-primary hover:text-white transition-colors">add_shopping_cart</button>
 </div>
 </div>
 </div>
@@ -144,7 +157,7 @@
 <p class="text-on-surface-variant text-body-md line-clamp-2">Cacao 70% với một chút muối biển.</p>
 <div class="mt-md flex items-center justify-between">
 <span class="font-bold text-primary">$7.25</span>
-<button class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary">add_shopping_cart</button>
+<button onclick="addStaticToCart(event, 'Mocha Truffle Bóng Đêm', 7.25)" class="bg-surface-container-high p-2 rounded-full material-symbols-outlined text-[20px] text-primary hover:bg-primary hover:text-white transition-colors">add_shopping_cart</button>
 </div>
 </div>
 </div>
@@ -294,6 +307,33 @@
 </section>
 </div>
 </main>
+@push('scripts')
+<script>
+    function addStaticToCart(event, name, price) {
+        event.stopPropagation(); // Prevent drawer from opening
+        const cart = getCart();
+        
+        // Mock a product ID for static items
+        const staticId = 'static_' + name.replace(/\s+/g, '').toLowerCase();
+        
+        const existingItemIndex = cart.findIndex(item => item.product.id === staticId);
+        
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += 1;
+        } else {
+            cart.push({
+                product: { id: staticId, name: name },
+                size: null,
+                price: price,
+                quantity: 1
+            });
+        }
+        
+        saveCart(cart);
+        alert('Đã thêm ' + name + ' vào giỏ hàng!');
+    }
+</script>
+@endpush
 @endsection
 
 @push('scripts')
