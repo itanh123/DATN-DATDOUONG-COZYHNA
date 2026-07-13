@@ -236,7 +236,11 @@
                     </header>
                     @if($errors->any())
                         <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
-                            {{ $errors->first() }}
+                            <ul class="list-disc pl-5">
+                                @foreach($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
                     <div class="grid grid-cols-2 gap-md mb-lg">
@@ -283,14 +287,14 @@
                                 <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full Name</label>
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">person</span>
-                                    <input name="username" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text" />
+                                    <input name="username" value="{{ old('username') }}" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text" />
                                 </div>
                             </div>
                             <div>
                                 <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Phone Number</label>
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">phone</span>
-                                    <input name="phone" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="0901234567" type="tel" />
+                                    <input name="phone" value="{{ old('phone') }}" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="0901234567" type="tel" />
                                 </div>
                             </div>
                         </div>
@@ -303,7 +307,7 @@
                                     style="font-size: 20px;">mail</span>
                                 <input
                                     class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
-placeholder="name@example.com" type="email" name="email" required />
+placeholder="name@example.com" type="email" name="email" value="{{ old('email') }}" required />
                             </div>
                         </div>
                         <div>
@@ -317,7 +321,7 @@ placeholder="name@example.com" type="email" name="email" required />
                                 <span
                                     class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant"
                                     style="font-size: 20px;">lock</span>
-                                <input
+                                <input id="passwordInput"
                                     class="w-full pl-11 pr-11 py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
 type="password" name="password" required />
                                 <button

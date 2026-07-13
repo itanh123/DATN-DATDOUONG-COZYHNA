@@ -32,7 +32,9 @@ Route::get('/', function () {
         ->with(['productSizes.size', 'category'])
         ->get();
 
-    return view('customer.home', compact('products'));
+    $categories = \App\Models\Category::where('status', true)->get();
+
+    return view('customer.home', compact('products', 'categories'));
 });
 
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
@@ -168,10 +170,15 @@ Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) 
 // Static UI Routes (From branch anhvh)
 // ---------------------------------------------------------
 Route::get('/customer/auth', function () { return view('customer.auth'); });
-Route::get('/customer/checkout', function () { return view('customer.checkout'); });
+Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
+Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/account', function () { return view('customer.account'); });
-Route::get('/customer/orders', function () { return view('customer.orders'); });
+Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'history'])->name('customer.orders');
+Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'place'])->name('orders.place');
+Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 
@@ -182,8 +189,10 @@ Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });
 
-Route::get('/staff/dashboard', function () { return view('staff.dashboard'); });
-Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
+Route::get('/staff/dashboard', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+Route::get('/staff/order_fulfillment', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+Route::post('/staff/orders/{id}/confirm', [\App\Http\Controllers\StaffController::class, 'confirm'])->name('staff.orders.confirm');
+Route::post('/staff/orders/{id}/complete', [\App\Http\Controllers\StaffController::class, 'complete'])->name('staff.orders.complete');
 
 Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
 Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
