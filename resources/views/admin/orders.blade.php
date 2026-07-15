@@ -132,7 +132,7 @@
 </thead>
 <tbody class="divide-y divide-outline-variant/20">
 @forelse($orders as $order)
-<tr class="order-row transition-colors">
+<tr class="order-row transition-colors hover:bg-surface-container-low" data-order="{{ json_encode($order) }}">
 <td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->order_code }}</td>
 <td class="px-lg py-lg">
 <div class="flex items-center gap-sm">
@@ -163,17 +163,22 @@
 </td>
 <td class="px-lg py-lg font-body-md text-on-surface-variant">{{ \Carbon\Carbon::parse($order->created_at)->diffForHumans() }}</td>
 <td class="px-lg py-lg text-right">
-    <form action="/admin/orders/{{ $order->id }}/status" method="POST" class="inline-flex items-center gap-2">
-        @csrf
-        <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0">
-            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
-            <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
-            <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
-            <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>Đang giao</option>
-            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
-            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
-        </select>
-    </form>
+    <div class="flex items-center justify-end gap-2">
+        <button type="button" onclick="showOrderDetails(this)" class="p-1 text-primary hover:bg-primary-container hover:text-on-primary-container rounded transition-colors flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">visibility</span>
+        </button>
+        <form action="/admin/orders/{{ $order->id }}/status" method="POST" class="inline-flex items-center m-0">
+            @csrf
+            <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0 cursor-pointer">
+                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
+                <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
+                <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
+                <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>Đang giao</option>
+                <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
+            </select>
+        </form>
+    </div>
 </td>
 </tr>
 @empty
@@ -237,19 +242,139 @@
 </div>
 </div>
 </section>
+<!-- Order Detail Modal -->
+<div id="orderDetailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-surface w-full max-w-2xl rounded-3xl shadow-xl flex flex-col max-h-full overflow-hidden">
+        <!-- Header -->
+        <div class="p-xl border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low">
+            <div>
+                <h3 class="font-headline-md text-on-surface" id="modalOrderCode">Chi tiết đơn hàng</h3>
+                <p class="text-on-surface-variant text-label-md" id="modalOrderDate"></p>
+            </div>
+            <button type="button" onclick="closeOrderModal()" class="w-10 h-10 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center text-on-surface transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <!-- Content -->
+        <div class="p-xl overflow-y-auto flex-1 space-y-lg">
+            <!-- Customer Info -->
+            <div class="bg-surface-container-lowest p-md rounded-2xl border border-outline-variant/30">
+                <h4 class="font-title-lg text-primary mb-2 flex items-center gap-2"><span class="material-symbols-outlined">person</span> Giao hàng</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-label-sm text-on-surface-variant uppercase">Người nhận</p>
+                        <p class="font-body-md font-semibold text-on-surface" id="modalCustomerName"></p>
+                    </div>
+                    <div>
+                        <p class="text-label-sm text-on-surface-variant uppercase">Số điện thoại</p>
+                        <p class="font-body-md font-semibold text-on-surface" id="modalCustomerPhone"></p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-label-sm text-on-surface-variant uppercase">Địa chỉ giao hàng</p>
+                        <p class="font-body-md text-on-surface" id="modalCustomerAddress"></p>
+                    </div>
+                    <div class="col-span-2" id="noteContainer">
+                        <p class="text-label-sm text-on-surface-variant uppercase">Ghi chú của khách hàng</p>
+                        <p class="font-body-md text-error font-semibold bg-error/5 p-2 rounded-lg mt-1" id="modalOrderNote"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            <div>
+                <h4 class="font-title-lg text-primary mb-2 flex items-center gap-2"><span class="material-symbols-outlined">local_mall</span> Sản phẩm</h4>
+                <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-surface-container-low border-b border-outline-variant/30">
+                            <tr>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant">Sản phẩm</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant text-center">SL</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant text-right">Đơn giá</th>
+                                <th class="px-md py-sm font-label-sm text-on-surface-variant text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrderItems" class="divide-y divide-outline-variant/20">
+                            <!-- Items inserted by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="bg-surface-container-lowest p-md rounded-2xl border border-outline-variant/30">
+                <div class="flex justify-between py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant">Tạm tính</span>
+                    <span class="font-semibold" id="modalSubtotal"></span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant">Phí giao hàng</span>
+                    <span class="font-semibold" id="modalShippingFee"></span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-outline-variant/10">
+                    <span class="text-on-surface-variant">Giảm giá</span>
+                    <span class="font-semibold text-error" id="modalDiscount"></span>
+                </div>
+                <div class="flex justify-between py-3">
+                    <span class="font-title-lg text-on-surface">Tổng cộng</span>
+                    <span class="font-headline-md text-primary" id="modalTotal"></span>
+                </div>
+                <div class="flex justify-between mt-2 pt-2 border-t border-outline-variant/20">
+                    <span class="text-on-surface-variant text-label-md uppercase">Phương thức thanh toán</span>
+                    <span class="font-semibold text-on-surface uppercase text-sm bg-surface-container px-2 py-1 rounded" id="modalPayment"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </main>
 @endsection
 
 @push('scripts')
 <script>
-
-        // Simple Micro-interactions
-        document.querySelectorAll('.order-row').forEach(row => {
-            row.addEventListener('click', () => {
-                // Future: Open detail panel
-                console.log('Row clicked');
+        function showOrderDetails(btn) {
+            const tr = btn.closest('tr');
+            const order = JSON.parse(tr.dataset.order);
+            
+            document.getElementById('modalOrderCode').innerText = 'Đơn hàng #' + order.order_code;
+            document.getElementById('modalOrderDate').innerText = new Date(order.created_at).toLocaleString('vi-VN');
+            
+            document.getElementById('modalCustomerName').innerText = order.receiver_name || order.customer_name;
+            document.getElementById('modalCustomerPhone').innerText = order.receiver_phone || 'N/A';
+            document.getElementById('modalCustomerAddress').innerText = order.shipping_address || 'N/A';
+            
+            const noteEl = document.getElementById('modalOrderNote');
+            if (order.note) {
+                noteEl.innerText = order.note;
+                document.getElementById('noteContainer').classList.remove('hidden');
+            } else {
+                document.getElementById('noteContainer').classList.add('hidden');
+            }
+            
+            const tbody = document.getElementById('modalOrderItems');
+            tbody.innerHTML = '';
+            order.items.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="text-sm">
+                        <td class="px-md py-sm font-medium">${item.product_name}</td>
+                        <td class="px-md py-sm text-center">${item.quantity}</td>
+                        <td class="px-md py-sm text-right">${new Intl.NumberFormat('vi-VN').format(item.unit_price)}đ</td>
+                        <td class="px-md py-sm text-right font-semibold">${new Intl.NumberFormat('vi-VN').format(item.total_price)}đ</td>
+                    </tr>
+                `;
             });
-        });
+            
+            document.getElementById('modalSubtotal').innerText = new Intl.NumberFormat('vi-VN').format(order.subtotal) + 'đ';
+            document.getElementById('modalShippingFee').innerText = new Intl.NumberFormat('vi-VN').format(order.shipping_fee) + 'đ';
+            document.getElementById('modalDiscount').innerText = '-' + new Intl.NumberFormat('vi-VN').format(order.discount_amount) + 'đ';
+            document.getElementById('modalTotal').innerText = new Intl.NumberFormat('vi-VN').format(order.total_amount) + 'đ';
+            document.getElementById('modalPayment').innerText = order.payment_method;
+            
+            document.getElementById('orderDetailModal').classList.remove('hidden');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderDetailModal').classList.add('hidden');
+        }
 
         // Search Bar Focus Effect
         const searchInput = document.querySelector('input[type="text"]');
@@ -259,6 +384,5 @@
         searchInput.addEventListener('blur', () => {
             searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
         });
-    
 </script>
 @endpush

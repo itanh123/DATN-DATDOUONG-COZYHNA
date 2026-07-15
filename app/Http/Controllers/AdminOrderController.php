@@ -17,7 +17,14 @@ class AdminOrderController extends Controller
         $query = DB::table('orders')
             ->join('customer_profiles', 'orders.customer_id', '=', 'customer_profiles.id')
             ->join('users', 'customer_profiles.user_id', '=', 'users.id')
-            ->select('orders.*', 'users.username as customer_name');
+            ->leftJoin('customer_addresses', 'orders.address_id', '=', 'customer_addresses.id')
+            ->select(
+                'orders.*', 
+                'users.username as customer_name',
+                'customer_addresses.receiver_name',
+                'customer_addresses.receiver_phone',
+                'customer_addresses.address as shipping_address'
+            );
 
         // Apply filters
         $statusFilter = $request->input('status');
