@@ -29,8 +29,31 @@ Route::get('/', function () {
     $products = \App\Models\Product::query()
         ->whereNull('deleted_at')
         ->where('status', true)
-        ->with(['productSizes.size', 'category'])
+        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category'])
         ->get();
+
+    $availableProducts = $products->filter(function ($product) {
+        $hasAvailableSize = false;
+        foreach ($product->productSizes as $size) {
+            $isSizeAvailable = true;
+            $recipe = $size->recipes->first();
+            if ($recipe) {
+                foreach ($recipe->ingredients as $ri) {
+                    if ($ri->ingredient && $ri->ingredient->current_stock < $ri->quantity) {
+                        $isSizeAvailable = false;
+                        break;
+                    }
+                }
+            }
+            if ($isSizeAvailable) {
+                $hasAvailableSize = true;
+                break;
+            }
+        }
+        return $hasAvailableSize;
+    });
+
+    $products = $availableProducts;
 
     return view('customer.home', compact('products'));
 });
@@ -40,12 +63,12 @@ Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
-Route::get('/admin/dashboard', function () {
-    if (!check_permission('view_dashboard')) {
-        return redirect('/login');
-    }
-    return view('admin.dashboard');
-});
+Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
+
+Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
+Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
+Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
+Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
 
 Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
     if (!check_permission('view_products')) {
@@ -53,6 +76,8 @@ Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
     }
     return app('App\Http\Controllers\ProductController')->index($request);
 });
+Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
+Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
 
 Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
     if (!check_permission('create_products')) {

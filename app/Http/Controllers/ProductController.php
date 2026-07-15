@@ -26,7 +26,8 @@ class ProductController extends Controller
         
         $products = $query->paginate(10);
         $sizes = Size::orderBy('name')->get();
-        return view('admin.product', compact('categories', 'products', 'sizes'));
+        $ingredients = \App\Models\Ingredient::orderBy('name')->get();
+        return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients'));
     }
 
 
@@ -191,6 +192,42 @@ class ProductController extends Controller
     {
         $category->delete();
         return redirect('/admin/product')->with('success', 'Category deleted successfully');
+    }
+
+    // --- Recipe Management ---
+    public function recipe(Product $product)
+    {
+        $product->load('productSizes.size', 'productSizes.recipes.ingredients');
+        $ingredients = \App\Models\Ingredient::orderBy('name')->get();
+        return view('admin.recipes.index', compact('product', 'ingredients'));
+    }
+
+    public function updateRecipe(Request $request, Product $product)
+    {
+        $data = $request->input('recipes', []);
+
+        foreach ($data as $productSizeId => $recipeData) {
+            $recipe = \App\Models\Recipe::firstOrCreate(
+                ['product_size_id' => $productSizeId],
+                ['name' => 'Recipe for size ' . $productSizeId]
+            );
+
+            $recipe->ingredients()->delete();
+
+            if (isset($recipeData['ingredients'])) {
+                foreach ($recipeData['ingredients'] as $ingId => $qtyData) {
+                    if (!empty($qtyData['quantity']) && $qtyData['quantity'] > 0) {
+                        $recipe->ingredients()->create([
+                            'ingredient_id' => $ingId,
+                            'unit_id' => \App\Models\Ingredient::find($ingId)->unit_id ?? 1,
+                            'quantity' => $qtyData['quantity']
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect('/admin/product')->with('success', 'Cập nhật công thức thành công!');
     }
 }
 
