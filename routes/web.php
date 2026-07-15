@@ -170,17 +170,19 @@ Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) 
 Route::get('/customer/auth', function () { return view('customer.auth'); });
 Route::get('/customer/checkout', [\App\Http\Controllers\CheckoutController::class, 'index']);
 Route::post('/customer/checkout/apply-voucher', [\App\Http\Controllers\CheckoutController::class, 'applyVoucher']);
+Route::post('/customer/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder']);
 Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
 Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/account', function () { return view('customer.account'); });
-Route::get('/customer/orders', function () { return view('customer.orders'); });
+Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders']);
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 
 Route::get('/admin/add_product', function () { return view('admin.add_product'); });
 Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-Route::get('/admin/orders', function () { return view('admin.orders'); });
+Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
+Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
 Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });

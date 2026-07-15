@@ -31,10 +31,9 @@
 <div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30 flex items-start justify-between">
 <div>
 <p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Tổng cộng Đơn hàng Today</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">184</h3>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $totalOrdersToday }}</h3>
 <div class="flex items-center gap-xs mt-xs text-secondary font-semibold">
-<span class="material-symbols-outlined text-sm">trending_up</span>
-<span class="text-xs">+12.5% vs yesterday</span>
+<span class="text-xs">Đơn hàng trong ngày</span>
 </div>
 </div>
 <div class="p-md bg-primary-fixed rounded-xl text-on-primary-fixed">
@@ -44,11 +43,11 @@
 <!-- Stat Card 2 -->
 <div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30 flex items-start justify-between">
 <div>
-<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Chờ xử lý Prep</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">14</h3>
+<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Chờ xử lý / Đang chuẩn bị</p>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $pendingPrep }}</h3>
 <div class="flex items-center gap-xs mt-xs text-tertiary font-semibold">
 <span class="material-symbols-outlined text-sm">hourglass_empty</span>
-<span class="text-xs">Action required</span>
+<span class="text-xs">Cần xử lý</span>
 </div>
 </div>
 <div class="p-md bg-tertiary-fixed rounded-xl text-on-tertiary-fixed">
@@ -58,8 +57,8 @@
 <!-- Stat Card 3 -->
 <div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30 flex items-start justify-between">
 <div>
-<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Out for Delivery</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">28</h3>
+<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Đang Giao Hàng</p>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $outForDelivery }}</h3>
 <div class="flex items-center gap-xs mt-xs text-on-surface-variant font-semibold">
 <span class="material-symbols-outlined text-sm">local_shipping</span>
 <span class="text-xs">Moving steadily</span>
@@ -72,11 +71,10 @@
 <!-- Stat Card 4 -->
 <div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30 flex items-start justify-between">
 <div>
-<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Avg. Fulfillment</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">14m 20s</h3>
+<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Thời gian hoàn thành TB</p>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $avgFulfillment }}</h3>
 <div class="flex items-center gap-xs mt-xs text-secondary font-semibold">
-<span class="material-symbols-outlined text-sm">arrow_downward</span>
-<span class="text-xs">-2m vs last hour</span>
+<span class="text-xs">Hôm nay</span>
 </div>
 </div>
 <div class="p-md bg-surface-container-highest rounded-xl text-on-surface">
@@ -87,28 +85,24 @@
 <!-- Filters & Tools -->
 <section class="flex flex-col lg:flex-row items-center justify-between gap-md mb-lg">
 <div class="flex flex-wrap items-center gap-sm">
+<form action="/admin/orders" method="GET" id="filterForm" class="flex gap-sm w-full">
 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center px-md py-sm">
 <span class="material-symbols-outlined text-on-surface-variant mr-xs">filter_list</span>
-<select class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
-<option>Trạng thái: All Đơn hàng</option>
-<option>Chờ xử lý</option>
-<option>Brewing</option>
-<option>Out for Delivery</option>
-<option>Hoàn thành</option>
+<select name="status" onchange="document.getElementById('filterForm').submit()" class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
+<option value="all" {{ $statusFilter == 'all' ? 'selected' : '' }}>Trạng thái: All Đơn hàng</option>
+<option value="pending" {{ $statusFilter == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
+<option value="confirmed" {{ $statusFilter == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
+<option value="preparing" {{ $statusFilter == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
+<option value="shipping" {{ $statusFilter == 'shipping' ? 'selected' : '' }}>Đang giao</option>
+<option value="completed" {{ $statusFilter == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+<option value="cancelled" {{ $statusFilter == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
 </select>
 </div>
 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center px-md py-sm">
 <span class="material-symbols-outlined text-on-surface-variant mr-xs">calendar_today</span>
-<span class="font-body-md text-on-surface">Oct 24, 2024</span>
+<input type="date" name="date" value="{{ $dateFilter }}" onchange="document.getElementById('filterForm').submit()" class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
 </div>
-<div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center px-md py-sm">
-<span class="material-symbols-outlined text-on-surface-variant mr-xs">handyman</span>
-<select class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
-<option>Method: All</option>
-<option>Pickup</option>
-<option>Delivery</option>
-</select>
-</div>
+</form>
 </div>
 <div class="flex items-center gap-sm">
 <button class="bg-surface-container-lowest border border-outline-variant text-on-surface px-md py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-surface-container-low transition-colors">
@@ -137,129 +131,64 @@
 </tr>
 </thead>
 <tbody class="divide-y divide-outline-variant/20">
-<!-- Order Row 1 -->
+@forelse($orders as $order)
 <tr class="order-row transition-colors">
-<td class="px-lg py-lg font-body-md font-semibold text-primary">#CH-8821</td>
+<td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->order_code }}</td>
 <td class="px-lg py-lg">
 <div class="flex items-center gap-sm">
-<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-xs">JD</div>
-<span class="font-body-md font-medium">Jane Doe</span>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-xs">{{ strtoupper(substr($order->customer_name, 0, 2)) }}</div>
+<span class="font-body-md font-medium">{{ $order->customer_name }}</span>
 </div>
 </td>
 <td class="px-lg py-lg">
-<span class="font-body-md text-on-surface-variant">2x Oat Latte, 1x Matcha Cookie</span>
+<span class="font-body-md text-on-surface-variant">
+@foreach($order->items as $index => $item)
+    {{ $item->quantity }}x {{ $item->product_name }}@if(!$loop->last), @endif
+@endforeach
+</span>
 </td>
-<td class="px-lg py-lg font-body-md font-semibold">$22.50</td>
+<td class="px-lg py-lg font-body-md font-semibold">{{ number_format($order->total_amount, 0, ',', '.') }}đ</td>
 <td class="px-lg py-lg">
-<span class="inline-flex items-center gap-xs px-md py-1 rounded-full bg-tertiary-container/20 text-tertiary-container font-semibold text-xs border border-tertiary-container/30">
-<span class="w-2 h-2 rounded-full bg-tertiary"></span>
-                                    Brewing
-                                </span>
+@php
+    $statusColor = 'bg-surface-container text-on-surface';
+    if($order->status == 'pending' || $order->status == 'confirmed') $statusColor = 'bg-error-container text-on-error-container';
+    if($order->status == 'preparing') $statusColor = 'bg-tertiary-container text-on-tertiary-container';
+    if($order->status == 'shipping') $statusColor = 'bg-secondary-container text-on-secondary-container';
+    if($order->status == 'completed') $statusColor = 'bg-primary-container text-on-primary-container';
+    if($order->status == 'cancelled') $statusColor = 'bg-error text-on-error';
+@endphp
+<span class="inline-flex items-center gap-xs px-md py-1 rounded-full {{ $statusColor }} font-semibold text-xs border border-outline-variant/30">
+    {{ ucfirst($order->status) }}
+</span>
 </td>
-<td class="px-lg py-lg font-body-md text-on-surface-variant">04:12</td>
-<td class="px-lg py-lg text-right space-x-2">
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors" title="View Details">
-<span class="material-symbols-outlined text-primary">visibility</span>
-</button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors" title="Update Trạng thái">
-<span class="material-symbols-outlined text-secondary">edit_square</span>
-</button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors" title="Print Label">
-<span class="material-symbols-outlined text-on-surface-variant">print</span>
-</button>
+<td class="px-lg py-lg font-body-md text-on-surface-variant">{{ \Carbon\Carbon::parse($order->created_at)->diffForHumans() }}</td>
+<td class="px-lg py-lg text-right">
+    <form action="/admin/orders/{{ $order->id }}/status" method="POST" class="inline-flex items-center gap-2">
+        @csrf
+        <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0">
+            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
+            <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
+            <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
+            <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>Đang giao</option>
+            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
+        </select>
+    </form>
 </td>
 </tr>
-<!-- Order Row 2 -->
-<tr class="order-row transition-colors">
-<td class="px-lg py-lg font-body-md font-semibold text-primary">#CH-8820</td>
-<td class="px-lg py-lg">
-<div class="flex items-center gap-sm">
-<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs">MS</div>
-<span class="font-body-md font-medium">Michael Smith</span>
-</div>
-</td>
-<td class="px-lg py-lg">
-<span class="font-body-md text-on-surface-variant">1x Cold Brew, 1x Espresso</span>
-</td>
-<td class="px-lg py-lg font-body-md font-semibold">$12.00</td>
-<td class="px-lg py-lg">
-<span class="inline-flex items-center gap-xs px-md py-1 rounded-full bg-secondary-container text-on-secondary-container font-semibold text-xs border border-secondary/20">
-<span class="w-2 h-2 rounded-full bg-secondary"></span>
-                                    Out for Delivery
-                                </span>
-</td>
-<td class="px-lg py-lg font-body-md text-on-surface-variant">12:45</td>
-<td class="px-lg py-lg text-right space-x-2">
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-primary">visibility</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-secondary">edit_square</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-on-surface-variant">print</span></button>
-</td>
+@empty
+<tr>
+    <td colspan="7" class="text-center py-lg text-on-surface-variant">Không có đơn hàng nào</td>
 </tr>
-<!-- Order Row 3 -->
-<tr class="order-row transition-colors">
-<td class="px-lg py-lg font-body-md font-semibold text-primary">#CH-8819</td>
-<td class="px-lg py-lg">
-<div class="flex items-center gap-sm">
-<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface font-bold text-xs">AK</div>
-<span class="font-body-md font-medium">Alice Kim</span>
-</div>
-</td>
-<td class="px-lg py-lg">
-<span class="font-body-md text-on-surface-variant">3x Flat White, 2x Avocado Toast</span>
-</td>
-<td class="px-lg py-lg font-body-md font-semibold">$48.90</td>
-<td class="px-lg py-lg">
-<span class="inline-flex items-center gap-xs px-md py-1 rounded-full bg-error-container text-on-error-container font-semibold text-xs border border-error/20">
-<span class="w-2 h-2 rounded-full bg-error"></span>
-                                    Chờ xử lý
-                                </span>
-</td>
-<td class="px-lg py-lg font-body-md text-on-surface-variant">00:45</td>
-<td class="px-lg py-lg text-right space-x-2">
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-primary">visibility</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-secondary">edit_square</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-on-surface-variant">print</span></button>
-</td>
-</tr>
-<!-- Order Row 4 -->
-<tr class="order-row transition-colors">
-<td class="px-lg py-lg font-body-md font-semibold text-primary">#CH-8818</td>
-<td class="px-lg py-lg">
-<div class="flex items-center gap-sm">
-<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-xs">RW</div>
-<span class="font-body-md font-medium">Robert Wilson</span>
-</div>
-</td>
-<td class="px-lg py-lg">
-<span class="font-body-md text-on-surface-variant">1x Seasonal Tea Selection</span>
-</td>
-<td class="px-lg py-lg font-body-md font-semibold">$6.50</td>
-<td class="px-lg py-lg">
-<span class="inline-flex items-center gap-xs px-md py-1 rounded-full bg-surface-container text-on-surface font-semibold text-xs border border-outline-variant">
-<span class="w-2 h-2 rounded-full bg-on-surface"></span>
-                                    Hoàn thành
-                                </span>
-</td>
-<td class="px-lg py-lg font-body-md text-on-surface-variant">18:22</td>
-<td class="px-lg py-lg text-right space-x-2">
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-primary">visibility</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-secondary">edit_square</span></button>
-<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-on-surface-variant">print</span></button>
-</td>
-</tr>
+@endforelse
 </tbody>
 </table>
 </div>
 <!-- Pagination -->
 <div class="bg-surface-container-low px-lg py-md flex items-center justify-between border-t border-outline-variant/30">
-<p class="font-body-md text-on-surface-variant">Showing <span class="font-semibold text-on-surface">1-4</span> of <span class="font-semibold text-on-surface">128</span> orders</p>
-<div class="flex gap-xs">
-<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-semibold text-sm">1</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-high transition-colors">2</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-high transition-colors">3</button>
-<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
-</div>
+    <div class="w-full mt-4">
+        {{ $orders->appends(request()->query())->links() }}
+    </div>
 </div>
 </section>
 <!-- Live Trạng thái Sidebar Placeholder (Phúti-Bảng điều khiển) -->

@@ -330,7 +330,7 @@
         }
         
         saveCart(cart);
-        alert('Đã thêm ' + name + ' vào giỏ hàng!');
+        // alert('Đã thêm ' + name + ' vào giỏ hàng!');
     }
 </script>
 @endpush

@@ -188,7 +188,7 @@
                         updateCartBadge();
                     }
 
-                    alert('Đã thêm ' + currentProductForCart.name + ' vào giỏ hàng!');
+                    // alert('Đã thêm ' + currentProductForCart.name + ' vào giỏ hàng!');
                     closeDrawer();
                 } else {
                     alert(data.message || 'Có lỗi xảy ra');

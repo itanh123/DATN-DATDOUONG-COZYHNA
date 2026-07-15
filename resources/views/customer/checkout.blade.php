@@ -8,6 +8,12 @@
 <h1 class="font-headline-lg text-headline-lg text-on-background">Thanh Toán</h1>
 <p class="font-body-md text-body-md text-on-surface-variant">Complete your order and we'll start brewing.</p>
 </div>
+<form id="placeOrderForm" action="/customer/checkout/place-order" method="POST">
+    @csrf
+    @if(isset($defaultAddress))
+        <input type="hidden" name="address_id" value="{{ $defaultAddress->id }}">
+    @endif
+</form>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
 <!-- Left Column: Order Details -->
 <div class="lg:col-span-8 space-y-lg">
@@ -56,48 +62,52 @@
 <span class="material-symbols-outlined text-primary">location_on</span>
                             Địa Chỉ Giao Hàng
                         </h2>
-<button class="text-primary font-label-md text-label-md hover:underline decoration-2 underline-offset-4 transition-all" onclick="toggleModal()">Change</button>
 </div>
-<div class="p-md rounded-lg bg-surface-container-low border border-outline-variant/30">
-@if(count($addresses) > 0)
-    @php $defaultAddress = $addresses[0]; @endphp
-    <p class="font-body-lg text-body-lg font-medium">{{ $defaultAddress->receiver_name }} - {{ $defaultAddress->receiver_phone }}</p>
-    <p class="font-body-md text-body-md text-on-surface-variant">{{ $defaultAddress->address }}</p>
-    <p class="font-body-md text-body-md text-on-surface-variant">{{ $defaultAddress->ward }}, {{ $defaultAddress->district }}, {{ $defaultAddress->province }}</p>
-@else
-    <p class="font-body-lg text-body-lg font-medium">{{ $user->username }}</p>
-    <p class="font-body-md text-body-md text-on-surface-variant text-primary italic cursor-pointer">Vui lòng thêm địa chỉ giao hàng</p>
-@endif
+<div class="space-y-sm">
+    @php 
+        $defaultAddress = count($addresses) > 0 ? $addresses[0] : null; 
+        $fullAddress = $defaultAddress ? $defaultAddress->address . ', ' . $defaultAddress->ward . ', ' . $defaultAddress->district . ', ' . $defaultAddress->province : '';
+    @endphp
+    <input type="text" name="receiver_name" form="placeOrderForm" placeholder="Tên người nhận" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_name : $user->username }}" />
+    
+    <input type="text" name="receiver_phone" form="placeOrderForm" placeholder="Số điện thoại" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_phone : '' }}" />
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+        <select id="provinceSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface">
+            <option value="">Chọn Tỉnh/Thành</option>
+        </select>
+        <select id="districtSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled>
+            <option value="">Chọn Quận/Huyện</option>
+        </select>
+        <select id="wardSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled>
+            <option value="">Chọn Phường/Xã</option>
+        </select>
+    </div>
+    <input type="text" id="specificAddress" placeholder="Số nhà, Tên đường, Tổ dân phố..." class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" />
+    <input type="hidden" id="shippingAddress" name="shipping_address" form="placeOrderForm" value="{{ $fullAddress }}" />
+    
+    <input type="hidden" id="distance_km" name="distance_km" form="placeOrderForm" value="0">
+    <input type="hidden" id="calculated_shipping_fee" name="shipping_fee" form="placeOrderForm" value="0">
+    
+    <div id="distanceInfo" class="hidden mt-sm p-sm bg-primary/10 rounded-lg text-primary font-medium text-sm flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[20px]">directions_car</span>
+        <span>Khoảng cách: <strong id="distanceText">0 km</strong> - Phí ship: <strong id="feeText">0 VNĐ</strong></span>
+    </div>
+    <div id="distanceError" class="hidden mt-sm p-sm bg-error/10 rounded-lg text-error font-medium text-sm flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[20px]">error</span>
+        <span>Khoảng cách vượt quá 10km. Cửa hàng không hỗ trợ giao đơn hàng này.</span>
+    </div>
 </div>
 </section>
-<!-- Delivery Method -->
+<!-- Ghi chú -->
 <section class="bg-surface-container-lowest rounded-xl p-lg custom-shadow">
-<h2 class="font-title-lg text-title-lg flex items-center gap-xs mb-md">
-<span class="material-symbols-outlined text-primary">local_shipping</span>
-                        Delivery Method
-                    </h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-<label class="cursor-pointer group">
-<input checked="" class="hidden peer" name="delivery" type="radio"/>
-<div class="p-md rounded-xl border border-outline-variant/30 peer-checked:border-primary peer-checked:bg-primary/5 group-hover:bg-surface-container-high transition-all">
-<div class="flex items-center justify-between">
-<span class="font-body-lg text-body-lg font-semibold">Standard</span>
-<span class="font-body-lg text-body-lg text-primary">0 VNĐ</span>
-</div>
-<p class="font-label-md text-label-md text-on-surface-variant mt-xs">Estimated: 15-25 mins</p>
-</div>
-</label>
-<label class="cursor-pointer group">
-<input class="hidden peer" name="delivery" type="radio"/>
-<div class="p-md rounded-xl border border-outline-variant/30 peer-checked:border-primary peer-checked:bg-primary/5 group-hover:bg-surface-container-high transition-all">
-<div class="flex items-center justify-between">
-<span class="font-body-lg text-body-lg font-semibold">Express</span>
-<span class="font-body-lg text-body-lg text-primary">0 VNĐ</span>
-</div>
-<p class="font-label-md text-label-md text-on-surface-variant mt-xs">Estimated: 8-12 mins</p>
-</div>
-</label>
-</div>
+    <h2 class="font-title-lg text-title-lg flex items-center gap-xs mb-md">
+        <span class="material-symbols-outlined text-primary">edit_note</span>
+        Ghi Chú Đơn Hàng
+    </h2>
+    <div class="space-y-sm">
+        <textarea name="note" id="orderNote" form="placeOrderForm" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px]" placeholder="Ghi chú thêm về đơn hàng của bạn (ví dụ: giao giờ hành chính, nhiều đá...)"></textarea>
+    </div>
 </section>
 <!-- Phương Thức Thanh Toán -->
 <section class="bg-surface-container-lowest rounded-xl p-lg custom-shadow">
@@ -107,24 +117,21 @@
                     </h2>
 <div class="space-y-sm">
 <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-<input checked="" class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio"/>
-<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+<input checked="" class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="cash" form="placeOrderForm"/>
+<span class="material-symbols-outlined text-on-surface-variant">payments</span>
 <div class="flex-grow">
-<span class="font-body-lg text-body-lg font-medium">Credit Card</span>
-<p class="font-label-md text-label-md text-on-surface-variant">Visa ending in 4242</p>
+<span class="font-body-lg text-body-lg font-medium">Thanh toán khi nhận hàng (COD)</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Thanh toán bằng tiền mặt khi nhận được hàng</p>
 </div>
 <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
 </label>
 <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio"/>
-<span class="material-symbols-outlined text-on-surface-variant">branding_watermark</span>
-<span class="font-body-lg text-body-lg font-medium flex-grow">Apple Pay</span>
-<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
-</label>
-<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio"/>
-<span class="material-symbols-outlined text-on-surface-variant">payments</span>
-<span class="font-body-lg text-body-lg font-medium flex-grow">Cash on Delivery</span>
+<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="vnpay" form="placeOrderForm"/>
+<span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
+<div class="flex-grow">
+<span class="font-body-lg text-body-lg font-medium">Thanh toán qua VNPay</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Thanh toán trực tuyến an toàn qua cổng VNPay</p>
+</div>
 <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
 </label>
 </div>
@@ -141,7 +148,7 @@
 </div>
 <div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
 <span>Phí giao hàng</span>
-<span>0 VNĐ</span>
+<span id="summaryShippingFee">0 VNĐ</span>
 </div>
 @if($appliedVoucher)
 <div class="flex justify-between font-body-md text-body-md text-primary">
@@ -152,7 +159,7 @@
 <div class="pt-sm border-t border-outline-variant/20">
 <div class="flex justify-between font-headline-md text-headline-md text-on-background">
 <span>Tổng cộng</span>
-<span class="text-primary font-bold">{{ number_format($finalTotal, 0, ',', '.') }} VNĐ</span>
+<span class="text-primary font-bold" id="summaryTotal">{{ number_format($finalTotal, 0, ',', '.') }} VNĐ</span>
 </div>
 </div>
 </div>
@@ -202,7 +209,7 @@
     </form>
 </div>
 <!-- Đặt Hàng CTA -->
-<button class="w-full py-md bg-primary-container text-on-primary-container font-headline-md text-headline-md rounded-xl hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm">
+<button type="submit" id="placeOrderBtn" form="placeOrderForm" class="w-full py-md bg-primary-container text-on-primary-container font-headline-md text-headline-md rounded-xl hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
                         Đặt Hàng
                         <span class="material-symbols-outlined">arrow_forward</span>
 </button>
@@ -286,5 +293,227 @@
             }
         });
     
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const provinceSelect = document.getElementById('provinceSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const wardSelect = document.getElementById('wardSelect');
+        const specificAddress = document.getElementById('specificAddress');
+        const shippingAddressInput = document.getElementById('shippingAddress');
+        const orderNote = document.getElementById('orderNote');
+        
+        let savedProvince = sessionStorage.getItem('checkout_province');
+        let savedDistrict = sessionStorage.getItem('checkout_district');
+        let savedWard = sessionStorage.getItem('checkout_ward');
+        
+        specificAddress.value = sessionStorage.getItem('checkout_specific') || specificAddress.value;
+        if (orderNote) {
+            orderNote.value = sessionStorage.getItem('checkout_note') || orderNote.value;
+            orderNote.addEventListener('input', () => sessionStorage.setItem('checkout_note', orderNote.value));
+        }
+        const rName = document.querySelector('input[name="receiver_name"]');
+        if(rName) {
+            rName.value = sessionStorage.getItem('checkout_name') || rName.value;
+            rName.addEventListener('input', () => sessionStorage.setItem('checkout_name', rName.value));
+        }
+        const rPhone = document.querySelector('input[name="receiver_phone"]');
+        if(rPhone) {
+            rPhone.value = sessionStorage.getItem('checkout_phone') || rPhone.value;
+            rPhone.addEventListener('input', () => sessionStorage.setItem('checkout_phone', rPhone.value));
+        }
+        
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.code;
+                    option.textContent = p.name;
+                    provinceSelect.appendChild(option);
+                });
+                if (savedProvince) {
+                    provinceSelect.value = savedProvince;
+                    provinceSelect.dispatchEvent(new Event('change'));
+                }
+            });
+            
+        provinceSelect.addEventListener('change', function() {
+            sessionStorage.setItem('checkout_province', this.value);
+            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+            
+            if (this.value) {
+                fetch(`https://provinces.open-api.vn/api/p/${this.value}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.districts.forEach(d => {
+                            const option = document.createElement('option');
+                            option.value = d.code;
+                            option.textContent = d.name;
+                            districtSelect.appendChild(option);
+                        });
+                        districtSelect.disabled = false;
+                        if (savedDistrict && provinceSelect.value === savedProvince) {
+                            districtSelect.value = savedDistrict;
+                            districtSelect.dispatchEvent(new Event('change'));
+                        }
+                    });
+            }
+            updateCombinedAddress();
+        });
+        
+        districtSelect.addEventListener('change', function() {
+            sessionStorage.setItem('checkout_district', this.value);
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            wardSelect.disabled = true;
+            
+            if (this.value) {
+                fetch(`https://provinces.open-api.vn/api/d/${this.value}?depth=2`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.wards.forEach(w => {
+                            const option = document.createElement('option');
+                            option.value = w.code;
+                            option.textContent = w.name;
+                            wardSelect.appendChild(option);
+                        });
+                        wardSelect.disabled = false;
+                        if (savedWard && districtSelect.value === savedDistrict) {
+                            wardSelect.value = savedWard;
+                            wardSelect.dispatchEvent(new Event('change'));
+                            
+                            savedWard = null;
+                            savedDistrict = null;
+                            savedProvince = null;
+                        }
+                    });
+            }
+            updateCombinedAddress();
+        });
+        
+        wardSelect.addEventListener('change', function() {
+            sessionStorage.setItem('checkout_ward', this.value);
+            updateCombinedAddress();
+        });
+        
+        specificAddress.addEventListener('input', function() {
+            sessionStorage.setItem('checkout_specific', this.value);
+            updateCombinedAddress();
+        });
+        
+        let timeout = null;
+        function updateCombinedAddress() {
+            let addressParts = [];
+            if (specificAddress.value.trim() !== '') {
+                addressParts.push(specificAddress.value.trim());
+            }
+            if (wardSelect.selectedIndex > 0) {
+                addressParts.push(wardSelect.options[wardSelect.selectedIndex].text);
+            }
+            if (districtSelect.selectedIndex > 0) {
+                addressParts.push(districtSelect.options[districtSelect.selectedIndex].text);
+            }
+            if (provinceSelect.selectedIndex > 0) {
+                addressParts.push(provinceSelect.options[provinceSelect.selectedIndex].text);
+            }
+            
+            const fullAddress = addressParts.join(', ');
+            shippingAddressInput.value = fullAddress;
+            
+            if (addressParts.length >= 3) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => calculateDistance(fullAddress), 1000);
+            }
+        }
+
+        const storeLat = 20.6390143;
+        const storeLon = 105.9188582;
+        
+        async function calculateDistance(destinationAddress) {
+            try {
+                let parts = destinationAddress.split(',').map(s => s.trim());
+                let geocodeData = null;
+                
+                // 1. Geocode destination using Nominatim with Fallback
+                while (parts.length > 0) {
+                    const query = parts.join(', ');
+                    const encodedAddress = encodeURIComponent(query);
+                    const geocodeRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=vn&limit=1`);
+                    const data = await geocodeRes.json();
+                    
+                    if (data && data.length > 0) {
+                        geocodeData = data;
+                        break;
+                    }
+                    
+                    // Fallback: remove the most specific part (the first one) and try again
+                    parts.shift();
+                }
+                
+                if (!geocodeData) {
+                    console.error('Could not find destination coordinates');
+                    document.getElementById('distanceText').innerText = "N/A km";
+                    document.getElementById('feeText').innerText = "Không xác định";
+                    document.getElementById('distanceInfo').classList.remove('hidden');
+                    return;
+                }
+                
+                const destLat = geocodeData[0].lat;
+                const destLon = geocodeData[0].lon;
+                
+                // 2. Calculate distance using OSRM
+                const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${storeLon},${storeLat};${destLon},${destLat}?overview=false`);
+                const osrmData = await osrmRes.json();
+                
+                if (osrmData.code !== 'Ok' || !osrmData.routes || osrmData.routes.length === 0) {
+                    console.error('Error calculating route');
+                    return;
+                }
+                
+                const distanceValue = osrmData.routes[0].distance; // in meters
+                const distanceKm = (distanceValue / 1000).toFixed(1);
+                
+                if (parseFloat(distanceKm) > 10) {
+                    document.getElementById('distance_km').value = distanceKm;
+                    document.getElementById('calculated_shipping_fee').value = 0;
+                    
+                    document.getElementById('distanceText').innerText = distanceKm + " km";
+                    document.getElementById('feeText').innerText = "Không hỗ trợ giao";
+                    document.getElementById('distanceInfo').classList.remove('hidden');
+                    document.getElementById('distanceError').classList.remove('hidden');
+                    
+                    document.getElementById('summaryShippingFee').innerText = "0 VNĐ";
+                    const baseTotal = {{ $finalTotal }};
+                    document.getElementById('summaryTotal').innerText = new Intl.NumberFormat('vi-VN').format(baseTotal) + " VNĐ";
+                    
+                    document.getElementById('placeOrderBtn').disabled = true;
+                } else {
+                    const fee = Math.ceil(distanceKm * 5000); // 5000 VND per km
+                    
+                    document.getElementById('distance_km').value = distanceKm;
+                    document.getElementById('calculated_shipping_fee').value = fee;
+                    
+                    document.getElementById('distanceText').innerText = distanceKm + " km";
+                    document.getElementById('feeText').innerText = new Intl.NumberFormat('vi-VN').format(fee) + " VNĐ";
+                    document.getElementById('distanceInfo').classList.remove('hidden');
+                    document.getElementById('distanceError').classList.add('hidden');
+                    
+                    document.getElementById('summaryShippingFee').innerText = new Intl.NumberFormat('vi-VN').format(fee) + " VNĐ";
+                    
+                    const baseTotal = {{ $finalTotal }};
+                    const newTotal = baseTotal + fee;
+                    document.getElementById('summaryTotal').innerText = new Intl.NumberFormat('vi-VN').format(newTotal) + " VNĐ";
+                    
+                    document.getElementById('placeOrderBtn').disabled = false;
+                }
+                
+            } catch (error) {
+                console.error("Routing error:", error);
+            }
+        }
+    });
 </script>
 @endpush
