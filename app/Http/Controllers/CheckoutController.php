@@ -399,15 +399,7 @@ class CheckoutController extends Controller
                     'updated_at' => now()
                 ]);
 
-                // Deduct inventory based on recipe
-                $recipe = \App\Models\Recipe::where('product_size_id', $item->product_size_id)->first();
-                if ($recipe) {
-                    $recipeIngredients = \App\Models\RecipeIngredient::where('recipe_id', $recipe->id)->get();
-                    foreach ($recipeIngredients as $ri) {
-                        \App\Models\Ingredient::where('id', $ri->ingredient_id)
-                            ->decrement('current_stock', $ri->quantity * $item->quantity);
-                    }
-                }
+
             }
 
             if ($voucherId) {

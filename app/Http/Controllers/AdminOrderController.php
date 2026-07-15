@@ -76,9 +76,29 @@ class AdminOrderController extends Controller
         if (!check_permission('manage_orders')) {
             return redirect('/login')->with('error', 'You do not have permission.');
         }
+        $order = DB::table('orders')->where('id', $id)->first();
+        if (!$order) {
+            return redirect()->back()->with('error', 'Không tìm thấy đơn hàng.');
+        }
 
         $status = $request->input('status');
         if (in_array($status, ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'cancelled'])) {
+            // Chỉ trừ nguyên liệu khi trạng thái chuyển thành "đang giao" (shipping)
+            // và trạng thái cũ chưa phải là shipping/completed/cancelled
+            if ($status === 'shipping' && !in_array($order->status, ['shipping', 'completed', 'cancelled'])) {
+                $orderItems = DB::table('order_items')->where('order_id', $order->id)->get();
+                foreach ($orderItems as $item) {
+                    $recipe = \App\Models\Recipe::where('product_size_id', $item->product_size_id)->first();
+                    if ($recipe) {
+                        $recipeIngredients = \App\Models\RecipeIngredient::where('recipe_id', $recipe->id)->get();
+                        foreach ($recipeIngredients as $ri) {
+                            \App\Models\Ingredient::where('id', $ri->ingredient_id)
+                                ->decrement('current_stock', $ri->quantity * $item->quantity);
+                        }
+                    }
+                }
+            }
+
             DB::table('orders')->where('id', $id)->update([
                 'status' => $status,
                 'updated_at' => now()
