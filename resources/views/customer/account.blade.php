@@ -3,66 +3,116 @@
 @section('title', 'Account')
 
 @section('content')
-<main class="flex-grow md:ml-72 p-md md:p-xl bg-background">
+<main class="flex-grow pt-24 pb-24 md:pb-8 p-md md:p-xl bg-background w-full">
 <!-- Profile Tab Content -->
 <section class="max-w-4xl mx-auto space-y-xl" id="content-profile">
-<div class="flex items-center justify-between">
-<h1 class="font-headline-lg text-on-surface">Thông tin cá nhân</h1>
-<button class="bg-primary text-on-primary px-lg py-2 rounded-full font-label-md hover:opacity-90 transition-opacity active:scale-95">Lưu Thay Đổi</button>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
-<!-- Avatar Card -->
-<div class="glass-card p-lg rounded-xl flex flex-col items-center text-center">
-<div class="relative w-32 h-32 mb-md">
-<img class="w-full h-full object-cover rounded-full border-4 border-primary/10" data-alt="A professional and clean studio headshot of a friendly individual with soft, warm lighting. The style is modern minimalist, focusing on a bright, airy aesthetic with subtle greens and natural skin tones to match the CozyHNA organic vitality theme. High-end lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuKYZVnCZM7sUwO1cpNa1rdotTiwAVpCuVQjGSdPLD1cAQ10OdvU0m1G3psRcb6tqmUr0ZsViV4Ce-LnFRgUfhfDU6FTp8rX1PbJKwsybqN2nU68MEuYa9RX10SRxiRo5f6kPGISO9bFlBVDHuRvyDerWCf9J9uGeyjfgkQTArZ7b_eFmeQEWSkqLM5lggVILSkUbPawAKYhRwmj5GPaqnVkYv1CpxJkq3c_fD1_jnOo1TegL5__T1cYD_sv_Qxfq1pGty-ekJ"/>
-<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg">
-<span class="material-symbols-outlined text-sm">edit</span>
-</button>
-</div>
-<h3 class="font-title-lg">Alex Rivera</h3>
-<p class="font-body-md text-on-surface-variant">Thành viên từ Jan 2023</p>
-</div>
-<!-- Details Card -->
-<div class="md:col-span-2 glass-card p-lg rounded-xl space-y-md">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-<div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Full Name</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="Alex Rivera"/>
-</div>
-<div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Email Address</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="email" value="alex.rivera@example.com"/>
-</div>
-<div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Số điện thoại Number</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="+1 (555) 123-4567"/>
-</div>
-<div class="space-y-base">
-<label class="font-label-sm text-on-surface-variant ml-1">Birthday</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="date" value="1992-05-14"/>
-</div>
-</div>
-</div>
-</div>
-<!-- Giâyurity Giâytion -->
-<div class="glass-card p-lg rounded-xl">
-<h3 class="font-title-lg mb-md flex items-center gap-2">
-<span class="material-symbols-outlined text-primary">security</span>
-                        Giâyurity &amp; Login
-                    </h3>
-<div class="flex items-center justify-between p-md bg-surface-container-low rounded-lg">
-<div class="flex items-center gap-md">
-<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">password</span>
-</div>
-<div>
-<p class="font-body-md font-bold">Mật khẩu</p>
-<p class="font-label-md text-on-surface-variant">Last changed 3 months ago</p>
-</div>
-</div>
-<button class="text-primary font-label-md hover:underline">Change Mật khẩu</button>
-</div>
-</div>
+    <form method="POST" action="/customer/account/update" enctype="multipart/form-data">
+        @csrf
+        <div class="mb-lg">
+            <h1 class="font-headline-lg text-on-surface">Thông tin cá nhân</h1>
+        </div>
+        
+        @if(session('success'))
+            <div class="bg-primary-container text-on-primary-container p-md rounded-lg mb-lg">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="bg-error-container text-on-error-container p-md rounded-lg mb-lg">
+                <ul class="list-disc ml-5">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+            <!-- Avatar Card -->
+            <div class="glass-card p-lg rounded-xl flex flex-col items-center text-center">
+                <div class="relative w-32 h-32 mb-md">
+                    <img id="avatar-preview" class="w-full h-full object-cover rounded-full border-4 border-primary/10" src="{{ $user->avatar ? asset('storage/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->name ?: $user->username).'&background=random&size=128' }}" />
+                    <label class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg cursor-pointer hover:bg-on-primary-fixed-variant transition-colors">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        <input type="file" name="avatar" class="hidden" accept="image/*" onchange="document.getElementById('avatar-preview').src = window.URL.createObjectURL(this.files[0])" />
+                    </label>
+                </div>
+                <h3 class="font-title-lg">{{ $user->name ?: $user->username }}</h3>
+                <p class="font-body-md text-on-surface-variant">Thành viên từ {{ $user->created_at->format('M Y') }}</p>
+                @if($user->google_id)
+                    <p class="font-label-sm mt-2 text-primary bg-primary/10 px-2 py-1 rounded-md inline-block">Đăng nhập bằng Google</p>
+                @endif
+            </div>
+
+            <!-- Details Card -->
+            <div class="md:col-span-2 glass-card p-lg rounded-xl space-y-md">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                    <div class="space-y-base">
+                        <label class="font-label-sm text-on-surface-variant ml-1">Họ và Tên</label>
+                        <input name="name" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="{{ old('name', $user->name) }}"/>
+                    </div>
+                    <div class="space-y-base">
+                        <label class="font-label-sm text-on-surface-variant ml-1">Địa chỉ Email</label>
+                        <input name="email" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary {{ $user->google_id ? 'opacity-70 cursor-not-allowed' : '' }}" type="email" value="{{ old('email', $user->email) }}" {{ $user->google_id ? 'readonly' : '' }}/>
+                    </div>
+                    <div class="space-y-base">
+                        <label class="font-label-sm text-on-surface-variant ml-1">Số điện thoại</label>
+                        <input name="phone" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="{{ old('phone', $user->phone) }}"/>
+                    </div>
+                    <div class="space-y-base">
+                        <label class="font-label-sm text-on-surface-variant ml-1">Tên đăng nhập</label>
+                        <input name="username" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="{{ old('username', $user->username) }}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="glass-card p-lg rounded-xl mt-lg">
+            <h3 class="font-title-lg mb-md flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">security</span>
+                    Bảo mật &amp; Đăng nhập
+                </div>
+                <a href="/logout" class="bg-error/10 text-error px-md py-2 rounded-full font-label-md hover:bg-error hover:text-white transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    Đăng xuất
+                </a>
+            </h3>
+            
+            @if(!$user->google_id)
+            <div class="p-md bg-surface-container-low rounded-lg space-y-md">
+                <div class="flex items-center gap-md mb-2">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">password</span>
+                    </div>
+                    <div>
+                        <p class="font-body-md font-bold">Đổi Mật Khẩu</p>
+                        <p class="font-label-md text-on-surface-variant">Để trống nếu không muốn đổi</p>
+                    </div>
+                </div>
+                <input name="new_password" class="w-full max-w-md bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="password" placeholder="Nhập mật khẩu mới..."/>
+            </div>
+            @else
+            <div class="p-md bg-surface-container-low rounded-lg flex items-center gap-md">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined">g_translate</span>
+                </div>
+                <div>
+                    <p class="font-body-md font-bold">Mật khẩu được quản lý bởi Google</p>
+                    <p class="font-label-md text-on-surface-variant">Tài khoản của bạn đăng nhập thông qua Google nên không cần thiết lập mật khẩu ở đây.</p>
+                </div>
+            </div>
+            @endif
+        </div>
+
+        <div class="mt-xl flex justify-end">
+            <button type="submit" class="bg-primary text-on-primary px-xl py-3 rounded-full font-title-lg hover:opacity-90 transition-opacity active:scale-95 shadow-md flex items-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                Lưu Thay Đổi
+            </button>
+        </div>
+    </form>
 </section>
 <!-- Addresses Tab Content (Hidden by default) -->
 <section class="hidden max-w-4xl mx-auto space-y-xl" id="content-addresses">

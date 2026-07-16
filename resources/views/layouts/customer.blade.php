@@ -134,7 +134,6 @@
 <span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
 <nav class="hidden md:flex gap-lg">
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
-<a class="font-body-lg text-body-lg {{ request()->is('customer/account') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/account">Ưu đãi</a>
 <a class="font-body-lg text-body-lg {{ request()->is('customer/orders') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/orders">Đơn hàng</a>
 <a class="font-body-lg text-body-lg {{ request()->is('customer/contact') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/contact">Giới thiệu</a>
 </nav>
@@ -148,7 +147,11 @@
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
     <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
 </a>
-<a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle">account_circle</a>
+@if(session()->has('user_id'))
+    <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
+@else
+    <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
+@endif
 </div>
 </header>
 

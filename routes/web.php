@@ -63,6 +63,9 @@ Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
+Route::get('/auth/google', [\App\Http\Controllers\AuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
+
 Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
 
 Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
@@ -174,6 +177,19 @@ Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $requ
     return app('App\Http\Controllers\UserController')->updateRole($request, $user);
 });
 
+Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+    // We check permission inside the controller based on user_id
+    return app('App\Http\Controllers\UserController')->updatePassword($request, $user);
+});
+
+Route::post('/admin/users/{user}/toggle-status', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+    return app('App\Http\Controllers\UserController')->toggleStatus($request, $user);
+});
+
+Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+    return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
+});
+
 // Roles and Permissions Routes
 Route::get('/admin/roles', function () {
     if (!check_permission('view_roles')) {
@@ -199,7 +215,14 @@ Route::post('/customer/checkout/place-order', [\App\Http\Controllers\CheckoutCon
 Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
 Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
 Route::get('/customer/contact', function () { return view('customer.contact'); });
-Route::get('/customer/account', function () { return view('customer.account'); });
+Route::get('/customer/account', function () {
+    if (!session()->has('user_id')) {
+        return redirect('/login');
+    }
+    $user = \App\Models\User::find(session('user_id'));
+    return view('customer.account', compact('user'));
+});
+Route::post('/customer/account/update', [\App\Http\Controllers\AuthController::class, 'updateProfile']);
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders']);
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });

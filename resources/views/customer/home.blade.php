@@ -197,57 +197,22 @@
 <!-- Cửa Hàng Gần Nhất Giâytion -->
 <section class="mb-2xl">
 <div class="flex justify-between items-center mb-xl">
-<h2 class="font-headline-lg text-headline-lg">Cửa Hàng Gần Nhất</h2>
+<h2 class="font-headline-lg text-headline-lg">Địa Chỉ Quán</h2>
 <button class="flex items-center gap-base text-primary font-label-md">
 <span class="material-symbols-outlined text-[18px]">my_location</span> Vị Trí Hiện Tại
                     </button>
 </div>
 <div class="flex flex-col md:flex-row gap-lg h-[400px]">
-<div class="w-full md:w-1/3 space-y-md overflow-y-auto pr-md no-scrollbar">
-<div class="bg-white p-lg rounded-2xl border border-primary shadow-sm ring-1 ring-primary/20">
-<div class="flex justify-between mb-base">
-<h3 class="font-bold">CozyHNA - Downtown Core</h3>
-<span class="text-primary text-label-sm">Mở Cửa</span>
-</div>
-<p class="text-body-md text-on-surface-variant mb-md">124 Premium St, West Side</p>
-<div class="flex items-center gap-xl text-label-md">
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">directions_walk</span> 5 phút</span>
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">bolt</span> Xong trong 8 phút</span>
-</div>
-</div>
-<div class="bg-white p-lg rounded-2xl border border-outline-variant/30 hover:border-primary/50 transition-colors">
-<div class="flex justify-between mb-base">
-<h3 class="font-bold">CozyHNA - Garden Plaza</h3>
-<span class="text-primary text-label-sm">Mở Cửa</span>
-</div>
-<p class="text-body-md text-on-surface-variant mb-md">45 Green Blvd, South District</p>
-<div class="flex items-center gap-xl text-label-md">
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">directions_car</span> 12 phút</span>
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">bolt</span> Xong trong 15 phút</span>
-</div>
-</div>
-<div class="bg-white p-lg rounded-2xl border border-outline-variant/30 hover:border-primary/50 transition-colors opacity-70">
-<div class="flex justify-between mb-base">
-<h3 class="font-bold">CozyHNA - Waterfront</h3>
-<span class="text-error text-label-sm">Sắp Đóng Cửa</span>
-</div>
-<p class="text-body-md text-on-surface-variant mb-md">88 Harbor Way, East Pier</p>
-<div class="flex items-center gap-xl text-label-md">
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">directions_walk</span> 20 phút</span>
-<span class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">bolt</span> Xong trong 5 phút</span>
-</div>
-</div>
-</div>
-<div class="flex-1 bg-surface-container-high rounded-3xl overflow-hidden relative">
-<div class="absolute inset-0 bg-cover bg-center" data-alt="A minimalist and stylish stylized map of a metropolitan area with custom brand pins indicating store locations. The map uses a light color palette with soft greens and neutral grays." data-location="New York City" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD9ePNddLwvVZrdsw2eXQrgRLdf_4SSHRbq8oDsZiXu8Id_DdgBY64wFaO3c-GzkS_iXZLTxB242pPdNwM9D2FIbWVrucRiGM2Oa8josFaiX5SGA1lqZrB7JE7XKtbWN6eqe9k1uK2u9yf5F93IDjE26B9dZW5bRZT919ZqPQWb4jzA-0I88j2fQx0FJirslDcNbYLksxbf_dCQyHfrBjtEMLUbbuwjg44JMJQHMHjWr1x9B_f1kpV9_9TY8fFm1rGE-TxxX23X')"></div>
-<div class="absolute bottom-4 right-4 flex flex-col gap-sm">
-<button class="w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-on-surface active:scale-90 transition-transform">
-<span class="material-symbols-outlined">add</span>
-</button>
-<button class="w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-on-surface active:scale-90 transition-transform">
-<span class="material-symbols-outlined">remove</span>
-</button>
-</div>
+<div class="w-full h-full bg-surface-container-high rounded-3xl overflow-hidden relative">
+<iframe 
+    src="https://maps.google.com/maps?q=cổng%20khu%20công%20nghiệp%20đồng%20văn%203%20tổ%20dân%20phó%20SaLao%20phường%20Đồng%20Văn%20,%20Duy%20Tiên,%20Hà%20Nam&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+    width="100%" 
+    height="100%" 
+    style="border:0;" 
+    allowfullscreen="" 
+    loading="lazy" 
+    referrerpolicy="no-referrer-when-downgrade">
+</iframe>
 </div>
 </div>
 </section>

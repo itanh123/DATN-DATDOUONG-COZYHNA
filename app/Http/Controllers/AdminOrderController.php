@@ -10,7 +10,7 @@ class AdminOrderController extends Controller
 {
     public function index(Request $request)
     {
-        if (!check_permission('manage_orders')) {
+        if (!check_permission('view_orders')) {
             return redirect('/login')->with('error', 'You do not have permission to access this page.');
         }
 
@@ -80,7 +80,7 @@ class AdminOrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        if (!check_permission('manage_orders')) {
+        if (!check_permission('update_orders')) {
             return redirect('/login')->with('error', 'You do not have permission.');
         }
         $order = DB::table('orders')->where('id', $id)->first();

@@ -128,6 +128,11 @@ class CheckoutController extends Controller
 
         $userId = session('user_id');
         $user = \App\Models\User::find($userId);
+
+        if ($user && $user->is_restricted) {
+            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể sử dụng mã giảm giá.');
+        }
+
         $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
         $cartTotal = 0;
         
@@ -319,6 +324,11 @@ class CheckoutController extends Controller
         }
 
         $paymentMethod = $request->input('payment', 'cash');
+
+        if ($user->is_restricted && $paymentMethod === 'cash') {
+            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể chọn phương thức thanh toán COD.');
+        }
+
         $validPayments = ['cash', 'momo', 'vnpay', 'bank'];
         if (!in_array($paymentMethod, $validPayments)) {
             $paymentMethod = 'cash';

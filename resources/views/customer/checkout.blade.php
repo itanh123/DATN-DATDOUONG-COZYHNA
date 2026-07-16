@@ -116,17 +116,20 @@
                         Phương Thức Thanh Toán
                     </h2>
 <div class="space-y-sm">
-<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-<input checked="" class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="cash" form="placeOrderForm"/>
+<label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 {{ $user->is_restricted ? 'opacity-60 cursor-not-allowed bg-surface-variant/30' : 'cursor-pointer' }}">
+<input {{ !$user->is_restricted ? 'checked' : '' }} {{ $user->is_restricted ? 'disabled' : '' }} class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="cash" form="placeOrderForm"/>
 <span class="material-symbols-outlined text-on-surface-variant">payments</span>
 <div class="flex-grow">
 <span class="font-body-lg text-body-lg font-medium">Thanh toán khi nhận hàng (COD)</span>
 <p class="font-label-md text-label-md text-on-surface-variant">Thanh toán bằng tiền mặt khi nhận được hàng</p>
+@if($user->is_restricted)
+<p class="text-error text-xs font-bold mt-1">Tài khoản bị hạn chế, không thể thanh toán COD.</p>
+@endif
 </div>
 <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
 </label>
 <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-<input class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="vnpay" form="placeOrderForm"/>
+<input {{ $user->is_restricted ? 'checked' : '' }} class="w-5 h-5 text-primary border-outline focus:ring-primary" name="payment" type="radio" value="vnpay" form="placeOrderForm"/>
 <span class="material-symbols-outlined text-on-surface-variant">account_balance</span>
 <div class="flex-grow">
 <span class="font-body-lg text-body-lg font-medium">Thanh toán qua VNPay</span>
@@ -168,8 +171,12 @@
     <form action="/customer/checkout/apply-voucher" method="POST" id="voucherForm">
         @csrf
         <div class="relative mb-xs" id="voucherContainer">
-            <input name="code" id="voucherInput" value="{{ old('code', $appliedVoucher ? $appliedVoucher['code'] : '') }}" class="w-full bg-surface-container-low border {{ session('error') ? 'border-error' : 'border-outline-variant' }} rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" placeholder="Mã giảm giá" type="text" autocomplete="off" onclick="toggleVoucherDropdown(true)"/>
-            <button type="submit" class="absolute right-2 top-1.5 px-3 py-1 bg-primary text-on-primary rounded-md font-label-md text-label-md hover:bg-primary-container transition-colors z-10">Áp dụng</button>
+            <input name="code" id="voucherInput" value="{{ old('code', $appliedVoucher ? $appliedVoucher['code'] : '') }}" class="w-full bg-surface-container-low border {{ session('error') ? 'border-error' : 'border-outline-variant' }} rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50 {{ $user->is_restricted ? 'opacity-50 cursor-not-allowed' : '' }}" placeholder="Mã giảm giá" type="text" autocomplete="off" onclick="toggleVoucherDropdown(true)" {{ $user->is_restricted ? 'disabled' : '' }}/>
+            <button type="submit" class="absolute right-2 top-1.5 px-3 py-1 bg-primary text-on-primary rounded-md font-label-md text-label-md hover:bg-primary-container transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed" {{ $user->is_restricted ? 'disabled' : '' }}>Áp dụng</button>
+            
+            @if($user->is_restricted)
+            <p class="text-error text-xs mt-1 absolute -bottom-5">Tài khoản bị hạn chế, không thể sử dụng mã giảm giá.</p>
+            @endif
             
             <!-- Dropdown -->
             <div id="voucherDropdown" class="absolute left-0 right-0 top-full mt-1 bg-surface rounded-xl shadow-lg border border-outline-variant/20 overflow-hidden z-50 hidden max-h-64 overflow-y-auto">
