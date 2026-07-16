@@ -167,6 +167,11 @@
         <button type="button" onclick="showOrderDetails(this)" class="p-1 text-primary hover:bg-primary-container hover:text-on-primary-container rounded transition-colors flex items-center justify-center">
             <span class="material-symbols-outlined text-[20px]">visibility</span>
         </button>
+        @if(\Illuminate\Support\Facades\Storage::disk('public')->exists('invoices/' . $order->order_code . '.pdf'))
+        <a href="/orders/invoice/{{ $order->order_code }}" target="_blank" title="Xem hóa đơn PDF" class="p-1 text-error hover:bg-error/10 rounded transition-colors flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+        </a>
+        @endif
         <form action="/admin/orders/{{ $order->id }}/status" method="POST" class="inline-flex items-center m-0">
             @csrf
             <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0 cursor-pointer">

@@ -422,6 +422,16 @@ class CheckoutController extends Controller
 
             session()->forget('voucher');
             
+            try {
+                if ($user && $user->email) {
+                    $order = DB::table('orders')->where('id', $orderId)->first();
+                    \Illuminate\Support\Facades\Mail::to($user->email)
+                        ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+            }
+
             return redirect('/customer/orders')->with('success', 'Đặt hàng thành công! Mã đơn hàng của bạn là ' . $orderCode);
 
         } catch (\Exception $e) {

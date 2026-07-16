@@ -190,6 +190,13 @@ Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http
     return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
 });
 
+Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
+    if (!session('user_id')) return redirect('/login');
+    $path = storage_path('app/public/invoices/' . $orderCode . '.pdf');
+    if (!file_exists($path)) abort(404, 'Hóa đơn không tồn tại.');
+    return response()->file($path);
+});
+
 // Roles and Permissions Routes
 Route::get('/admin/roles', function () {
     if (!check_permission('view_roles')) {
@@ -224,6 +231,7 @@ Route::get('/customer/account', function () {
 });
 Route::post('/customer/account/update', [\App\Http\Controllers\AuthController::class, 'updateProfile']);
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders']);
+Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder']);
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 

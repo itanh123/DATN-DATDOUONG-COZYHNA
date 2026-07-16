@@ -37,9 +37,24 @@
                             @else {{ ucfirst($order->status) }} @endif
                         </h2>
                     </div>
-                    <div class="text-right">
-                        <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
-                        <p class="text-headline-md font-headline-md text-primary">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
+                    <div class="text-right flex flex-col items-end gap-2">
+                        <div>
+                            <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
+                            <p class="text-headline-md font-headline-md text-primary">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
+                        </div>
+                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing']))
+                        <form action="/customer/orders/{{ $order->id }}/cancel" method="POST" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                            @csrf
+                            <button type="submit" class="px-4 py-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg text-sm font-bold transition-colors">
+                                Hủy đơn hàng
+                            </button>
+                        </form>
+                        @endif
+                        @if(\Illuminate\Support\Facades\Storage::disk('public')->exists('invoices/' . $order->order_code . '.pdf'))
+                        <a href="/orders/invoice/{{ $order->order_code }}" target="_blank" class="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm font-bold transition-colors mt-2 text-center inline-block">
+                            <i class="fa-solid fa-file-pdf mr-1"></i> Xem hóa đơn
+                        </a>
+                        @endif
                     </div>
                 </div>
                 <!-- Timeline -->

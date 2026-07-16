@@ -57,4 +57,43 @@ class OrderController extends Controller
 
         return view('customer.orders', compact('activeOrders', 'historyOrders'));
     }
+
+    public function cancelOrder(Request $request, $orderId)
+    {
+        $userId = session('user_id');
+        if (!$userId) return redirect('/login');
+
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
+        if (!$customerProfile) return back()->with('error', 'Không tìm thấy thông tin khách hàng');
+
+        $order = DB::table('orders')
+            ->where('id', $orderId)
+            ->where('customer_id', $customerProfile->id)
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền hủy.');
+        }
+
+        if (in_array($order->status, ['delivering', 'completed', 'cancelled'])) {
+            return back()->with('error', 'Đơn hàng ở trạng thái hiện tại không thể hủy.');
+        }
+
+        DB::table('orders')->where('id', $order->id)->update([
+            'status' => 'cancelled',
+            'updated_at' => now()
+        ]);
+
+        try {
+            $user = DB::table('users')->where('id', $userId)->first();
+            if ($user && $user->email) {
+                \Illuminate\Support\Facades\Mail::to($user->email)
+                    ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đã bị hủy bởi khách hàng'));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Đã hủy đơn hàng thành công!');
+    }
 }
