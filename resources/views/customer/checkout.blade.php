@@ -8,12 +8,19 @@
 <h1 class="font-headline-lg text-headline-lg text-on-background">Thanh Toán</h1>
 <p class="font-body-md text-body-md text-on-surface-variant">Complete your order and we'll start brewing.</p>
 </div>
-<form id="placeOrderForm" action="/customer/checkout/place-order" method="POST">
+<form id="placeOrderForm" action="{{ session('is_table_order') ? '/table/order/confirm' : '/customer/checkout/place-order' }}" method="POST">
     @csrf
-    @if(isset($defaultAddress))
+    @if(isset($defaultAddress) && !session('is_table_order'))
         <input type="hidden" name="address_id" value="{{ $defaultAddress->id }}">
     @endif
 </form>
+
+@if(session('error'))
+<div class="mb-lg p-4 bg-error-container text-on-error-container rounded-xl flex items-center gap-xs">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ session('error') }}</span>
+</div>
+@endif
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
 <!-- Left Column: Order Details -->
 <div class="lg:col-span-8 space-y-lg">
@@ -55,6 +62,7 @@
 @endforelse
 </div>
 </section>
+@if(!session('is_table_order'))
 <!-- Địa Chỉ Giao Hàng -->
 <section class="bg-surface-container-lowest rounded-xl p-lg custom-shadow">
 <div class="flex items-center justify-between mb-md">
@@ -139,6 +147,7 @@
 </label>
 </div>
 </section>
+@endif
 </div>
 <!-- Right Column: Sticky Summary -->
 <aside class="lg:col-span-4 lg:sticky lg:top-24 space-y-md">
@@ -149,10 +158,12 @@
 <span>Tạm tính</span>
 <span>{{ number_format($cartTotal, 0, ',', '.') }} VNĐ</span>
 </div>
+@if(!session('is_table_order'))
 <div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
 <span>Phí giao hàng</span>
 <span id="summaryShippingFee">0 VNĐ</span>
 </div>
+@endif
 @if($appliedVoucher)
 <div class="flex justify-between font-body-md text-body-md text-primary">
 <span>Giảm giá ({{ $appliedVoucher['code'] }})</span>
@@ -207,8 +218,9 @@
                 @endif
             </div>
         </div>
-        @if(session('error'))
-            <p class="text-error text-label-sm">{{ session('error') }}</p>
+        <!-- Error/Success from voucher apply only -->
+        @if(session('voucher_error'))
+            <p class="text-error text-label-sm">{{ session('voucher_error') }}</p>
         @endif
         @if(session('success'))
             <p class="text-primary text-label-sm">{{ session('success') }}</p>
@@ -217,8 +229,8 @@
 </div>
 <!-- Đặt Hàng CTA -->
 <button type="submit" id="placeOrderBtn" form="placeOrderForm" class="w-full py-md bg-primary-container text-on-primary-container font-headline-md text-headline-md rounded-xl hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                        Đặt Hàng
-                        <span class="material-symbols-outlined">arrow_forward</span>
+    {{ session('is_table_order') ? 'Xác Nhận Đơn Bàn' : 'Đặt Hàng' }}
+    <span class="material-symbols-outlined">arrow_forward</span>
 </button>
 <p class="mt-md text-center font-label-md text-label-md text-on-surface-variant">
                         By placing your order, you agree to CozyHNA's <br/> <a class="underline" href="#">Terms of Service</a>

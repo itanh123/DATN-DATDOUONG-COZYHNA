@@ -18,13 +18,19 @@ class AdminOrderController extends Controller
             ->join('customer_profiles', 'orders.customer_id', '=', 'customer_profiles.id')
             ->join('users', 'customer_profiles.user_id', '=', 'users.id')
             ->leftJoin('customer_addresses', 'orders.address_id', '=', 'customer_addresses.id')
+            ->leftJoin('dining_tables', 'users.id', '=', 'dining_tables.user_id')
             ->select(
                 'orders.*', 
                 'users.username as customer_name',
                 'customer_addresses.receiver_name',
                 'customer_addresses.receiver_phone',
-                'customer_addresses.address as shipping_address'
+                'customer_addresses.address as shipping_address',
+                'dining_tables.name as table_name'
             );
+
+        // Filter by Tab Type (Online vs At Table)
+        $activeTab = $request->input('type', 'online');
+        $query->where('orders.order_type', $activeTab);
 
         // Apply filters
         $statusFilter = $request->input('status');
@@ -75,7 +81,9 @@ class AdminOrderController extends Controller
             $avgFulfillment = 'N/A';
         }
 
-        return view('admin.orders', compact('orders', 'totalOrdersToday', 'pendingPrep', 'outForDelivery', 'avgFulfillment', 'statusFilter', 'dateFilter'));
+        $latestOrderId = DB::table('orders')->max('id');
+
+        return view('admin.orders', compact('orders', 'totalOrdersToday', 'pendingPrep', 'outForDelivery', 'avgFulfillment', 'statusFilter', 'dateFilter', 'latestOrderId', 'activeTab'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -176,5 +184,16 @@ class AdminOrderController extends Controller
         }
         
         return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
+    }
+
+    public function checkNew(Request $request)
+    {
+        $latestId = $request->input('latest_id', 0);
+        $newOrdersCount = DB::table('orders')->where('id', '>', $latestId)->count();
+
+        return response()->json([
+            'has_new' => $newOrdersCount > 0,
+            'count' => $newOrdersCount
+        ]);
     }
 }

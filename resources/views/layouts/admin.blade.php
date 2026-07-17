@@ -170,6 +170,13 @@
 </a>
 @endif
 
+@if($roleCode === 'admin')
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/tables">
+<span class="material-symbols-outlined" data-icon="table_restaurant">table_restaurant</span>
+<span class="font-label-md text-label-md">Quản lý Bàn</span>
+</a>
+@endif
+
 @if(in_array('view_roles', $userPermissions))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/roles">
 <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
@@ -178,10 +185,7 @@
 @endif
 
 @if($roleCode === 'admin')
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/promotions">
-<span class="material-symbols-outlined" data-icon="campaign">campaign</span>
-<span class="font-label-md text-label-md">Khuyến mãi</span>
-</a>
+
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/voucher">
 <span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
 <span class="font-label-md text-label-md">Voucher</span>
@@ -226,5 +230,47 @@
 </a>
 </nav>
 @stack('scripts')
+
+<div id="table-call-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
+<script>
+    function fetchTableCalls() {
+        fetch('/admin/table-calls/pending')
+            .then(r => r.json())
+            .then(calls => {
+                const container = document.getElementById('table-call-container');
+                container.innerHTML = '';
+                if(calls && calls.length > 0) {
+                    calls.forEach(call => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-error text-white p-4 rounded-xl shadow-xl flex items-center gap-4 animate-pulse';
+                        div.innerHTML = `
+                            <span class="material-symbols-outlined text-3xl">notifications_active</span>
+                            <div>
+                                <h4 class="font-bold">Khách gọi nhân viên!</h4>
+                                <p>${call.table_name}</p>
+                            </div>
+                            <button onclick="resolveTableCall(${call.id})" class="ml-4 bg-white text-error px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">OK</button>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            }).catch(e => console.log('Error fetching table calls'));
+    }
+
+    function resolveTableCall(id) {
+        fetch('/admin/table-calls/' + id + '/resolve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        }).then(r => r.json()).then(res => {
+            if(res.success) fetchTableCalls();
+        });
+    }
+
+    setInterval(fetchTableCalls, 5000);
+    fetchTableCalls();
+</script>
 </body>
 </html>

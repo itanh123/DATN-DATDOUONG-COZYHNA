@@ -101,36 +101,36 @@ class CheckoutController extends Controller
         $code = $request->input('code');
         
         if (!$code) {
-            return back()->with('error', 'Vui lòng nhập mã giảm giá.');
+            return back()->with('voucher_error', 'Vui lòng nhập mã giảm giá.');
         }
 
         $voucher = DB::table('vouchers')->where('code', $code)->first();
 
         if (!$voucher) {
-            return back()->with('error', 'Mã giảm giá không tồn tại.');
+            return back()->with('voucher_error', 'Mã giảm giá không tồn tại.');
         }
 
         if (!$voucher->status) {
-            return back()->with('error', 'Mã giảm giá đã bị vô hiệu hóa.');
+            return back()->with('voucher_error', 'Mã giảm giá đã bị vô hiệu hóa.');
         }
 
         if ($voucher->start_date && now() < $voucher->start_date) {
-            return back()->with('error', 'Mã giảm giá chưa đến thời gian áp dụng.');
+            return back()->with('voucher_error', 'Mã giảm giá chưa đến thời gian áp dụng.');
         }
 
         if ($voucher->end_date && now() > $voucher->end_date) {
-            return back()->with('error', 'Mã giảm giá đã hết hạn.');
+            return back()->with('voucher_error', 'Mã giảm giá đã hết hạn.');
         }
 
         if ($voucher->used >= $voucher->quantity) {
-            return back()->with('error', 'Mã giảm giá đã hết lượt sử dụng.');
+            return back()->with('voucher_error', 'Mã giảm giá đã hết lượt sử dụng.');
         }
 
         $userId = session('user_id');
         $user = \App\Models\User::find($userId);
 
         if ($user && $user->is_restricted) {
-            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể sử dụng mã giảm giá.');
+            return back()->with('voucher_error', 'Tài khoản của bạn đang bị hạn chế và không thể sử dụng mã giảm giá.');
         }
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
@@ -151,7 +151,7 @@ class CheckoutController extends Controller
         }
 
         if ($cartTotal < $voucher->minimum_order) {
-            return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->minimum_order, 0, ',', '.') . ' VNĐ.');
+            return back()->with('voucher_error', 'Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->minimum_order, 0, ',', '.') . ' VNĐ.');
         }
 
         session([
