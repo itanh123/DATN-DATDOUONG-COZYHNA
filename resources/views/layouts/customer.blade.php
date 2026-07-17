@@ -134,7 +134,9 @@
 <span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
 <nav class="hidden md:flex gap-lg">
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
+@if(!session('is_table_order'))
 <a class="font-body-lg text-body-lg {{ request()->is('customer/orders') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/orders">Đơn hàng</a>
+@endif
 <a class="font-body-lg text-body-lg {{ request()->is('customer/contact') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/contact">Giới thiệu</a>
 </nav>
 </div>
@@ -147,10 +149,14 @@
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
     <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
 </a>
+@if(!session('is_table_order'))
 @if(session()->has('user_id'))
     <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
 @else
     <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
+@endif
+@else
+    <a href="/" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="table_restaurant" title="Đang ở bàn {{ session('table_name') }}">table_restaurant</a>
 @endif
 </div>
 </header>
@@ -167,6 +173,7 @@
 <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
 <span class="font-label-sm text-label-sm">Đặt hàng</span>
 </a>
+@if(!session('is_table_order'))
 <a href="/customer/orders" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="history">history</span>
 <span class="font-label-sm text-label-sm">Lịch sử</span>
@@ -175,6 +182,7 @@
 <span class="material-symbols-outlined" data-icon="person">person</span>
 <span class="font-label-sm text-label-sm">Hồ sơ</span>
 </a>
+@endif
 </nav>
 <!-- Footer (Desktop) -->
 <footer class="hidden md:block bg-surface-container-low border-t border-outline-variant/30 py-2xl mt-auto">
@@ -235,5 +243,30 @@
 
 @include('partials.product_drawer')
 @stack('scripts')
+
+@if(session('is_table_order'))
+<button onclick="callStaff()" class="fixed bottom-24 right-4 z-50 bg-error text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-error/90 transition-all active:scale-95">
+    <span class="material-symbols-outlined">notifications_active</span>
+    <span class="font-bold">Gọi nhân viên</span>
+</button>
+<script>
+function callStaff() {
+    fetch('/table/call-staff', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    }).then(r => r.json()).then(res => {
+        if(res.success) {
+            alert('Đã gửi yêu cầu gọi nhân viên. Vui lòng đợi trong giây lát!');
+        } else {
+            alert('Có lỗi xảy ra hoặc bạn chưa được phép gọi lại.');
+        }
+    }).catch(e => alert('Lỗi kết nối.'));
+}
+</script>
+@endif
+
 </body>
 </html>

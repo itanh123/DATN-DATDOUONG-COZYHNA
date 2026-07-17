@@ -82,10 +82,23 @@
 </div>
 </div>
 </section>
+<!-- Tabs (Đơn Online / Tại Bàn) -->
+<section class="mb-lg flex gap-2">
+    <a href="/admin/orders?type=online&status={{ $statusFilter }}&date={{ $dateFilter }}" 
+       class="px-6 py-2 rounded-xl font-semibold transition-colors {{ $activeTab == 'online' ? 'bg-primary text-on-primary shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container-high' }}">
+        Khách hàng (Online)
+    </a>
+    <a href="/admin/orders?type=at_table&status={{ $statusFilter }}&date={{ $dateFilter }}" 
+       class="px-6 py-2 rounded-xl font-semibold transition-colors {{ $activeTab == 'at_table' ? 'bg-primary text-on-primary shadow-md' : 'bg-surface-container-low text-on-surface hover:bg-surface-container-high' }}">
+        Nhân viên (Tại Bàn)
+    </a>
+</section>
+
 <!-- Filters & Tools -->
 <section class="flex flex-col lg:flex-row items-center justify-between gap-md mb-lg">
 <div class="flex flex-wrap items-center gap-sm">
 <form action="/admin/orders" method="GET" id="filterForm" class="flex gap-sm w-full">
+<input type="hidden" name="type" value="{{ $activeTab }}">
 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center px-md py-sm">
 <span class="material-symbols-outlined text-on-surface-variant mr-xs">filter_list</span>
 <select name="status" onchange="document.getElementById('filterForm').submit()" class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
@@ -136,8 +149,13 @@
 <td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->order_code }}</td>
 <td class="px-lg py-lg">
 <div class="flex items-center gap-sm">
+@if($order->order_type == 'at_table')
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-xs"><span class="material-symbols-outlined text-[16px]">table_restaurant</span></div>
+<span class="font-body-md font-medium text-primary">Tại Bàn - {{ $order->table_name ?? $order->customer_name }}</span>
+@else
 <div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-xs">{{ strtoupper(substr($order->customer_name, 0, 2)) }}</div>
 <span class="font-body-md font-medium">{{ $order->customer_name }}</span>
+@endif
 </div>
 </td>
 <td class="px-lg py-lg">
@@ -389,5 +407,48 @@
         searchInput.addEventListener('blur', () => {
             searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
         });
+
+        // Auto-refresh polling for new orders
+        const latestOrderId = {{ $latestOrderId ?? 0 }};
+        let isReloading = false;
+        
+        setInterval(() => {
+            if (isReloading) return;
+            
+            fetch(`/admin/orders/check-new?latest_id=${latestOrderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_new) {
+                        isReloading = true;
+                        
+                        // Play a notification sound (beep)
+                        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                        audio.play().catch(e => console.log('Audio play failed', e));
+                        
+                        // Create a toast notification
+                        const toast = document.createElement('div');
+                        toast.className = 'fixed top-4 right-4 bg-primary text-on-primary px-lg py-md rounded-xl shadow-2xl z-50 flex items-center gap-md transform transition-all -translate-y-[150%]';
+                        toast.innerHTML = `
+                            <span class="material-symbols-outlined text-3xl animate-bounce">notifications_active</span>
+                            <div>
+                                <h4 class="font-title-md font-bold">Có ${data.count} đơn hàng mới!</h4>
+                                <p class="text-sm opacity-90">Đang tự động làm mới trang...</p>
+                            </div>
+                        `;
+                        document.body.appendChild(toast);
+                        
+                        // Animate in
+                        setTimeout(() => {
+                            toast.classList.remove('-translate-y-[150%]');
+                        }, 100);
+                        
+                        // Reload after 2 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
+                })
+                .catch(error => console.error('Error checking new orders:', error));
+        }, 10000); // Check every 10 seconds
 </script>
 @endpush

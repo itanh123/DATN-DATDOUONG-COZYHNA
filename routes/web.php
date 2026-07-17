@@ -25,12 +25,19 @@ if (!function_exists('check_permission')) {
 // Backend Integrated Routes (From branch lam, adjusted)
 // ---------------------------------------------------------
 
-Route::get('/', function () {
-    $products = \App\Models\Product::query()
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    $categories = \App\Models\Category::all();
+
+    $query = \App\Models\Product::query()
         ->whereNull('deleted_at')
         ->where('status', true)
-        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category'])
-        ->get();
+        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category']);
+
+    if ($request->has('category_id')) {
+        $query->where('category_id', $request->category_id);
+    }
+
+    $products = $query->get();
 
     $availableProducts = $products->filter(function ($product) {
         $hasAvailableSize = false;
@@ -53,9 +60,21 @@ Route::get('/', function () {
         return $hasAvailableSize;
     });
 
-    $products = $availableProducts;
+    // Calculate sales
+    $sales = \Illuminate\Support\Facades\DB::table('order_items')
+        ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
+        ->select('product_sizes.product_id', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_sales'))
+        ->groupBy('product_sizes.product_id')
+        ->pluck('total_sales', 'product_id');
 
-    return view('customer.home', compact('products'));
+    // Sort descending by sales
+    $products = $availableProducts->sortByDesc(function ($product) use ($sales) {
+        return $sales->get($product->id, 0);
+    });
+
+    $isFiltered = $request->has('category_id');
+
+    return view('customer.home', compact('products', 'categories', 'isFiltered'));
 });
 
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
@@ -223,21 +242,30 @@ Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addT
 Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/account', function () {
-    if (!session()->has('user_id')) {
-        return redirect('/login');
-    }
+    if (!session()->has('user_id')) return redirect('/login');
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
     $user = \App\Models\User::find(session('user_id'));
     return view('customer.account', compact('user'));
 });
-Route::post('/customer/account/update', [\App\Http\Controllers\AuthController::class, 'updateProfile']);
-Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders']);
-Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder']);
+Route::post('/customer/account/update', function (\Illuminate\Http\Request $request) {
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
+    return app('App\Http\Controllers\AuthController')->updateProfile($request);
+});
+Route::get('/customer/orders', function () {
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
+    return app('App\Http\Controllers\OrderController')->customerOrders();
+});
+Route::post('/customer/orders/{order}/cancel', function (\Illuminate\Http\Request $request, $order) {
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
+    return app('App\Http\Controllers\OrderController')->cancelOrder($request, $order);
+});
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 
 Route::get('/admin/add_product', function () { return view('admin.add_product'); });
 Route::get('/admin/inventory', function () { return view('admin.inventory'); });
 Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
+Route::get('/admin/orders/check-new', [\App\Http\Controllers\AdminOrderController::class, 'checkNew']);
 Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
 Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
@@ -257,3 +285,34 @@ Route::get('/staff/order_fulfillment', function () { return view('staff.order_fu
 Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
 Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
 Route::get('/shipper/profile', function () { return view('shipper.profile'); });
+
+// Table Ordering Routes
+Route::get('/table/login/{token}', [\App\Http\Controllers\TableOrderController::class, 'loginWithQr']);
+Route::post('/table/order/confirm', [\App\Http\Controllers\TableOrderController::class, 'confirmOrder']);
+Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::class, 'success']);
+
+// Admin Table Management
+Route::get('/admin/tables', [\App\Http\Controllers\Admin\DiningTableController::class, 'index']);
+Route::post('/admin/tables', [\App\Http\Controllers\Admin\DiningTableController::class, 'store']);
+Route::delete('/admin/tables/{table}', [\App\Http\Controllers\Admin\DiningTableController::class, 'destroy']);
+Route::post('/admin/tables/{table}/qr', [\App\Http\Controllers\Admin\DiningTableController::class, 'generateQrCode']);
+
+// Table Calls
+Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
+Route::get('/admin/table-calls/pending', function() {
+    if (!session('user_id')) return response()->json([]);
+    $calls = \Illuminate\Support\Facades\DB::table('table_calls')
+        ->join('dining_tables', 'table_calls.table_id', '=', 'dining_tables.id')
+        ->where('table_calls.status', 'pending')
+        ->select('table_calls.*', 'dining_tables.name as table_name')
+        ->get();
+    return response()->json($calls);
+});
+Route::post('/admin/table-calls/{id}/resolve', function($id) {
+    if (!session('user_id')) return response()->json(['success' => false], 403);
+    \Illuminate\Support\Facades\DB::table('table_calls')->where('id', $id)->update([
+        'status' => 'resolved',
+        'updated_at' => now()
+    ]);
+    return response()->json(['success' => true]);
+});
