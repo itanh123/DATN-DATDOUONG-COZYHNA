@@ -128,6 +128,11 @@ class CheckoutController extends Controller
 
         $userId = session('user_id');
         $user = \App\Models\User::find($userId);
+
+        if ($user && $user->is_restricted) {
+            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể sử dụng mã giảm giá.');
+        }
+
         $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
         $cartTotal = 0;
         
@@ -266,5 +271,172 @@ class CheckoutController extends Controller
         }
 
         return response()->json(['success' => true, 'new_quantity' => $newQuantity]);
+    }
+
+    public function placeOrder(Request $request)
+    {
+        $userId = session('user_id');
+        if (!$userId) {
+            return redirect('/login')->with('error', 'Vui lòng đăng nhập để đặt hàng.');
+        }
+
+        $user = \App\Models\User::find($userId);
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
+        if (!$customerProfile) {
+            return back()->with('error', 'Hồ sơ khách hàng không hợp lệ.');
+        }
+
+        $receiverName = $request->input('receiver_name');
+        $receiverPhone = $request->input('receiver_phone');
+        $shippingAddress = $request->input('shipping_address');
+        $distanceKm = (float) $request->input('distance_km', 0);
+
+        if (!$receiverName || !$receiverPhone || !$shippingAddress) {
+            return back()->with('error', 'Vui lòng nhập đầy đủ thông tin giao hàng.');
+        }
+        
+        if ($distanceKm > 10) {
+            return back()->with('error', 'Khoảng cách giao hàng vượt quá 10km. Cửa hàng không thể hỗ trợ giao đơn hàng này.');
+        }
+
+        $addressId = null;
+        $existingAddress = DB::table('customer_addresses')
+            ->where('customer_id', $customerProfile->id)
+            ->where('address', $shippingAddress)
+            ->where('receiver_phone', $receiverPhone)
+            ->first();
+
+        if ($existingAddress) {
+            $addressId = $existingAddress->id;
+        } else {
+            $addressId = DB::table('customer_addresses')->insertGetId([
+                'customer_id' => $customerProfile->id,
+                'receiver_name' => $receiverName,
+                'receiver_phone' => $receiverPhone,
+                'address' => $shippingAddress,
+                'province' => '',
+                'district' => '',
+                'ward' => '',
+                'is_default' => 0,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        $paymentMethod = $request->input('payment', 'cash');
+
+        if ($user->is_restricted && $paymentMethod === 'cash') {
+            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể chọn phương thức thanh toán COD.');
+        }
+
+        $validPayments = ['cash', 'momo', 'vnpay', 'bank'];
+        if (!in_array($paymentMethod, $validPayments)) {
+            $paymentMethod = 'cash';
+        }
+
+        $cart = DB::table('carts')->where('customer_id', $customerProfile->id)->first();
+        if (!$cart) {
+            return back()->with('error', 'Giỏ hàng trống.');
+        }
+
+        $cartItems = DB::table('cart_items')
+            ->join('product_sizes', 'cart_items.product_size_id', '=', 'product_sizes.id')
+            ->where('cart_items.cart_id', $cart->id)
+            ->select('cart_items.*', 'product_sizes.selling_price as price')
+            ->get();
+
+        if ($cartItems->isEmpty()) {
+            return back()->with('error', 'Giỏ hàng trống.');
+        }
+
+        $cartTotal = 0;
+        foreach ($cartItems as $item) {
+            $cartTotal += $item->price * $item->quantity;
+        }
+
+        $discountAmount = 0;
+        $shippingFee = (float)$request->input('shipping_fee', 0);
+        $appliedVoucher = session('voucher');
+        $voucherId = null;
+
+        if ($appliedVoucher && $cartTotal >= $appliedVoucher['minimum_order']) {
+            $voucherId = $appliedVoucher['id'];
+            if ($appliedVoucher['discount_type'] === 'percent') {
+                $discountAmount = $cartTotal * ($appliedVoucher['discount_value'] / 100);
+                if ($appliedVoucher['maximum_discount'] && $discountAmount > $appliedVoucher['maximum_discount']) {
+                    $discountAmount = $appliedVoucher['maximum_discount'];
+                }
+            } else {
+                $discountAmount = $appliedVoucher['discount_value'];
+            }
+            if ($discountAmount > $cartTotal) {
+                $discountAmount = $cartTotal;
+            }
+        }
+
+        $finalTotal = $cartTotal - $discountAmount + $shippingFee;
+
+        DB::beginTransaction();
+        try {
+            $orderCode = 'ORD-' . strtoupper(uniqid());
+
+            $orderId = DB::table('orders')->insertGetId([
+                'order_code' => $orderCode,
+                'customer_id' => $customerProfile->id,
+                'address_id' => $addressId,
+                'shipper_id' => null,
+                'voucher_id' => $voucherId,
+                'subtotal' => $cartTotal,
+                'discount_amount' => $discountAmount,
+                'shipping_fee' => $shippingFee,
+                'total_amount' => $finalTotal,
+                'payment_method' => $paymentMethod,
+                'status' => 'pending',
+                'note' => $request->input('note', ''),
+                'ordered_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            foreach ($cartItems as $item) {
+                DB::table('order_items')->insert([
+                    'order_id' => $orderId,
+                    'product_size_id' => $item->product_size_id,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->price,
+                    'total_price' => $item->price * $item->quantity,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+
+            }
+
+            if ($voucherId) {
+                DB::table('vouchers')->where('id', $voucherId)->increment('used');
+            }
+
+            DB::table('cart_items')->where('cart_id', $cart->id)->delete();
+
+            DB::commit();
+
+            session()->forget('voucher');
+            
+            try {
+                if ($user && $user->email) {
+                    $order = DB::table('orders')->where('id', $orderId)->first();
+                    \Illuminate\Support\Facades\Mail::to($user->email)
+                        ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+            }
+
+            return redirect('/customer/orders')->with('success', 'Đặt hàng thành công! Mã đơn hàng của bạn là ' . $orderCode);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại sau.');
+        }
     }
 }

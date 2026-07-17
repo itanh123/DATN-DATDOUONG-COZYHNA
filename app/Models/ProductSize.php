@@ -29,4 +29,9 @@ class ProductSize extends Model
     {
         return $this->belongsTo(Size::class);
     }
+
+    public function recipes()
+    {
+        return $this->hasMany(Recipe::class, 'product_size_id');
+    }
 }

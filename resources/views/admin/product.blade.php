@@ -188,6 +188,10 @@
                                                 data-id="{{ $product->id }}"
                                                 data-sizes="{{ $product->productSizes->toJson() }}"
                                             >Manage Sizes</button>
+                                            <a
+                                                href="/admin/product/{{ $product->id }}/recipe"
+                                                class="block w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-tertiary"
+                                            >Manage Recipes</a>
                                             @endif
                                             @if(check_permission('delete_products'))
                                             <form action="/admin/product/{{ $product->id }}/delete" method="POST" class="m-0">

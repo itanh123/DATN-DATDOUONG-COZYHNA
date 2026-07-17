@@ -2,161 +2,98 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\CustomerAddress;
-use App\Models\CustomerProfile;
-use App\Models\Order;
-use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function place(Request $request)
+    public function customerOrders()
     {
         $userId = session('user_id');
         if (!$userId) {
             return redirect('/login')->with('error', 'Vui lòng đăng nhập.');
         }
 
-        $request->validate([
-            'receiver_name'   => ['required', 'string', 'max:255'],
-            'receiver_phone'  => ['required', 'string', 'max:20'],
-            'address'         => ['required', 'string'],
-            'payment_method'  => ['required', 'in:cash,momo,vnpay,bank'],
-            'note'            => ['nullable', 'string'],
-        ]);
-
-        // Get customer profile
-        $profile = CustomerProfile::where('user_id', $userId)->first();
-        if (!$profile) {
-            return back()->with('error', 'Không tìm thấy hồ sơ khách hàng.');
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
+        if (!$customerProfile) {
+            return redirect('/');
         }
 
-        // Get cart
-        $cart = Cart::where('customer_id', $profile->id)->first();
-        if (!$cart) {
-            return back()->with('error', 'Giỏ hàng của bạn đang trống.');
-        }
-
-        $cartItems = CartItem::where('cart_id', $cart->id)
-            ->with(['product', 'productSize.product', 'productSize.size'])
+        $orders = DB::table('orders')
+            ->where('customer_id', $customerProfile->id)
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        if ($cartItems->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng của bạn đang trống.');
+        foreach ($orders as $order) {
+            $order->items = DB::table('order_items')
+                ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
+                ->join('products', 'product_sizes.product_id', '=', 'products.id')
+                ->join('sizes', 'product_sizes.size_id', '=', 'sizes.id')
+                ->where('order_items.order_id', $order->id)
+                ->select('order_items.*', 'products.name as product_name', 'products.image as product_image', 'sizes.name as size_name')
+                ->get();
+
+            $order->address = DB::table('customer_addresses')
+                ->where('id', $order->address_id)
+                ->first();
+                
+            $order->shipper = null;
+            if ($order->shipper_id) {
+                $order->shipper = DB::table('shipper_profiles')
+                    ->join('users', 'shipper_profiles.user_id', '=', 'users.id')
+                    ->where('shipper_profiles.id', $order->shipper_id)
+                    ->select('users.name as name')
+                    ->first();
+            }
         }
 
-        DB::transaction(function () use ($request, $profile, $cart, $cartItems) {
-            // Create or find address
-            $address = CustomerAddress::create([
-                'customer_id'    => $profile->id,
-                'receiver_name'  => $request->receiver_name,
-                'receiver_phone' => $request->receiver_phone,
-                'address'        => $request->address,
-                'is_default'     => false,
-            ]);
-
-            // Calculate totals using stored unit_price (works for both sized & no-size products)
-            $subtotal = 0;
-            foreach ($cartItems as $item) {
-                $subtotal += $item->unit_price * $item->quantity;
-            }
-            $shippingFee = 15000;
-            $discount    = 0;
-            $total       = $subtotal + $shippingFee - $discount;
-
-            // Create Order
-            $order = Order::create([
-                'order_code'      => 'ORD-' . strtoupper(uniqid()),
-                'customer_id'     => $profile->id,
-                'address_id'      => $address->id,
-                'subtotal'        => $subtotal,
-                'discount_amount' => $discount,
-                'shipping_fee'    => $shippingFee,
-                'total_amount'    => $total,
-                'payment_method'  => $request->payment_method,
-                'status'          => 'pending',
-                'note'            => $request->note,
-                'ordered_at'      => now(),
-            ]);
-
-            // Create Order Items — works for both sized and no-size products
-            foreach ($cartItems as $item) {
-                $productId = $item->product_id
-                    ?? $item->productSize?->product_id
-                    ?? null;
-
-                OrderItem::create([
-                    'order_id'        => $order->id,
-                    'product_id'      => $productId,
-                    'product_size_id' => $item->product_size_id, // nullable
-                    'quantity'        => $item->quantity,
-                    'unit_price'      => $item->unit_price,
-                    'total_price'     => $item->unit_price * $item->quantity,
-                    'note'            => null,
-                ]);
-            }
-
-            // Update customer stats
-            $profile->increment('total_orders');
-            $profile->increment('total_spent', $total);
-
-            // Clear cart
-            $cart->items()->delete();
+        $activeOrders = $orders->filter(function ($order) {
+            return !in_array($order->status, ['completed', 'cancelled']);
         });
 
-        return redirect('/customer/orders')->with('success', 'Đặt hàng thành công! Chúng tôi sẽ xử lý đơn hàng của bạn sớm nhất.');
+        $historyOrders = $orders->filter(function ($order) {
+            return in_array($order->status, ['completed', 'cancelled']);
+        });
+
+        return view('customer.orders', compact('activeOrders', 'historyOrders'));
     }
 
-    public function history()
+    public function cancelOrder(Request $request, $orderId)
     {
         $userId = session('user_id');
-        if (!$userId) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập.');
-        }
+        if (!$userId) return redirect('/login');
 
-        $profile = CustomerProfile::where('user_id', $userId)->first();
-        $orders  = [];
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
+        if (!$customerProfile) return back()->with('error', 'Không tìm thấy thông tin khách hàng');
 
-        if ($profile) {
-            $orders = Order::where('customer_id', $profile->id)
-                ->with(['items.productSize.product', 'items.productSize.size', 'items.product'])
-                ->orderByDesc('ordered_at')
-                ->get();
-        }
-
-        return view('customer.orders', compact('orders'));
-    }
-
-    public function cancel($id)
-    {
-        $userId = session('user_id');
-        if (!$userId) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        $profile = CustomerProfile::where('user_id', $userId)->first();
-        if (!$profile) {
-            return response()->json(['error' => 'Không tìm thấy hồ sơ.'], 404);
-        }
-
-        $order = Order::where('id', $id)
-            ->where('customer_id', $profile->id)
+        $order = DB::table('orders')
+            ->where('id', $orderId)
+            ->where('customer_id', $customerProfile->id)
             ->first();
 
         if (!$order) {
-            return response()->json(['error' => 'Không tìm thấy đơn hàng.'], 404);
+            return back()->with('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền hủy.');
         }
 
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
-            return response()->json(['error' => 'Không thể hủy đơn hàng đang trong trạng thái này.'], 400);
+        if (in_array($order->status, ['delivering', 'completed', 'cancelled'])) {
+            return back()->with('error', 'Đơn hàng ở trạng thái hiện tại không thể hủy.');
         }
 
-        $order->status = 'cancelled';
-        $order->save();
+        DB::table('orders')->where('id', $order->id)->update([
+            'status' => 'cancelled',
+            'updated_at' => now()
+        ]);
 
-        return response()->json(['success' => true, 'message' => 'Đã hủy đơn hàng thành công.']);
+        try {
+            $user = DB::table('users')->where('id', $userId)->first();
+            if ($user && $user->email) {
+                \Illuminate\Support\Facades\Mail::to($user->email)
+                    ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đã bị hủy bởi khách hàng'));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Đã hủy đơn hàng thành công!');
     }
 }

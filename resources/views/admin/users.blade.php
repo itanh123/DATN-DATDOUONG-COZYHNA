@@ -127,6 +127,10 @@
                             @if(check_permission('assign_roles'))
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Cập nhật quyền</th>
                             @endif
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Đổi mật khẩu</th>
+                            @if(session('role_code') === 'admin')
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-outline-variant/30">
@@ -134,7 +138,12 @@
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="p-4 text-body-md text-on-surface font-semibold">#{{ $user->id }}</td>
                             <td class="p-4">
-                                <div class="font-label-md text-on-surface">{{ $user->username }}</div>
+                                <div class="font-label-md text-on-surface">
+                                    {{ $user->username }}
+                                    @if(!$user->status)
+                                    <span class="ml-2 text-xs text-error bg-error/10 font-bold border border-error/50 px-1 py-0.5 rounded">Bị khóa</span>
+                                    @endif
+                                </div>
                                 <div class="font-body-sm text-on-surface-variant text-sm">{{ $user->email }}</div>
                             </td>
                             <td class="p-4 text-body-md text-on-surface">{{ $user->phone }}</td>
@@ -167,6 +176,35 @@
                                         Lưu
                                     </button>
                                 </form>
+                            </td>
+                            @endif
+                            <td class="p-4">
+                                @if($user->id == session('user_id') && !$user->google_id)
+                                    <form action="/admin/users/{{ $user->id }}/password" method="POST" class="flex items-center gap-2 m-0">
+                                        @csrf
+                                        <input type="password" name="new_password" placeholder="Mật khẩu mới" required class="w-32 px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
+                                        <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                                            Đổi
+                                        </button>
+                                    </form>
+                                @elseif($user->id == session('user_id') && $user->google_id)
+                                    <span class="text-sm text-on-surface-variant italic">Google Auth</span>
+                                @else
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @endif
+                            </td>
+                            @if(session('role_code') === 'admin')
+                            <td class="p-4">
+                                @if($user->id == session('user_id'))
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @else
+                                    <form action="/admin/users/{{ $user->id }}/toggle-status" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 text-sm rounded-lg transition-colors font-bold {{ $user->status ? 'bg-error/10 text-error hover:bg-error hover:text-white' : 'bg-primary-container text-primary hover:bg-primary hover:text-white' }}">
+                                            {{ $user->status ? 'Khóa' : 'Mở khóa' }}
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                             @endif
                         </tr>
@@ -193,6 +231,13 @@
                             @if(check_permission('assign_roles'))
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Cập nhật quyền</th>
                             @endif
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Đổi mật khẩu</th>
+                            @if(in_array(session('role_code'), ['admin', 'staff']))
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Hạn chế</th>
+                            @endif
+                            @if(session('role_code') === 'admin')
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-outline-variant/30">
@@ -200,7 +245,15 @@
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="p-4 text-body-md text-on-surface font-semibold">#{{ $user->id }}</td>
                             <td class="p-4">
-                                <div class="font-label-md text-on-surface">{{ $user->username }}</div>
+                                <div class="font-label-md text-on-surface">
+                                    {{ $user->username }}
+                                    @if(!$user->status)
+                                    <span class="ml-2 text-xs text-error bg-error/10 font-bold border border-error/50 px-1 py-0.5 rounded">Bị khóa</span>
+                                    @endif
+                                    @if($user->is_restricted)
+                                    <span class="ml-2 text-xs text-tertiary bg-tertiary/10 font-bold border border-tertiary/50 px-1 py-0.5 rounded">Bị hạn chế</span>
+                                    @endif
+                                </div>
                                 <div class="font-body-sm text-on-surface-variant text-sm">{{ $user->email }}</div>
                             </td>
                             <td class="p-4 text-body-md text-on-surface">{{ $user->phone }}</td>
@@ -233,6 +286,45 @@
                                         Lưu
                                     </button>
                                 </form>
+                            </td>
+                            @endif
+                            <td class="p-4">
+                                @if($user->id == session('user_id') && !$user->google_id)
+                                    <form action="/admin/users/{{ $user->id }}/password" method="POST" class="flex items-center gap-2 m-0">
+                                        @csrf
+                                        <input type="password" name="new_password" placeholder="Mật khẩu mới" required class="w-32 px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
+                                        <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                                            Đổi
+                                        </button>
+                                    </form>
+                                @elseif($user->id == session('user_id') && $user->google_id)
+                                    <span class="text-sm text-on-surface-variant italic">Google Auth</span>
+                                @else
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @endif
+                            </td>
+                            @if(in_array(session('role_code'), ['admin', 'staff']))
+                            <td class="p-4">
+                                <form action="/admin/users/{{ $user->id }}/toggle-restriction" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 text-sm rounded-lg transition-colors font-bold {{ $user->is_restricted ? 'bg-tertiary-container text-tertiary hover:bg-tertiary hover:text-white' : 'bg-surface-variant text-on-surface-variant hover:bg-on-surface-variant hover:text-white' }}">
+                                        {{ $user->is_restricted ? 'Bỏ hạn chế' : 'Hạn chế' }}
+                                    </button>
+                                </form>
+                            </td>
+                            @endif
+                            @if(session('role_code') === 'admin')
+                            <td class="p-4">
+                                @if($user->id == session('user_id'))
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @else
+                                    <form action="/admin/users/{{ $user->id }}/toggle-status" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 text-sm rounded-lg transition-colors font-bold {{ $user->status ? 'bg-error/10 text-error hover:bg-error hover:text-white' : 'bg-primary-container text-primary hover:bg-primary hover:text-white' }}">
+                                            {{ $user->status ? 'Khóa' : 'Mở khóa' }}
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                             @endif
                         </tr>

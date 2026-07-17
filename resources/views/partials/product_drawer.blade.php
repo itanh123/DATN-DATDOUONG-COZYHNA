@@ -109,7 +109,8 @@
                         <span class="font-headline-md text-headline-md text-on-surface" id="totalPrice">$4.20</span>
                     </div>
                 </div>
-                <button id="addToCartBtn"
+                <button
+                    onclick="addToCartFromDrawer()"
                     class="w-full py-lg bg-primary text-on-primary font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex justify-center items-center gap-md">
                     <span>Add to Cart</span>
                     <span class="material-symbols-outlined">shopping_bag</span>
@@ -124,15 +125,13 @@
         window.allStoreProducts = {!! isset($products) ? $products->toJson() : '[]' !!};
         let quantity = 1;
         let unitPrice = 0;
-        let selectedProductSizeId = null;
-        let currentProductId = null;  // always set when drawer opens
 
         function updateTotals() {
             document.getElementById('qtyVal').innerText = quantity;
+            // Format total to Vietnamese Dong format if it's a large number, else keep default
             let total = quantity * unitPrice;
-            document.getElementById('totalPrice').innerText = total > 0
-                ? new Intl.NumberFormat('vi-VN').format(total) + ' đ'
-                : '0 đ';
+            let formattedTotal = total > 100 ? new Intl.NumberFormat('vi-VN').format(total) + ' đ' : '$' + total.toFixed(2);
+            document.getElementById('totalPrice').innerText = formattedTotal;
         }
 
         function incrementQty() {
@@ -162,24 +161,54 @@
             }
         }
 
-        function openDrawer(element = null) {
-            if (!element || !element.dataset.product) {
-                alert("Đây là sản phẩm minh họa. Vui lòng chọn các sản phẩm thực tế trong phần Danh Mục bên dưới.");
-                return;
+        let currentProductForCart = null;
+        let currentSizeForCart = null;
+
+        async function addToCartFromDrawer() {
+            if (!currentProductForCart) return;
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: currentProductForCart.id,
+                        size_id: currentSizeForCart ? currentSizeForCart.id : null,
+                        quantity: quantity
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    window.serverCartCount = data.cartCount;
+                    if (typeof updateCartBadge === 'function') {
+                        updateCartBadge();
+                    }
+
+                    // alert('Đã thêm ' + currentProductForCart.name + ' vào giỏ hàng!');
+                    closeDrawer();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra');
+                    if (data.message === 'Vui lòng đăng nhập') {
+                        window.location.href = '/login';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi kết nối mạng khi thêm vào giỏ hàng');
             }
+        }
+
+        function openDrawer(element = null) {
             const drawer = document.getElementById('productDrawer');
             const overlay = document.getElementById('drawerOverlay');
-            
-            // Reset state
-            quantity = 1;
-            unitPrice = 0;
-            selectedProductSizeId = null;
-            currentProductId = null;
             
             if (element && element.dataset.product) {
                 try {
                     const product = JSON.parse(element.dataset.product);
-                    currentProductId = product.id;  // always capture product ID
                     document.getElementById('drawerProductName').innerText = product.name || 'Sản phẩm';
                     
                     const sizeSection = document.getElementById('drawerSizeSection');
@@ -187,76 +216,48 @@
                     
                     if (sizeSelector) sizeSelector.innerHTML = '';
                     
+                    currentProductForCart = product;
+                    currentSizeForCart = null;
+
                     if (product.product_sizes && product.product_sizes.length > 0) {
                         if (sizeSection) sizeSection.style.display = 'block';
                         
-                        // Filter to only ACTIVE sizes (status can be boolean true OR integer 1)
-                        const activeSizes = product.product_sizes.filter(ps => ps.status == 1 || ps.status === true);
-                        
-                        if (activeSizes.length === 0) {
-                            // All sizes inactive — disable add to cart
-                            selectedProductSizeId = null;
-                            unitPrice = 0;
-                            document.getElementById('drawerProductPrice').innerText = 'Liên hệ';
-                            const addBtn = document.getElementById('addToCartBtn');
-                            if (addBtn) { addBtn.disabled = true; addBtn.innerText = 'Sản phẩm tạm ngưng'; }
-                        } else {
-                            // Auto-select default size (or first active)
-                            let defaultPs = activeSizes.find(ps => ps.is_default == 1 || ps.is_default === true) || activeSizes[0];
-                            unitPrice = parseFloat(defaultPs.selling_price) || 0;
-                            selectedProductSizeId = defaultPs.id;
-                            document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
-                            const addBtn = document.getElementById('addToCartBtn');
-                            if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>'; }
+                        let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
+                        unitPrice = parseFloat(defaultPs.selling_price) || 0;
+                        currentSizeForCart = defaultPs.size || null;
+                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
 
-                            activeSizes.forEach(ps => {
-                                const btn = document.createElement('button');
-                                const isSelected = (ps.id === defaultPs.id);
-                                btn.type = 'button';
-                                btn.className = isSelected 
-                                    ? 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all'
-                                    : 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                        product.product_sizes.forEach(ps => {
+                            if (!ps.status) return; // Skip inactive sizes
+                            
+                            const btn = document.createElement('button');
+                            const isSelected = (ps.id === defaultPs.id);
+                            
+                            btn.className = isSelected 
+                                ? 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all'
+                                : 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                            
+                            // Safe fallback in case size object is missing
+                            btn.innerText = ps.size ? ps.size.name : 'Size';
+                            
+                            btn.onclick = () => {
+                                Array.from(sizeSelector.children).forEach(b => {
+                                    b.className = 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
+                                });
+                                btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
                                 
-                                btn.innerText = ps.size ? ps.size.name : 'Size';
-                                
-                                btn.onclick = () => {
-                                    Array.from(sizeSelector.children).forEach(b => {
-                                        b.className = 'flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all';
-                                    });
-                                    btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
-                                    
-                                    selectedProductSizeId = ps.id;
-                                    unitPrice = parseFloat(ps.selling_price) || 0;
-                                    document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
-                                    updateTotals();
-                                };
-                                
-                                if (sizeSelector) sizeSelector.appendChild(btn);
-                            });
-                        }
+                                unitPrice = parseFloat(ps.selling_price) || 0;
+                                currentSizeForCart = ps.size || null;
+                                document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
+                                updateTotals();
+                            };
+                            
+                            if (sizeSelector) sizeSelector.appendChild(btn);
+                        });
                     } else {
-                        // Product has NO sizes configured—allow adding with base_price
                         if (sizeSection) sizeSection.style.display = 'none';
-                        selectedProductSizeId = null;
-                        unitPrice = parseFloat(product.base_price) || 0;
-
-                        const addBtn = document.getElementById('addToCartBtn');
-                        if (unitPrice > 0) {
-                            // Has a base price — can be added to cart
-                            document.getElementById('drawerProductPrice').innerText =
-                                new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
-                            if (addBtn) {
-                                addBtn.disabled = false;
-                                addBtn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
-                            }
-                        } else {
-                            // No price at all — contact required
-                            document.getElementById('drawerProductPrice').innerText = 'Liên hệ';
-                            if (addBtn) {
-                                addBtn.disabled = true;
-                                addBtn.innerHTML = '<span>Liên hệđể đặt</span>';
-                            }
-                        }
+                        unitPrice = parseFloat(product.price) || 0;
+                        document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                     }
 
                     if (product.description) {
@@ -321,7 +322,6 @@
                         }
                     }
 
-                    // Reset quantity after all state is set
                     quantity = 1;
                     updateTotals();
                 } catch(e) {
@@ -359,71 +359,6 @@
                 ind.classList.toggle('bg-outline-variant', idx !== currentSlide);
             });
         }, 5000);
-        // Add to Cart handler
-        document.getElementById('addToCartBtn').addEventListener('click', function() {
-            // Must have a product
-            if (!currentProductId) return;
-
-            let data;
-            if (selectedProductSizeId) {
-                // Product WITH a size selected
-                data = {
-                    product_size_id: selectedProductSizeId,
-                    quantity: quantity
-                };
-            } else {
-                // Product WITHOUT sizes — send product_id + unit_price
-                if (unitPrice <= 0) {
-                    alert('Sản phẩm này chưa có giá, vui lòng liên hệ quầy.');
-                    return;
-                }
-                data = {
-                    product_id: currentProductId,
-                    unit_price: unitPrice,
-                    quantity: quantity
-                };
-            }
-
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<span>Đang thêm...</span>';
-
-            fetch('{{ route("cart.add") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (response.status === 401) {
-                    alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.');
-                    window.location.href = '/login';
-                    throw new Error('Unauthorized');
-                }
-                return response.json();
-            })
-            .then(res => {
-                if (res.success) {
-                    btn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1">check_circle</span><span>Đã thêm!</span>';
-                    setTimeout(() => {
-                        closeDrawer();
-                        btn.disabled = false;
-                        btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
-                    }, 800);
-                } else {
-                    alert(res.error || 'Có lỗi xảy ra, vui lòng thử lại.');
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                btn.disabled = false;
-                btn.innerHTML = '<span>Thêm vào giỏ</span><span class="material-symbols-outlined">shopping_bag</span>';
-            });
-        });
     
 </script>
 @endpush
