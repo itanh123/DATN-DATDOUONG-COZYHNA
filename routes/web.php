@@ -241,6 +241,8 @@ Route::post('/customer/checkout/place-order', [\App\Http\Controllers\CheckoutCon
 Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
 Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
 Route::get('/customer/contact', function () { return view('customer.contact'); });
+Route::get('/customer/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('customer.favorites');
+Route::post('/favorites/toggle/{product}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 Route::get('/customer/account', function () {
     if (!session()->has('user_id')) return redirect('/login');
     if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');

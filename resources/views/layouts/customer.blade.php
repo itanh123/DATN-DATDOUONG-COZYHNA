@@ -136,6 +136,7 @@
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
 @if(!session('is_table_order'))
 <a class="font-body-lg text-body-lg {{ request()->is('customer/orders') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/orders">Đơn hàng</a>
+<a class="font-body-lg text-body-lg {{ request()->is('customer/favorites') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/favorites">Yêu thích</a>
 @endif
 <a class="font-body-lg text-body-lg {{ request()->is('customer/contact') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/contact">Giới thiệu</a>
 </nav>
@@ -151,6 +152,7 @@
 </a>
 @if(!session('is_table_order'))
 @if(session()->has('user_id'))
+    <a href="/customer/favorites" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="favorite" title="Yêu thích">favorite</a>
     <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
 @else
     <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
@@ -177,6 +179,10 @@
 <a href="/customer/orders" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="history">history</span>
 <span class="font-label-sm text-label-sm">Lịch sử</span>
+</a>
+<a href="/customer/favorites" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-label-sm text-label-sm">Yêu thích</span>
 </a>
 <a href="/customer/account" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="person">person</span>
@@ -244,6 +250,67 @@
 @include('partials.product_drawer')
 @stack('scripts')
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session()->has('user_id') && !session('is_table_order'))
+        @php
+            $user = \App\Models\User::find(session('user_id'));
+            $favoriteIds = [];
+            if ($user) {
+                $favoriteIds = $user->favoriteProducts()->pluck('product_id')->toArray();
+            }
+        @endphp
+        window.favoriteProductIds = @json($favoriteIds);
+        @else
+        window.favoriteProductIds = [];
+        @endif
+
+        // Initialize favorite icons
+        window.favoriteProductIds.forEach(id => {
+            document.querySelectorAll('.favorite-icon-' + id).forEach(icon => {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                icon.classList.add('text-error');
+            });
+        });
+
+        document.querySelectorAll('.btn-favorite-toggle').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                @if(!session()->has('user_id'))
+                    window.location.href = '/login';
+                    return;
+                @endif
+
+                const productId = this.getAttribute('data-product-id');
+                const icons = document.querySelectorAll('.favorite-icon-' + productId);
+
+                fetch(`/favorites/toggle/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        icons.forEach(icon => {
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                            icon.classList.add('text-error');
+                        });
+                    } else if (data.status === 'removed') {
+                        icons.forEach(icon => {
+                            icon.style.fontVariationSettings = "'FILL' 0";
+                            icon.classList.remove('text-error');
+                        });
+                    }
+                })
+                .catch(error => console.error('Error toggling favorite:', error));
+            });
+        });
+    });
+</script>
 @if(session('is_table_order'))
 <button onclick="callStaff()" class="fixed bottom-24 right-4 z-50 bg-error text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-error/90 transition-all active:scale-95">
     <span class="material-symbols-outlined">notifications_active</span>

@@ -15,9 +15,9 @@
                     style="background-image: none; background-color: rgba(148,249,144,0.15)"
                 @endif
             ></div>
-            <button
-                class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors">
-                <span class="material-symbols-outlined text-[20px]">favorite</span>
+            <button type="button" data-product-id="{{ $product->id }}"
+                class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors btn-favorite-toggle">
+                <span class="material-symbols-outlined text-[20px] favorite-icon-{{ $product->id }}" style="font-variation-settings: 'FILL' 0;">favorite</span>
             </button>
         </div>
 

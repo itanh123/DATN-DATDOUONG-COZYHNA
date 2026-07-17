@@ -35,6 +35,16 @@ class User extends Authenticatable
         return $this->hasOne(CustomerProfile::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class, 'favorite_products')->withTimestamps();
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class);
