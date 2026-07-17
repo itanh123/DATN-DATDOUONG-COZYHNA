@@ -316,3 +316,11 @@ Route::post('/admin/table-calls/{id}/resolve', function($id) {
     ]);
     return response()->json(['success' => true]);
 });
+
+// Backup & Restore Routes (Admin only)
+Route::get('/admin/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index']);
+Route::post('/admin/backup/create', [\App\Http\Controllers\Admin\BackupController::class, 'create']);
+Route::post('/admin/backup/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore']);
+Route::post('/admin/backup/upload', [\App\Http\Controllers\Admin\BackupController::class, 'upload']);
+Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
+Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
