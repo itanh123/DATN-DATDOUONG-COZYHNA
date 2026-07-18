@@ -130,7 +130,8 @@
 
 @push('scripts')
 <script>
-        window.allStoreProducts = {!! isset($products) ? $products->toJson() : '[]' !!};
+        let rawProducts = {!! isset($products) ? $products->toJson() : '[]' !!};
+        window.allStoreProducts = Array.isArray(rawProducts) ? rawProducts : (rawProducts.data || []);
         let quantity = 1;
         let unitPrice = 0;
 

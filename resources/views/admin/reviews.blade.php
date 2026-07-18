@@ -3,7 +3,7 @@
 @section('title', 'Quản lý Đánh Giá')
 
 @section('content')
-<div class="space-y-6">
+<main class="md:ml-[280px] min-h-screen p-lg md:p-xl space-y-6">
     <div class="flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">Quản lý Đánh Giá Sản Phẩm</h1>
     </div>
@@ -77,7 +77,7 @@
         </div>
         @endif
     </div>
-</div>
+</main>
 @endsection
 
 @push('scripts')
