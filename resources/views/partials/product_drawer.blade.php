@@ -50,8 +50,8 @@
                     <div class="flex items-center gap-xs mb-md">
                         <span class="material-symbols-outlined text-tertiary text-sm"
                             style="font-variation-settings: 'FILL' 1;">star</span>
-                        <span class="font-label-sm text-label-sm text-on-surface font-bold">4.9</span>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">(1.2k reviews)</span>
+                        <span class="font-label-sm text-label-sm text-on-surface font-bold" id="drawerProductRating">0.0</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant" id="drawerProductReviews">(0 reviews)</span>
                     </div>
                     <p id="drawerProductDesc" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
                         Our signature brew with floral notes and natural honey. Hand-crafted daily for a smooth,
@@ -79,6 +79,14 @@
                         <textarea
                             class="w-full p-md rounded-2xl bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-0 text-body-md placeholder:text-outline h-24 transition-colors"
                             placeholder="e.g., extra lavender sprig, separate honey..."></textarea>
+                    </div>
+                    <!-- Reviews Section -->
+                    <div class="pb-xl" id="drawerReviewsSection" style="display: none;">
+                        <label
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">Đánh giá từ khách hàng</label>
+                        <div class="space-y-4" id="drawerReviewsList">
+                            <!-- Dynamically generated reviews -->
+                        </div>
                     </div>
                     <!-- Related Products Section -->
                     <div class="pb-xl" id="drawerRelatedSection" style="display: none;">
@@ -264,6 +272,10 @@
                         const descEl = document.getElementById('drawerProductDesc');
                         if (descEl) descEl.innerHTML = product.description;
                     }
+
+                    // Update rating
+                    document.getElementById('drawerProductRating').innerText = product.average_rating ? parseFloat(product.average_rating).toFixed(1) : '0.0';
+                    document.getElementById('drawerProductReviews').innerText = `(${product.review_count || 0} reviews)`;
                     
                     if (product.image) {
                         const track = document.getElementById('carouselTrack');
@@ -322,10 +334,64 @@
                         }
                     }
 
+                    // Render Reviews
+                    try {
+                        const reviewsContainer = document.getElementById('drawerReviewsList');
+                        const reviewsSection = document.getElementById('drawerReviewsSection');
+                        if (reviewsContainer && reviewsSection) {
+                            reviewsContainer.innerHTML = '';
+                            let approvedReviews = (product.reviews || []).filter(r => r.status === 'approved');
+                            
+                            reviewsSection.style.display = 'block';
+                            
+                            if (approvedReviews.length > 0) {
+                                approvedReviews.forEach(review => {
+                                    let starsHtml = '';
+                                    for (let i = 1; i <= 5; i++) {
+                                        if (i <= review.rating) {
+                                            starsHtml += `<span class="material-symbols-outlined text-[#FFD700] text-sm" style="font-variation-settings: 'FILL' 1;">star</span>`;
+                                        } else {
+                                            starsHtml += `<span class="material-symbols-outlined text-outline-variant text-sm" style="font-variation-settings: 'FILL' 1;">star</span>`;
+                                        }
+                                    }
+                                    
+                                    const dateStr = new Date(review.created_at).toLocaleDateString('vi-VN');
+                                    let userName = review.user ? (review.user.name || review.user.username || 'Khách hàng') : 'Khách hàng';
+                                    userName = String(userName); // Đảm bảo luôn là chuỗi
+                                    
+                                    if (userName.length > 3) {
+                                        userName = userName.substring(0, userName.length - 3) + '***';
+                                    } else {
+                                        userName = userName.substring(0, 1) + '***';
+                                    }
+
+                                    const reviewDiv = document.createElement('div');
+                                    reviewDiv.className = 'bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30';
+                                    reviewDiv.innerHTML = `
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p class="font-bold text-label-md">${userName}</p>
+                                                <div class="flex">${starsHtml}</div>
+                                            </div>
+                                            <span class="text-label-sm text-on-surface-variant">${dateStr}</span>
+                                        </div>
+                                        <p class="text-body-md text-on-surface mt-2">${review.comment || ''}</p>
+                                    `;
+                                    reviewsContainer.appendChild(reviewDiv);
+                                });
+                            } else {
+                                reviewsContainer.innerHTML = '<p class="text-body-md text-on-surface-variant italic">Chưa có đánh giá nào.</p>';
+                            }
+                        }
+                    } catch (reviewError) {
+                        console.error('Error rendering reviews:', reviewError);
+                    }
+
                     quantity = 1;
                     updateTotals();
                 } catch(e) {
                     console.error('Error parsing product data', e);
+                    document.getElementById('drawerProductName').innerText = 'Error: ' + e.message;
                 }
             }
 

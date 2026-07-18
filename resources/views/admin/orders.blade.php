@@ -178,6 +178,11 @@
 <span class="inline-flex items-center gap-xs px-md py-1 rounded-full {{ $statusColor }} font-semibold text-xs border border-outline-variant/30">
     {{ ucfirst($order->status) }}
 </span>
+@if($order->status == 'cancelled' && !empty($order->cancel_reason))
+<div class="mt-1 text-[10px] text-error font-medium italic" title="{{ $order->cancel_reason }}">
+    Lý do: {{ Str::limit($order->cancel_reason, 20) }}
+</div>
+@endif
 </td>
 <td class="px-lg py-lg font-body-md text-on-surface-variant">{{ \Carbon\Carbon::parse($order->created_at)->diffForHumans() }}</td>
 <td class="px-lg py-lg text-right">
@@ -192,11 +197,16 @@
         @endif
         <form action="/admin/orders/{{ $order->id }}/status" method="POST" class="inline-flex items-center m-0">
             @csrf
-            <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0 cursor-pointer">
-                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
-                <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
-                <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
-                <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>Đang giao</option>
+            @php
+                $statusOrder = ['pending' => 1, 'confirmed' => 2, 'preparing' => 3, 'shipping' => 4, 'completed' => 5, 'cancelled' => 6];
+                $currentIndex = $statusOrder[$order->status] ?? 0;
+                $isTerminal = in_array($order->status, ['completed', 'cancelled']);
+            @endphp
+            <select name="status" onchange="this.form.submit()" class="text-xs p-1 rounded border border-outline-variant focus:ring-0 cursor-pointer" {{ $isTerminal ? 'disabled' : '' }}>
+                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }} {{ $currentIndex > 1 ? 'disabled' : '' }}>Chờ xác nhận</option>
+                <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }} {{ $currentIndex > 2 ? 'disabled' : '' }}>Đã xác nhận</option>
+                <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }} {{ $currentIndex > 3 ? 'disabled' : '' }}>Đang chuẩn bị</option>
+                <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }} {{ $currentIndex > 4 ? 'disabled' : '' }}>Đang giao</option>
                 <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
                 <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
             </select>

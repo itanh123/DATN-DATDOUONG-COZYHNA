@@ -24,6 +24,30 @@ class Product extends Model
         'status',
     ];
 
+    protected $appends = ['average_rating', 'review_count'];
+
+    public function getAverageRatingAttribute()
+    {
+        $approvedReviews = $this->reviews->where('status', 'approved');
+        return $approvedReviews->avg('rating') ?? 0;
+    }
+
+    public function getReviewCountAttribute()
+    {
+        $approvedReviews = $this->reviews->where('status', 'approved');
+        return $approvedReviews->count();
+    }
+
+    public function averageRating()
+    {
+        return $this->getAverageRatingAttribute();
+    }
+
+    public function reviewCount()
+    {
+        return $this->getReviewCountAttribute();
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
@@ -38,5 +62,10 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class, 'favorite_products')->withTimestamps();
     }
-}
 
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+}

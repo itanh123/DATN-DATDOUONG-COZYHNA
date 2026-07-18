@@ -24,14 +24,26 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $reviewedItems = DB::table('product_reviews')
+            ->where('user_id', $userId)
+            ->select('order_id', 'product_id')
+            ->get()
+            ->map(function ($review) {
+                return $review->order_id . '_' . $review->product_id;
+            })->toArray();
+
         foreach ($orders as $order) {
             $order->items = DB::table('order_items')
                 ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
                 ->join('products', 'product_sizes.product_id', '=', 'products.id')
                 ->join('sizes', 'product_sizes.size_id', '=', 'sizes.id')
                 ->where('order_items.order_id', $order->id)
-                ->select('order_items.*', 'products.name as product_name', 'products.image as product_image', 'sizes.name as size_name')
+                ->select('order_items.*', 'products.name as product_name', 'products.image as product_image', 'sizes.name as size_name', 'products.id as product_id')
                 ->get();
+
+            foreach ($order->items as $item) {
+                $item->is_reviewed = in_array($order->id . '_' . $item->product_id, $reviewedItems);
+            }
 
             $order->address = DB::table('customer_addresses')
                 ->where('id', $order->address_id)
@@ -75,12 +87,15 @@ class OrderController extends Controller
             return back()->with('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền hủy.');
         }
 
-        if (in_array($order->status, ['delivering', 'completed', 'cancelled'])) {
-            return back()->with('error', 'Đơn hàng ở trạng thái hiện tại không thể hủy.');
+        if (in_array($order->status, ['preparing', 'shipping', 'delivering', 'completed', 'cancelled'])) {
+            return back()->with('error', 'Đơn hàng đang chuẩn bị hoặc đã giao, không thể hủy.');
         }
+
+        $cancelReason = request('cancel_reason') ?: 'Không có lý do';
 
         DB::table('orders')->where('id', $order->id)->update([
             'status' => 'cancelled',
+            'cancel_reason' => $cancelReason,
             'updated_at' => now()
         ]);
 
@@ -94,6 +109,6 @@ class OrderController extends Controller
             \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
         }
 
-        return back()->with('success', 'Đã hủy đơn hàng thành công!');
+        return back()->with('cancel_success', 'Đã hủy đơn hàng! Cảm ơn bạn đã góp ý kiến.');
     }
 }

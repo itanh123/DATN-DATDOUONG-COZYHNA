@@ -31,7 +31,7 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
     $query = \App\Models\Product::query()
         ->whereNull('deleted_at')
         ->where('status', true)
-        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category']);
+        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category', 'reviews.user']);
 
     if ($request->has('category_id')) {
         $query->where('category_id', $request->category_id);
@@ -263,6 +263,7 @@ Route::post('/customer/orders/{order}/cancel', function (\Illuminate\Http\Reques
 });
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
+Route::post('/customer/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
 
 Route::get('/admin/add_product', function () { return view('admin.add_product'); });
 Route::get('/admin/inventory', function () { return view('admin.inventory'); });
@@ -272,6 +273,9 @@ Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderContro
 Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });
+Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
+Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
+Route::post('/admin/reviews/{review}/delete', [\App\Http\Controllers\ReviewController::class, 'destroy']);
 
 // Voucher Routes
 Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
