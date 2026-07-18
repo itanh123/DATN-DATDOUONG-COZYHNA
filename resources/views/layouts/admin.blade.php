@@ -161,6 +161,10 @@
 <span class="material-symbols-outlined" data-icon="category">category</span>
 <span class="font-label-md text-label-md">Sản phẩm</span>
 </a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/reviews">
+<span class="material-symbols-outlined" data-icon="reviews">reviews</span>
+<span class="font-label-md text-label-md">Đánh giá</span>
+</a>
 @endif
 
 @if(in_array('view_users', $userPermissions))

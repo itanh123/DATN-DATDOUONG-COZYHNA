@@ -15,6 +15,25 @@
 <button class="px-xl py-2 rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:text-primary" id="btn-history" onclick="switchTab('history')">Lịch sử đơn hàng</button>
 </div>
 </div>
+
+@if(session('success'))
+<div class="mb-lg p-4 bg-green-100 text-green-700 rounded-xl border border-green-200">
+    {{ session('success') }}
+</div>
+@endif
+
+@if(session('cancel_success'))
+<div class="mb-lg p-4 bg-red-100 text-red-700 rounded-xl border border-red-200 font-bold">
+    {{ session('cancel_success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div class="mb-lg p-4 bg-red-100 text-red-700 rounded-xl border border-red-200">
+    {{ session('error') }}
+</div>
+@endif
+
 <!-- Hoạt động Đơn hàng Giâytion -->
 <section class="space-y-gutter" id="section-active">
     @if($activeOrders->isEmpty())
@@ -42,13 +61,10 @@
                             <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
                             <p class="text-headline-md font-headline-md text-primary">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
                         </div>
-                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing']))
-                        <form action="/customer/orders/{{ $order->id }}/cancel" method="POST" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
-                            @csrf
-                            <button type="submit" class="px-4 py-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg text-sm font-bold transition-colors">
-                                Hủy đơn hàng
-                            </button>
-                        </form>
+                        @if(in_array($order->status, ['pending', 'confirmed']))
+                        <button type="button" onclick="openCancelModal({{ $order->id }})" class="px-4 py-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg text-sm font-bold transition-colors">
+                            Hủy đơn hàng
+                        </button>
                         @endif
                         @if(\Illuminate\Support\Facades\Storage::disk('public')->exists('invoices/' . $order->order_code . '.pdf'))
                         <a href="/orders/invoice/{{ $order->order_code }}" target="_blank" class="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm font-bold transition-colors mt-2 text-center inline-block">
@@ -173,9 +189,12 @@
                         <span class="{{ $order->status == 'completed' ? 'bg-green-100 text-secondary' : 'bg-red-100 text-error' }} px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider mb-2 inline-block">Order #{{ $order->order_code }}</span>
                         <h3 class="font-title-lg text-title-lg">Trạng thái: 
                             @if($order->status == 'completed') Hoàn thành
-                            @else Đã hủy
+                            @else <span class="text-error font-bold">Đã hủy</span>
                             @endif
                         </h3>
+                        @if($order->status == 'cancelled')
+                        <p class="text-error text-sm mt-1">Cảm ơn bạn đã góp ý kiến.</p>
+                        @endif
                     </div>
                     <div class="text-right">
                         <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
@@ -195,7 +214,16 @@
                                     <p class="font-bold">{{ $item->product_name }}</p>
                                     <p class="text-primary font-bold">{{ number_format($item->total_price, 0, ',', '.') }}đ</p>
                                 </div>
-                                <p class="text-on-surface-variant text-body-md">Size: {{ $item->size_name }} (x{{ $item->quantity }})</p>
+                                <div class="flex justify-between items-center mt-1">
+                                    <p class="text-on-surface-variant text-body-md">Size: {{ $item->size_name }} (x{{ $item->quantity }})</p>
+                                    @if($order->status == 'completed')
+                                        @if($item->is_reviewed)
+                                        <span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded text-xs font-bold">Đã đánh giá</span>
+                                        @else
+                                        <button onclick="openReviewModal({{ $order->id }}, {{ $item->product_id }}, '{{ $item->product_name }}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs font-bold transition-colors">Đánh giá</button>
+                                        @endif
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         @endforeach
@@ -247,6 +275,151 @@
     @endif
 </section>
 </main>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
+        <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-error">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3 class="text-title-lg font-bold mb-4">Đánh giá sản phẩm</h3>
+        <p id="reviewProductName" class="text-primary font-bold mb-4"></p>
+        
+        <form action="/customer/reviews" method="POST">
+            @csrf
+            <input type="hidden" name="order_id" id="reviewOrderId">
+            <input type="hidden" name="product_id" id="reviewProductId">
+            
+            <div class="mb-4">
+                <label class="block text-label-md font-bold mb-2">Đánh giá của bạn</label>
+                <div class="flex gap-2 text-2xl cursor-pointer" id="starRating">
+                    <span class="material-symbols-outlined text-outline-variant star" data-value="1" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="material-symbols-outlined text-outline-variant star" data-value="2" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="material-symbols-outlined text-outline-variant star" data-value="3" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="material-symbols-outlined text-outline-variant star" data-value="4" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="material-symbols-outlined text-outline-variant star" data-value="5" style="font-variation-settings: 'FILL' 1;">star</span>
+                </div>
+                <input type="hidden" name="rating" id="reviewRating" value="5" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-label-md font-bold mb-2">Bình luận (Tùy chọn)</label>
+                <textarea name="comment" class="w-full p-3 border border-outline-variant rounded-lg focus:border-primary focus:ring-0" rows="3" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-primary text-on-primary rounded-xl font-bold">Gửi đánh giá</button>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="absolute inset-0 bg-black/50" onclick="closeCancelModal()"></div>
+    <div class="bg-surface w-full max-w-md rounded-2xl p-6 relative z-10 mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Lý do hủy đơn hàng</h3>
+            <button onclick="closeCancelModal()" class="text-on-surface-variant hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="cancelForm" method="POST" action="">
+            @csrf
+            <div class="space-y-3 mb-4">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="cancel_reason" value="Muốn thay đổi địa chỉ nhận hàng" class="text-primary focus:ring-primary h-4 w-4" required onchange="toggleOtherReason()">
+                    <span>Muốn thay đổi địa chỉ nhận hàng</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="cancel_reason" value="Muốn thay đổi món/số lượng" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
+                    <span>Muốn thay đổi món/số lượng</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="cancel_reason" value="Thời gian giao hàng quá lâu" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
+                    <span>Thời gian giao hàng quá lâu</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="radio" name="cancel_reason" value="Lý do khác" id="radioOtherReason" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
+                    <span>Lý do khác</span>
+                </label>
+            </div>
+            
+            <div id="otherReasonDiv" class="hidden mb-4">
+                <textarea id="otherReasonText" class="w-full p-3 border border-outline-variant rounded-lg focus:border-primary focus:ring-0" rows="3" placeholder="Nhập lý do cụ thể..."></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-error text-white rounded-xl font-bold mt-2">Xác nhận hủy</button>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function openReviewModal(orderId, productId, productName) {
+        document.getElementById('reviewOrderId').value = orderId;
+        document.getElementById('reviewProductId').value = productId;
+        document.getElementById('reviewProductName').innerText = productName;
+        document.getElementById('reviewModal').classList.remove('hidden');
+        setRating(5); // default to 5 stars
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.add('hidden');
+    }
+
+    function setRating(rating) {
+        document.getElementById('reviewRating').value = rating;
+        const stars = document.querySelectorAll('#starRating .star');
+        stars.forEach(star => {
+            if (parseInt(star.dataset.value) <= rating) {
+                star.classList.remove('text-outline-variant');
+                star.classList.add('text-[#FFD700]'); // Gold color
+            } else {
+                star.classList.add('text-outline-variant');
+                star.classList.remove('text-[#FFD700]');
+            }
+        });
+    }
+
+    document.querySelectorAll('#starRating .star').forEach(star => {
+        star.addEventListener('click', function() {
+            setRating(parseInt(this.dataset.value));
+        });
+    });
+
+    function openCancelModal(orderId) {
+        document.getElementById('cancelForm').action = '/customer/orders/' + orderId + '/cancel';
+        document.getElementById('cancelModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+    }
+
+    function toggleOtherReason() {
+        const isOther = document.getElementById('radioOtherReason').checked;
+        const otherDiv = document.getElementById('otherReasonDiv');
+        const otherText = document.getElementById('otherReasonText');
+        
+        if (isOther) {
+            otherDiv.classList.remove('hidden');
+            otherText.setAttribute('required', 'required');
+        } else {
+            otherDiv.classList.add('hidden');
+            otherText.removeAttribute('required');
+        }
+    }
+
+    document.getElementById('cancelForm').addEventListener('submit', function(e) {
+        const isOther = document.getElementById('radioOtherReason').checked;
+        if (isOther) {
+            const otherText = document.getElementById('otherReasonText').value.trim();
+            if (otherText) {
+                document.getElementById('radioOtherReason').value = otherText;
+            }
+        }
+    });
+</script>
+@endpush
 @endsection
 
 @push('scripts')
@@ -285,6 +458,11 @@
             btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
             btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
         });
-    
+
+        @if(session('cancel_success'))
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('history');
+        });
+        @endif
 </script>
 @endpush

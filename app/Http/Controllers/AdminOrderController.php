@@ -98,6 +98,25 @@ class AdminOrderController extends Controller
 
         $status = $request->input('status');
         if (in_array($status, ['pending', 'confirmed', 'preparing', 'shipping', 'completed', 'cancelled'])) {
+            
+            $statusOrder = [
+                'pending' => 1,
+                'confirmed' => 2,
+                'preparing' => 3,
+                'shipping' => 4,
+                'completed' => 5,
+                'cancelled' => 6
+            ];
+
+            $currentIndex = $statusOrder[$order->status] ?? 0;
+            $newIndex = $statusOrder[$status] ?? 0;
+
+            if ($newIndex < $currentIndex && $status !== 'cancelled') {
+                return redirect()->back()->with('error', 'Không thể lùi trạng thái đơn hàng về trước đó.');
+            }
+            if (in_array($order->status, ['completed', 'cancelled'])) {
+                return redirect()->back()->with('error', 'Đơn hàng đã hoàn thành hoặc hủy, không thể thay đổi.');
+            }
             // Chỉ trừ nguyên liệu khi trạng thái chuyển thành "đang giao" (shipping)
             // và trạng thái cũ chưa phải là shipping/completed/cancelled
             if ($status === 'shipping' && !in_array($order->status, ['shipping', 'completed', 'cancelled'])) {
