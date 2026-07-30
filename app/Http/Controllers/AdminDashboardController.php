@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!check_permission('view_dashboard')) {
             return redirect('/login')->with('error', 'You do not have permission to access this page.');
@@ -52,17 +52,34 @@ class AdminDashboardController extends Controller
         $totalProductsDb = DB::table('products')->count();
         $activeProductsPercent = $totalProductsDb > 0 ? ($activeProducts / $totalProductsDb) * 100 : 0;
 
-        // 5. Chart Data (Last 7 days revenue)
+        // 5. Chart Data (Dynamic Range)
+        $range = $request->query('range', '7'); // Default to 7
+        
         $chartData = [];
         $chartLabels = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i)->format('Y-m-d');
-            $dailyRevenue = DB::table('orders')
-                ->whereIn('status', ['completed', 'delivered'])
-                ->whereDate('created_at', $date)
-                ->sum('total_amount');
-            $chartLabels[] = Carbon::now()->subDays($i)->format('d/m');
-            $chartData[] = $dailyRevenue;
+        
+        if ($range === 'year') {
+            // Data for each month of current year
+            for ($i = 1; $i <= 12; $i++) {
+                $monthRevenue = DB::table('orders')
+                    ->whereIn('status', ['completed', 'delivered'])
+                    ->whereYear('created_at', date('Y'))
+                    ->whereMonth('created_at', $i)
+                    ->sum('total_amount');
+                $chartLabels[] = 'Tháng ' . $i;
+                $chartData[] = $monthRevenue;
+            }
+        } else {
+            $days = (int) $range;
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = Carbon::now()->subDays($i)->format('Y-m-d');
+                $dailyRevenue = DB::table('orders')
+                    ->whereIn('status', ['completed', 'delivered'])
+                    ->whereDate('created_at', $date)
+                    ->sum('total_amount');
+                $chartLabels[] = Carbon::now()->subDays($i)->format('d/m');
+                $chartData[] = $dailyRevenue;
+            }
         }
 
         // 6. Sản phẩm bán chạy (Top Performing Products)
@@ -96,7 +113,7 @@ class AdminDashboardController extends Controller
             'totalOrders', 'ordersChange',
             'newCustomers', 'customersChange',
             'activeProducts', 'totalProductsDb', 'activeProductsPercent',
-            'chartLabels', 'chartData',
+            'chartLabels', 'chartData', 'range',
             'topProducts',
             'recentOrders'
         ));

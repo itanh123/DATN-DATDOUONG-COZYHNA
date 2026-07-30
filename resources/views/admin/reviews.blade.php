@@ -42,7 +42,14 @@
                         <td class="p-4 text-sm font-medium text-gray-800">{{ $review->user->name ?? 'N/A' }}</td>
                         <td class="p-4 text-sm text-gray-600">{{ $review->product->name ?? 'N/A' }}</td>
                         <td class="p-4 text-sm text-yellow-500 font-bold">{{ $review->rating }} <span class="material-symbols-outlined text-sm align-middle" style="font-variation-settings: 'FILL' 1;">star</span></td>
-                        <td class="p-4 text-sm text-gray-600 max-w-xs truncate">{{ $review->comment ?: '(Không có)' }}</td>
+                        <td class="p-4 text-sm text-gray-600 max-w-xs">
+                            <p class="truncate" title="{{ $review->comment }}">{{ $review->comment ?: '(Không có)' }}</p>
+                            @if($review->admin_reply)
+                                <div class="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-700 border border-gray-200">
+                                    <strong class="text-blue-600">Phản hồi:</strong> {{ $review->admin_reply }}
+                                </div>
+                            @endif
+                        </td>
                         <td class="p-4">
                             <select onchange="updateStatus({{ $review->id }}, this.value)" class="text-sm rounded border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50
                                 {{ $review->status == 'approved' ? 'bg-green-50 text-green-700' : ($review->status == 'pending' ? 'bg-yellow-50 text-yellow-700' : 'bg-red-50 text-red-700') }}">
@@ -53,12 +60,9 @@
                         </td>
                         <td class="p-4 text-sm text-gray-500">{{ $review->created_at->format('d/m/Y H:i') }}</td>
                         <td class="p-4 text-right">
-                            <form action="/admin/reviews/{{ $review->id }}/delete" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
-                                @csrf
-                                <button type="submit" class="text-red-500 hover:text-red-700 p-2">
-                                    <span class="material-symbols-outlined text-xl">delete</span>
-                                </button>
-                            </form>
+                            <button type="button" onclick="replyReview({{ $review->id }}, '{{ addslashes($review->admin_reply) }}')" class="text-blue-500 hover:text-blue-700 p-2" title="Trả lời">
+                                <span class="material-symbols-outlined text-xl">reply</span>
+                            </button>
                         </td>
                     </tr>
                     @empty
@@ -102,6 +106,34 @@
         } catch (error) {
             console.error(error);
             alert('Lỗi kết nối mạng');
+        }
+    }
+
+    function replyReview(id, currentReply) {
+        const reply = prompt("Nhập câu trả lời cho đánh giá này:", currentReply);
+        if (reply !== null) {
+            if (reply.trim() === "") {
+                alert("Nội dung trả lời không được để trống!");
+                return;
+            }
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/reviews/${id}/reply`;
+            
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            
+            const replyInput = document.createElement('input');
+            replyInput.type = 'hidden';
+            replyInput.name = 'admin_reply';
+            replyInput.value = reply;
+            
+            form.appendChild(csrf);
+            form.appendChild(replyInput);
+            document.body.appendChild(form);
+            form.submit();
         }
     }
 </script>

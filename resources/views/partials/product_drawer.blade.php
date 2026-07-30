@@ -53,9 +53,7 @@
                         <span class="font-label-sm text-label-sm text-on-surface font-bold" id="drawerProductRating">0.0</span>
                         <span class="font-label-sm text-label-sm text-on-surface-variant" id="drawerProductReviews">(0 reviews)</span>
                     </div>
-                    <p id="drawerProductDesc" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
-                        Our signature brew with floral notes and natural honey. Hand-crafted daily for a smooth,
-                        refreshing experience that balances organic sweetness with bold caffeine.
+                    <p id="drawerProductDesc" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mt-2" style="display: none;">
                     </p>
                 </section>
                 <!-- Customization Options -->
@@ -71,15 +69,7 @@
                     
                   
                  
-                    <!-- Special Notes -->
-                    <div>
-                        <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Special
-                            Notes</label>
-                        <textarea
-                            class="w-full p-md rounded-2xl bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-0 text-body-md placeholder:text-outline h-24 transition-colors"
-                            placeholder="e.g., extra lavender sprig, separate honey..."></textarea>
-                    </div>
+
                     <!-- Reviews Section -->
                     <div class="pb-xl" id="drawerReviewsSection" style="display: none;">
                         <label
@@ -269,9 +259,15 @@
                         document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                     }
 
-                    if (product.description) {
-                        const descEl = document.getElementById('drawerProductDesc');
-                        if (descEl) descEl.innerHTML = product.description;
+                    const descEl = document.getElementById('drawerProductDesc');
+                    if (descEl) {
+                        if (product.description) {
+                            descEl.innerHTML = product.description;
+                            descEl.style.display = 'block';
+                        } else {
+                            descEl.innerHTML = '';
+                            descEl.style.display = 'none';
+                        }
                     }
 
                     // Update rating
@@ -366,6 +362,19 @@
                                         userName = userName.substring(0, 1) + '***';
                                     }
 
+                                    let adminReplyHtml = '';
+                                    if (review.admin_reply) {
+                                        adminReplyHtml = `
+                                            <div class="mt-3 p-3 bg-primary-container/20 rounded-lg border border-primary/10">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="material-symbols-outlined text-primary text-sm">support_agent</span>
+                                                    <span class="font-bold text-label-sm text-primary">Phản hồi từ cửa hàng</span>
+                                                </div>
+                                                <p class="text-body-sm text-on-surface-variant">${review.admin_reply}</p>
+                                            </div>
+                                        `;
+                                    }
+
                                     const reviewDiv = document.createElement('div');
                                     reviewDiv.className = 'bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30';
                                     reviewDiv.innerHTML = `
@@ -377,6 +386,7 @@
                                             <span class="text-label-sm text-on-surface-variant">${dateStr}</span>
                                         </div>
                                         <p class="text-body-md text-on-surface mt-2">${review.comment || ''}</p>
+                                        ${adminReplyHtml}
                                     `;
                                     reviewsContainer.appendChild(reviewDiv);
                                 });

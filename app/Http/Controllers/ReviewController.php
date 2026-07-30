@@ -87,8 +87,8 @@ class ReviewController extends Controller
      */
     public function index()
     {
-        if (session('role_code') !== 'admin') {
-            return redirect('/login');
+        if (!check_permission('view_products')) {
+            return redirect('/login')->with('error', 'Unauthorized');
         }
 
         $reviews = ProductReview::with(['user', 'product'])
@@ -103,7 +103,7 @@ class ReviewController extends Controller
      */
     public function updateStatus(Request $request, ProductReview $review)
     {
-        if (session('role_code') !== 'admin') {
+        if (!check_permission('view_products')) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -118,16 +118,21 @@ class ReviewController extends Controller
     }
 
     /**
-     * Remove the specified review (Admin).
+     * Reply to the specified review (Admin/Staff).
      */
-    public function destroy(ProductReview $review)
+    public function reply(Request $request, ProductReview $review)
     {
-        if (session('role_code') !== 'admin') {
+        if (!check_permission('view_products')) {
             return back()->with('error', 'Unauthorized');
         }
 
-        $review->delete();
+        $request->validate([
+            'admin_reply' => 'required|string|max:1000',
+        ]);
 
-        return back()->with('success', 'Đã xóa đánh giá.');
+        $review->admin_reply = $request->admin_reply;
+        $review->save();
+
+        return back()->with('success', 'Đã lưu câu trả lời.');
     }
 }

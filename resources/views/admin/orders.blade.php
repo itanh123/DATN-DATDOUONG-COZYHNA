@@ -7,15 +7,15 @@
 <!-- Header -->
 <header class="flex flex-col md:flex-row md:items-center justify-between mb-2xl gap-md">
 <div>
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Đơn hàng Management</h2>
-<p class="font-body-md text-on-surface-variant">Real-time status of all active beverage preparations and deliveries.</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Quản lý Đơn hàng</h2>
+<p class="font-body-md text-on-surface-variant">Trạng thái thời gian thực của tất cả đơn hàng đang chuẩn bị và giao hàng.</p>
 </div>
 <div class="flex items-center gap-md">
 <div class="relative">
 <span class="absolute inset-y-0 left-0 pl-md flex items-center text-on-surface-variant">
 <span class="material-symbols-outlined">search</span>
 </span>
-<input class="pl-xl pr-md py-sm w-64 rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-body-md transition-all" placeholder="Search orders, customers..." type="text"/>
+<input class="pl-xl pr-md py-sm w-64 rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-body-md transition-all" placeholder="Tìm kiếm đơn hàng, khách..." type="text"/>
 </div>
 <button class="bg-surface-container-high text-on-surface px-md py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-surface-container-highest transition-colors active:scale-95">
 <span class="material-symbols-outlined">notifications</span>
@@ -30,7 +30,7 @@
 <!-- Stat Card 1 -->
 <div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30 flex items-start justify-between">
 <div>
-<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Tổng cộng Đơn hàng Today</p>
+<p class="font-label-md text-on-surface-variant uppercase tracking-wider mb-xs">Tổng Đơn hàng Hôm nay</p>
 <h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $totalOrdersToday }}</h3>
 <div class="flex items-center gap-xs mt-xs text-secondary font-semibold">
 <span class="text-xs">Đơn hàng trong ngày</span>
@@ -61,7 +61,7 @@
 <h3 class="font-headline-lg text-headline-lg text-on-surface">{{ $outForDelivery }}</h3>
 <div class="flex items-center gap-xs mt-xs text-on-surface-variant font-semibold">
 <span class="material-symbols-outlined text-sm">local_shipping</span>
-<span class="text-xs">Moving steadily</span>
+<span class="text-xs">Đang di chuyển</span>
 </div>
 </div>
 <div class="p-md bg-secondary-container rounded-xl text-on-secondary-container">
@@ -102,7 +102,7 @@
 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center px-md py-sm">
 <span class="material-symbols-outlined text-on-surface-variant mr-xs">filter_list</span>
 <select name="status" onchange="document.getElementById('filterForm').submit()" class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
-<option value="all" {{ $statusFilter == 'all' ? 'selected' : '' }}>Trạng thái: All Đơn hàng</option>
+<option value="all" {{ $statusFilter == 'all' ? 'selected' : '' }}>Trạng thái: Tất cả đơn hàng</option>
 <option value="pending" {{ $statusFilter == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
 <option value="confirmed" {{ $statusFilter == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
 <option value="preparing" {{ $statusFilter == 'preparing' ? 'selected' : '' }}>Đang chuẩn bị</option>
@@ -120,11 +120,11 @@
 <div class="flex items-center gap-sm">
 <button class="bg-surface-container-lowest border border-outline-variant text-on-surface px-md py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-surface-container-low transition-colors">
 <span class="material-symbols-outlined">file_download</span>
-                    Export CSV
+                    Xuất CSV
                 </button>
 <button class="bg-primary text-on-primary px-lg py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-opacity-90 transition-opacity shadow-md">
 <span class="material-symbols-outlined">refresh</span>
-                    Refresh Data
+                    Làm mới dữ liệu
                 </button>
 </div>
 </section>
@@ -134,12 +134,12 @@
 <table class="w-full text-left border-collapse">
 <thead class="bg-surface-container-low border-b border-outline-variant/30">
 <tr>
-<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Order ID</th>
+<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Mã Đơn</th>
 <th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Khách hàng</th>
-<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Items Summary</th>
+<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Sản phẩm</th>
 <th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Tổng cộng</th>
 <th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
-<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Elapsed</th>
+<th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider">Thời gian</th>
 <th class="px-lg py-md font-label-sm text-on-surface-variant uppercase tracking-wider text-right">Thao tác</th>
 </tr>
 </thead>
@@ -229,52 +229,7 @@
     </div>
 </div>
 </section>
-<!-- Live Trạng thái Sidebar Placeholder (Phúti-Bảng điều khiển) -->
-<section class="mt-2xl grid grid-cols-1 lg:grid-cols-3 gap-lg">
-<div class="lg:col-span-2 bg-surface-container-low/50 p-xl rounded-2xl border border-dashed border-outline-variant flex flex-col items-center justify-center text-center">
-<span class="material-symbols-outlined text-4xl text-primary/30 mb-md">map</span>
-<h4 class="font-title-lg text-title-lg text-on-surface mb-xs">Hoạt động Deliveries Map</h4>
-<p class="font-body-md text-on-surface-variant max-w-md">Interactive delivery tracking is active. Real-time courier positions are being synced for all orders currently "Out for Delivery".</p>
-<div class="mt-lg w-full h-48 bg-surface-container-high rounded-xl overflow-hidden relative">
-<div class="w-full h-full bg-cover bg-center grayscale contrast-75 opacity-40" data-location="Seattle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfXU-j8CaL9qL0udL80Gbt88FlGnGCpuEtact117SD3S39R3KB-MpWsQGPr08ISNY__dNFQ0WNsESgReZKT48pcAjj6MfSD1S6ARLP41uoWB_MNRR_ErH0G4McYxidj3V54_zmzYZXpDOg0V09ZAZDbCMOwDdOsRsrgWESxVBWv1_dMRbPD-6kyYb26tRDvxd_S13AmWqc0qDoKK7TmpZ2EqTHoUQh0R0jTELUgZYnMi63BG4qNBEmH1AEUaf57RkAq7zWcMVH')"></div>
-<div class="absolute inset-0 flex items-center justify-center">
-<div class="bg-surface-container-lowest shadow-xl px-lg py-md rounded-full border border-primary/20 flex items-center gap-md">
-<span class="relative flex h-3 w-3">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-</span>
-<span class="font-body-md font-semibold text-primary">Live Tracking Enabled</span>
-</div>
-</div>
-</div>
-</div>
-<div class="bg-surface-container-lowest p-lg rounded-2xl shadow-sm border border-outline-variant/30">
-<h4 class="font-title-lg text-title-lg text-on-surface mb-lg">Urgent Alerts</h4>
-<div class="space-y-md">
-<div class="flex gap-md p-md bg-error/5 rounded-xl border-l-4 border-error">
-<span class="material-symbols-outlined text-error">priority_high</span>
-<div>
-<p class="font-body-md font-semibold text-on-surface">Kho hàng Low: Oat Milk</p>
-<p class="font-label-md text-on-surface-variant">Only 4 units remaining. Order #CH-8821 might be affected.</p>
-</div>
-</div>
-<div class="flex gap-md p-md bg-secondary/5 rounded-xl border-l-4 border-secondary">
-<span class="material-symbols-outlined text-secondary">check_circle</span>
-<div>
-<p class="font-body-md font-semibold text-on-surface">Peak Hour Strategy</p>
-<p class="font-label-md text-on-surface-variant">Preparation flow is optimized for current 15% surge.</p>
-</div>
-</div>
-<div class="flex gap-md p-md bg-surface-container-low rounded-xl">
-<span class="material-symbols-outlined text-on-surface-variant">person_search</span>
-<div>
-<p class="font-body-md font-semibold text-on-surface">Courier Approaching</p>
-<p class="font-label-md text-on-surface-variant">Courier #992 is 2 mins away for #CH-8820.</p>
-</div>
-</div>
-</div>
-</div>
-</section>
+
 <!-- Order Detail Modal -->
 <div id="orderDetailModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-surface w-full max-w-2xl rounded-3xl shadow-xl flex flex-col max-h-full overflow-hidden">

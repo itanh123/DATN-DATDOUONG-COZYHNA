@@ -15,6 +15,7 @@ class ProductReview extends Model
         'order_id',
         'rating',
         'comment',
+        'admin_reply',
         'status',
     ];
 

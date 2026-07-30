@@ -9,7 +9,7 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = DB::table('roles')->get();
+        $roles = DB::table('roles')->where('code', '!=', 'customer')->get();
         // Lấy danh sách permissions và gom nhóm theo cột 'description' (chứa tên nhóm)
         $permissions = DB::table('permissions')->orderBy('description')->orderBy('id')->get();
         
@@ -39,8 +39,13 @@ class RoleController extends Controller
 
         DB::beginTransaction();
         try {
-            // Remove all existing role_permissions to recreate them
-            DB::table('role_permissions')->delete();
+            // Lấy danh sách các role hợp lệ (không phải customer)
+            $editableRoleIds = DB::table('roles')->where('code', '!=', 'customer')->pluck('id')->toArray();
+
+            // Xóa các quyền cũ của các role này để cập nhật lại
+            if (!empty($editableRoleIds)) {
+                DB::table('role_permissions')->whereIn('role_id', $editableRoleIds)->delete();
+            }
 
             $insertData = [];
             foreach ($inputPermissions as $roleId => $permissionIds) {

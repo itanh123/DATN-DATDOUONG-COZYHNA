@@ -37,15 +37,61 @@ class AuthController extends Controller
         // role_id được lưu trong users table
         $roleCode = DB::table('roles')->where('id', $user->role_id)->value('code');
 
+        if ($roleCode !== 'customer') {
+            return back()->withErrors(['email' => 'Tài khoản không được phép đăng nhập tại đây. Vui lòng sử dụng trang đăng nhập quản trị.'])->withInput();
+        }
+
         // lưu session đơn giản
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', $roleCode);
 
-        if (in_array($roleCode, ['admin', 'staff', 'shipper'])) {
-            return redirect('/admin/dashboard');
+        return redirect('/');
+    }
+
+    public function showLoginAdmin()
+    {
+        return view('admin.login');
+    }
+
+    public function loginAdmin(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $email = $request->input('email');
+        $password = $request->input('password');
+
+        $user = User::where('email', $email)->first();
+
+        if (!$user || !Hash::check($password, $user->password)) {
+            return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng.'])->withInput();
         }
 
-        return redirect('/');
+        if (!$user->status) {
+            return back()->withErrors(['email' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.'])->withInput();
+        }
+
+        // role_id được lưu trong users table
+        $roleCode = DB::table('roles')->where('id', $user->role_id)->value('code');
+
+        if (!in_array($roleCode, ['admin', 'staff', 'shipper'])) {
+            return back()->withErrors(['email' => 'Khách hàng không thể đăng nhập tại đây.'])->withInput();
+        }
+
+        // lưu session đơn giản
+        $request->session()->put('user_id', $user->id);
+        $request->session()->put('role_code', $roleCode);
+
+        if ($roleCode === 'shipper') {
+            return redirect('/shipper/dashboard');
+        }
+        if ($roleCode === 'staff') {
+            return redirect('/staff/dashboard');
+        }
+
+        return redirect('/admin/dashboard');
     }
 
     public function logout(Request $request)

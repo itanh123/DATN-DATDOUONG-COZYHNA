@@ -8,7 +8,7 @@
 <section class="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
 <div>
 <h3 class="font-headline-lg text-headline-lg text-on-surface">Báo cáo &amp; Analytics</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">Comprehensive breakdown of your beverage store performance.</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Chi tiết toàn diện về hiệu suất cửa hàng đồ uống của bạn.</p>
 </div>
 <div class="flex items-center gap-sm">
 <div class="bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm flex items-center gap-xs text-body-md shadow-sm">
@@ -17,7 +17,7 @@
 </div>
 <button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:shadow-md transition-all">
 <span class="material-symbols-outlined text-body-lg">download</span>
-                    Export Report
+                    Xuất Báo cáo
                 </button>
 </div>
 </section>
@@ -26,7 +26,7 @@
 <!-- Tổng cộng Doanh thu -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Tổng cộng Doanh thu</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Tổng Doanh thu</p>
 <span class="p-xs bg-primary-container/10 text-primary rounded-lg material-symbols-outlined">payments</span>
 </div>
 <div class="flex items-baseline gap-xs">
@@ -34,13 +34,13 @@
 </div>
 <div class="flex items-center gap-xs mt-xs text-primary">
 <span class="material-symbols-outlined text-[18px]">trending_up</span>
-<span class="font-label-md text-label-md">+12.5% vs last month</span>
+<span class="font-label-md text-label-md">+12.5% so với tháng trước</span>
 </div>
 </div>
 <!-- Average Order Value -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Avg. Order Value</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Giá trị Đơn Trung bình</p>
 <span class="p-xs bg-secondary-container/20 text-secondary rounded-lg material-symbols-outlined">shopping_bag</span>
 </div>
 <div class="flex items-baseline gap-xs">
@@ -54,7 +54,7 @@
 <!-- Khách hàng Retention -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Retention Rate</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Tỷ lệ Khách quay lại</p>
 <span class="p-xs bg-tertiary-container/10 text-tertiary rounded-lg material-symbols-outlined">group</span>
 </div>
 <div class="flex items-baseline gap-xs">
@@ -68,7 +68,7 @@
 <!-- Gross Margin -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Gross Margin</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Biên Lợi nhuận Gộp</p>
 <span class="p-xs bg-surface-variant/30 text-on-surface-variant rounded-lg material-symbols-outlined">bar_chart_4_bars</span>
 </div>
 <div class="flex items-baseline gap-xs">
@@ -76,7 +76,7 @@
 </div>
 <div class="flex items-center gap-xs mt-xs text-on-surface-variant">
 <span class="material-symbols-outlined text-[18px]">horizontal_rule</span>
-<span class="font-label-md text-label-md">Stable performance</span>
+<span class="font-label-md text-label-md">Hiệu suất ổn định</span>
 </div>
 </div>
 </section>
@@ -85,10 +85,10 @@
 <!-- Sales Trend (Large Chart) -->
 <div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
 <div class="flex justify-between items-center mb-xl">
-<h5 class="font-title-lg text-title-lg text-on-surface">Daily Sales Trend</h5>
+<h5 class="font-title-lg text-title-lg text-on-surface">Xu hướng Doanh thu Hàng ngày</h5>
 <div class="flex items-center gap-xs">
 <span class="w-3 h-3 rounded-full bg-primary"></span>
-<span class="font-label-sm text-label-sm text-on-surface-variant">Current Period</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kỳ hiện tại</span>
 </div>
 </div>
 <!-- Simple SVG Data Viz Mockup -->
@@ -125,7 +125,7 @@
 </div>
 <!-- Category Distribution (Medium Chart) -->
 <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm flex flex-col">
-<h5 class="font-title-lg text-title-lg text-on-surface mb-xl">Category Mix</h5>
+<h5 class="font-title-lg text-title-lg text-on-surface mb-xl">Tỷ trọng Danh mục</h5>
 <div class="flex-grow flex items-center justify-center relative py-md">
 <svg class="w-48 h-48 -rotate-90" viewbox="0 0 100 100">
 <circle cx="50" cy="50" fill="none" r="40" stroke="#e2e8f0" stroke-width="12"></circle>
@@ -136,7 +136,7 @@
 </svg>
 <div class="absolute text-center">
 <p class="font-headline-md text-headline-md text-on-surface">100%</p>
-<p class="font-label-sm text-label-sm text-on-surface-variant">Tổng cộng Volume</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tổng Số lượng</p>
 </div>
 </div>
 <div class="space-y-xs mt-md">
@@ -168,17 +168,17 @@
 <!-- Product Performance Table -->
 <div class="col-span-12 xl:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
 <div class="p-lg border-b border-outline-variant flex justify-between items-center">
-<h5 class="font-title-lg text-title-lg text-on-surface">Top 5 Selling Sản phẩm</h5>
+<h5 class="font-title-lg text-title-lg text-on-surface">Top 5 Sản phẩm Bán chạy</h5>
 <button class="text-primary font-label-md text-label-md hover:underline">Xem Tất Cả Sản phẩm</button>
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left">
 <thead class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
 <tr>
-<th class="px-lg py-md">Product Name</th>
-<th class="px-lg py-md text-right">Units Sold</th>
+<th class="px-lg py-md">Tên Sản phẩm</th>
+<th class="px-lg py-md text-right">Số lượng Đã bán</th>
 <th class="px-lg py-md text-right">Doanh thu</th>
-<th class="px-lg py-md text-right">Growth</th>
+<th class="px-lg py-md text-right">Tăng trưởng</th>
 </tr>
 </thead>
 <tbody class="divide-y divide-outline-variant">
@@ -265,7 +265,7 @@
 <div class="col-span-12 xl:col-span-4 space-y-lg">
 <!-- Busiest Hours Widget -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-<h5 class="font-title-lg text-title-lg text-on-surface mb-lg">Busiest Hours</h5>
+<h5 class="font-title-lg text-title-lg text-on-surface mb-lg">Giờ Cao điểm</h5>
 <div class="flex items-end justify-between h-32 gap-xs px-xs">
 <!-- Simulated peak hour bars -->
 <div class="flex flex-col items-center gap-xs flex-1">
@@ -294,12 +294,12 @@
 </div>
 </div>
 <p class="font-body-md text-body-md text-on-surface-variant mt-lg italic">
-                        Staff optimization: Increase shifts between 10am-11am for peak efficiency.
+                        Tối ưu nhân sự: Tăng ca làm việc từ 10h-11h sáng để đạt hiệu suất cao nhất.
                     </p>
 </div>
 <!-- Popular Upsells Widget -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-<h5 class="font-title-lg text-title-lg text-on-surface mb-lg">Popular Upsells</h5>
+<h5 class="font-title-lg text-title-lg text-on-surface mb-lg">Bán kèm Phổ biến</h5>
 <div class="space-y-md">
 <div class="flex items-center justify-between p-sm rounded-lg bg-surface-container-low border border-outline-variant/30">
 <div class="flex items-center gap-sm">
@@ -308,7 +308,7 @@
 </div>
 <div>
 <p class="font-label-md text-label-md text-on-surface">Protein Cookie</p>
-<p class="text-[10px] text-on-surface-variant">Added to 24% of orders</p>
+<p class="text-[10px] text-on-surface-variant">Thêm vào 24% đơn hàng</p>
 </div>
 </div>
 <span class="material-symbols-outlined text-secondary">trending_up</span>
@@ -320,7 +320,7 @@
 </div>
 <div>
 <p class="font-label-md text-label-md text-on-surface">Immunity Boost</p>
-<p class="text-[10px] text-on-surface-variant">Added to 18% of beverages</p>
+<p class="text-[10px] text-on-surface-variant">Thêm vào 18% đồ uống</p>
 </div>
 </div>
 <span class="material-symbols-outlined text-secondary">trending_up</span>

@@ -8,12 +8,12 @@
 <header class="flex justify-between items-center mb-xl">
 <div>
 <h2 class="font-headline-lg text-headline-lg text-on-surface">Bảng điều khiển Tổng quan</h2>
-<p class="text-on-surface-variant font-body-md text-body-md">Welcome back, Admin. Here's what's happening today.</p>
+<p class="text-on-surface-variant font-body-md text-body-md">Chào mừng trở lại, Admin. Dưới đây là hoạt động hôm nay.</p>
 </div>
 <div class="flex items-center gap-md">
 <div class="relative hidden sm:block">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
-<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-full text-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all w-64" placeholder="Search data..." type="text"/>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-full text-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all w-64" placeholder="Tìm kiếm dữ liệu..." type="text"/>
 </div>
 <div class="flex items-center gap-sm bg-surface-container px-3 py-2 rounded-full border border-outline-variant/10">
 <div class="w-8 h-8 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-on-primary-container">
@@ -58,7 +58,7 @@
                         {{ $customersChange >= 0 ? '+' : '' }}{{ number_format($customersChange, 1) }}% <span class="material-symbols-outlined !text-[14px]" data-icon="{{ $customersChange >= 0 ? 'trending_up' : 'trending_down' }}">{{ $customersChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
 </span>
 </div>
-<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-xs">New Khách hàng</p>
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-xs">Khách hàng Mới</p>
 <h3 class="font-headline-md text-headline-md">{{ number_format($newCustomers) }}</h3>
 </div>
 <div class="glass-card p-lg rounded-2xl shadow-sm hover:shadow-md transition-shadow">
@@ -77,11 +77,11 @@
 <!-- Doanh thu Trend Chart Placeholder -->
 <div class="lg:col-span-2 glass-card p-xl rounded-3xl relative overflow-hidden flex flex-col">
 <div class="flex justify-between items-center mb-lg relative z-10">
-<h3 class="font-title-lg text-title-lg">Doanh thu Growth</h3>
-<select class="bg-surface-container-low border-none rounded-lg text-label-md outline-none px-3 py-1 ring-1 ring-outline-variant/20">
-<option>Last 7 Days</option>
-<option>Last 30 Days</option>
-<option>Current Year</option>
+<h3 class="font-title-lg text-title-lg">Tăng trưởng Doanh thu</h3>
+<select onchange="window.location.href='?range='+this.value" class="bg-surface-container-low border-none rounded-lg text-label-md outline-none px-3 py-1 ring-1 ring-outline-variant/20 cursor-pointer">
+<option value="7" {{ (!isset($range) || $range == '7') ? 'selected' : '' }}>7 Ngày qua</option>
+<option value="30" {{ (isset($range) && $range == '30') ? 'selected' : '' }}>30 Ngày qua</option>
+<option value="year" {{ (isset($range) && $range == 'year') ? 'selected' : '' }}>Năm nay</option>
 </select>
 </div>
 <div class="flex-1 w-full h-[300px] relative">
@@ -90,7 +90,7 @@
 </div>
 <!-- Sản Phẩm Hàng Đầu List -->
 <div class="glass-card p-xl rounded-3xl flex flex-col">
-<h3 class="font-title-lg text-title-lg mb-lg">Top Performing Sản phẩm</h3>
+<h3 class="font-title-lg text-title-lg mb-lg">Sản phẩm Bán chạy nhất</h3>
 <div class="flex flex-col gap-md flex-1">
 @forelse($topProducts as $product)
 <div class="flex items-center gap-md p-sm hover:bg-surface-container-high rounded-2xl transition-colors cursor-pointer">
@@ -99,12 +99,12 @@
 </div>
 <div class="flex-1">
 <h4 class="font-body-lg text-body-lg font-bold">{{ $product->name }}</h4>
-<p class="text-on-surface-variant text-label-md">{{ $product->total_sold }} sold</p>
+<p class="text-on-surface-variant text-label-md">{{ $product->total_sold }} đã bán</p>
 </div>
 <span class="text-primary font-bold">+{{ number_format($product->total_revenue, 0, ',', '.') }} VNĐ</span>
 </div>
 @empty
-<div class="p-sm text-center text-on-surface-variant">No data available</div>
+<div class="p-sm text-center text-on-surface-variant">Chưa có dữ liệu</div>
 @endforelse
 </div>
 <a href="/admin/product" class="mt-lg w-full py-2 text-primary font-label-md border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors text-center block">Xem Tất Cả Sản phẩm</a>
@@ -115,19 +115,19 @@
 <div class="px-xl py-lg flex justify-between items-center bg-surface-container-low/50">
 <h3 class="font-title-lg text-title-lg">Đơn Hàng Gần Đây</h3>
 <button class="flex items-center gap-2 text-primary font-label-md">
-                    Filter <span class="material-symbols-outlined !text-lg" data-icon="filter_list">filter_list</span>
+                    Lọc <span class="material-symbols-outlined !text-lg" data-icon="filter_list">filter_list</span>
 </button>
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left border-collapse">
 <thead>
 <tr class="bg-surface-container/30 border-b border-outline-variant/20">
-<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Order ID</th>
+<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Mã Đơn</th>
 <th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Khách hàng</th>
 <th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Trạng thái</th>
 <th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Tổng cộng</th>
-<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Time</th>
-<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Action</th>
+<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Thời gian</th>
+<th class="px-xl py-md font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Thao tác</th>
 </tr>
 </thead>
 <tbody class="divide-y divide-outline-variant/10">
@@ -159,7 +159,7 @@
 </tr>
 @empty
 <tr>
-<td colspan="6" class="px-xl py-md text-center text-on-surface-variant">No recent orders</td>
+<td colspan="6" class="px-xl py-md text-center text-on-surface-variant">Không có đơn hàng gần đây</td>
 </tr>
 @endforelse
 </tbody>
@@ -167,7 +167,7 @@
 </div>
 <div class="p-lg flex justify-center border-t border-outline-variant/10">
 <button class="font-label-md text-label-md text-outline hover:text-primary transition-colors flex items-center gap-1">
-                    View Complete Transaction History <span class="material-symbols-outlined !text-sm" data-icon="chevron_right">chevron_right</span>
+                    Xem toàn bộ lịch sử giao dịch <span class="material-symbols-outlined !text-sm" data-icon="chevron_right">chevron_right</span>
 </button>
 </div>
 </section>

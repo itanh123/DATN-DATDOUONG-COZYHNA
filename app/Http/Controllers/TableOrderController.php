@@ -11,15 +11,34 @@ class TableOrderController extends Controller
 {
     public function loginWithQr($token)
     {
-        $table = DiningTable::where('qr_token', $token)->where('status', true)->first();
+        $table = \App\Models\RestaurantTable::where('qr_token', $token)->where('status', '!=', 'disabled')->first();
 
         if (!$table) {
             return redirect('/')->with('error', 'Mã QR không hợp lệ hoặc bàn đã bị vô hiệu hóa.');
         }
 
-        $user = $table->user;
+        // Tự động tạo "tài khoản bàn" nếu chưa có
+        $username = 'table_' . $table->id;
+        $user = \App\Models\User::where('username', $username)->first();
+        
         if (!$user) {
-            return redirect('/')->with('error', 'Lỗi dữ liệu bàn.');
+            $roleId = DB::table('roles')->where('code', 'customer')->value('id');
+            $user = \App\Models\User::create([
+                'username' => $username,
+                'email' => $username . '@local.com',
+                'phone' => '0' . rand(100000000, 999999999),
+                'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(10)),
+                'role_id' => $roleId,
+                'status' => true,
+            ]);
+            
+            DB::table('customer_profiles')->insert([
+                'user_id' => $user->id,
+                'full_name' => $table->table_name,
+                'status' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
         // Logout current user if any
@@ -37,11 +56,11 @@ class TableOrderController extends Controller
             'username' => $user->username,
             'is_table_order' => true,
             'table_id' => $table->id,
-            'table_name' => $table->name,
+            'table_name' => $table->table_name,
             'table_login_time' => now()->timestamp,
         ]);
 
-        return redirect('/')->with('success', 'Đã kết nối với ' . $table->name . '. Vui lòng chọn món.');
+        return redirect('/')->with('success', 'Đã kết nối với ' . $table->table_name . '. Vui lòng chọn món.');
     }
 
     public function confirmOrder(Request $request)

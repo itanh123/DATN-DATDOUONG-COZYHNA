@@ -121,7 +121,11 @@
 <aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant/30 shadow-md flex flex-col py-lg px-md z-40 hidden md:flex">
 <div class="mb-2xl px-sm">
 <h1 class="font-headline-md text-headline-md font-bold text-primary">CozyHNA</h1>
-<p class="font-label-md text-label-md text-on-surface-variant">Cổng quản trị</p>
+@php
+    $adminUser = \App\Models\User::find(session('user_id'));
+    $adminName = $adminUser ? ($adminUser->name ?: $adminUser->username) : 'Admin';
+@endphp
+<p class="font-label-md text-label-md text-on-surface-variant">Xin chào, {{ $adminName }}</p>
 </div>
 <nav class="flex-1 flex flex-col gap-xs">
 @php
@@ -139,7 +143,7 @@
 @endphp
 
 @if(in_array('view_dashboard', $userPermissions))
-<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="/admin/dashboard">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="/{{ $roleCode }}/dashboard">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-label-md text-label-md">Bảng điều khiển</span>
 </a>
@@ -175,7 +179,7 @@
 @endif
 
 @if($roleCode === 'admin')
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/tables">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/restaurant-tables">
 <span class="material-symbols-outlined" data-icon="table_restaurant">table_restaurant</span>
 <span class="font-label-md text-label-md">Quản lý Bàn</span>
 </a>
@@ -220,7 +224,7 @@
 
 <!-- BottomNavBar (Shared Component for Mobile) -->
 <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl md:hidden">
-<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90" href="/admin/dashboard">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90" href="/{{ $roleCode ?? 'admin' }}/dashboard">
 <span class="material-symbols-outlined" data-icon="home">home</span>
 <span class="font-label-sm text-label-sm">Trang chủ</span>
 </a>

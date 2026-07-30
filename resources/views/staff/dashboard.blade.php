@@ -69,6 +69,12 @@
                         @endforeach
                     </div>
 
+                    @if($order->note)
+                    <div class="mb-md p-sm bg-surface-container-low rounded-xl border border-outline-variant/30 text-body-sm text-on-surface-variant italic">
+                        <span class="font-bold not-italic">Ghi chú:</span> {{ $order->note }}
+                    </div>
+                    @endif
+
                     {{-- Total & CTA --}}
                     <div class="pt-md border-t border-outline-variant/20 flex items-center justify-between">
                         <div>
@@ -118,6 +124,13 @@
                         </div>
                         @endforeach
                     </div>
+                    
+                    @if($order->note)
+                    <div class="mb-md p-sm bg-surface-container-low rounded-xl border border-outline-variant/30 text-body-sm text-on-surface-variant italic">
+                        <span class="font-bold not-italic">Ghi chú:</span> {{ $order->note }}
+                    </div>
+                    @endif
+
                     <div class="pt-md border-t border-outline-variant/20 flex items-center justify-between">
                         <p class="font-headline-md text-headline-md text-primary font-bold">{{ number_format($order->total_amount, 0, ',', '.') }}đ</p>
                         <button onclick="completeOrder({{ $order->id }}, this)"
@@ -211,5 +224,23 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// Tự động làm mới dữ liệu mỗi 10 giây
+setInterval(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('_t', Date.now());
+    
+    fetch(url.toString(), { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newMain = doc.querySelector('main');
+            if (newMain) {
+                document.querySelector('main').innerHTML = newMain.innerHTML;
+            }
+        })
+        .catch(error => console.error('Lỗi khi cập nhật dữ liệu:', error));
+}, 5000); // Đổi thành 5 giây để cập nhật nhanh hơn
 </script>
 @endpush

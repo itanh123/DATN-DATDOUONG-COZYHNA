@@ -79,6 +79,10 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
 
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
+
+Route::get('/loginadmin', [\App\Http\Controllers\AuthController::class, 'showLoginAdmin']);
+Route::post('/loginadmin', [\App\Http\Controllers\AuthController::class, 'loginAdmin']);
+
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
@@ -275,7 +279,7 @@ Route::get('/admin/promotions', function () { return view('admin.promotions'); }
 Route::get('/admin/reports', function () { return view('admin.reports'); });
 Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
 Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
-Route::post('/admin/reviews/{review}/delete', [\App\Http\Controllers\ReviewController::class, 'destroy']);
+Route::post('/admin/reviews/{review}/reply', [\App\Http\Controllers\ReviewController::class, 'reply']);
 
 // Voucher Routes
 Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
@@ -285,7 +289,9 @@ Route::get('/admin/voucher/{voucher}/edit', [\App\Http\Controllers\VoucherContro
 Route::post('/admin/voucher/{voucher}/update', [\App\Http\Controllers\VoucherController::class, 'update']);
 Route::post('/admin/voucher/{voucher}/delete', [\App\Http\Controllers\VoucherController::class, 'destroy']);
 
-Route::get('/staff/dashboard', function () { return view('staff.dashboard'); });
+Route::get('/staff/dashboard', [App\Http\Controllers\StaffController::class, 'dashboard']);
+Route::post('/staff/orders/{id}/confirm', [App\Http\Controllers\StaffController::class, 'confirm']);
+Route::post('/staff/orders/{id}/complete', [App\Http\Controllers\StaffController::class, 'complete']);
 Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
 
 Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
@@ -298,10 +304,11 @@ Route::post('/table/order/confirm', [\App\Http\Controllers\TableOrderController:
 Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::class, 'success']);
 
 // Admin Table Management
-Route::get('/admin/tables', [\App\Http\Controllers\Admin\DiningTableController::class, 'index']);
-Route::post('/admin/tables', [\App\Http\Controllers\Admin\DiningTableController::class, 'store']);
-Route::delete('/admin/tables/{table}', [\App\Http\Controllers\Admin\DiningTableController::class, 'destroy']);
-Route::post('/admin/tables/{table}/qr', [\App\Http\Controllers\Admin\DiningTableController::class, 'generateQrCode']);
+// Admin Table Management (Old System - Commented out)
+// Route::get('/admin/tables-old', [\App\Http\Controllers\Admin\DiningTableController::class, 'index']);
+// Route::post('/admin/tables-old', [\App\Http\Controllers\Admin\DiningTableController::class, 'store']);
+// Route::delete('/admin/tables-old/{table}', [\App\Http\Controllers\Admin\DiningTableController::class, 'destroy']);
+// Route::post('/admin/tables-old/{table}/qr', [\App\Http\Controllers\Admin\DiningTableController::class, 'generateQrCode']);
 
 // Table Calls
 Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
@@ -330,3 +337,23 @@ Route::post('/admin/backup/restore', [\App\Http\Controllers\Admin\BackupControll
 Route::post('/admin/backup/upload', [\App\Http\Controllers\Admin\BackupController::class, 'upload']);
 Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
 Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
+
+// ─── Restaurant Table Management (New System) ────────────────────────────
+Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
+
+// Floors
+Route::post('/admin/tables/floors', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeFloor']);
+Route::delete('/admin/tables/floors/{floor}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyFloor']);
+
+// Areas
+Route::post('/admin/tables/areas', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeArea']);
+
+// Tables
+Route::post('/admin/tables/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeTable']);
+Route::patch('/admin/tables/tables/{table}/status', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updateTableStatus']);
+Route::patch('/admin/tables/tables/{table}/position', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updatePosition']);
+Route::delete('/admin/tables/tables/{table}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyTable']);
+
+// Merge/Unmerge
+Route::post('/admin/tables/merge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'mergeTables']);
+Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);
