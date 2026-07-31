@@ -69,7 +69,7 @@
                         @if($floor->tables()->count() === 0)
                         <form action="/admin/tables/floors/{{ $floor->id }}" method="POST" class="m-0 inline">
                             @csrf @method('DELETE')
-                            <button type="submit" onclick="return confirm('Xóa tầng {{ $floor->name }}?')" class="text-on-surface-variant hover:text-error transition-colors p-1">
+                            <button type="button" onclick="confirmFormSubmit(event, 'Xóa tầng {{ $floor->name }}?')" class="text-on-surface-variant hover:text-error transition-colors p-1">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                         </form>
@@ -96,89 +96,156 @@
 
                         {{-- Table Grid --}}
                         <div class="relative bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-lg overflow-x-auto">
-                            <div class="table-grid bg-surface-container-lowest rounded-2xl p-md" style="display: grid; grid-template-columns: repeat(6, 120px); grid-template-rows: repeat(4, 120px); gap: 16px; min-width: 780px;">
+                            <div class="table-grid bg-surface-container-lowest rounded-2xl p-md" style="display: grid; grid-template-columns: repeat(4, 120px); grid-template-rows: repeat(4, 120px); gap: 16px; min-width: 540px;">
                                 @for($y = 0; $y < 4; $y++)
-                                    @for($x = 0; $x < 6; $x++)
+                                    @for($x = 0; $x < 4; $x++)
                                         @php
-                                            $table = $area->tables->where('location_x', $x)->where('location_y', $y)->first();
+                                            $mId = $occupiedCells[$area->id]["$x,$y"] ?? null;
+                                            $tableToRender = $area->tables->where('location_x', $x)->where('location_y', $y)->first();
+                                            $isMergedGroup = false;
+                                            $groupData = null;
+                                            $borderClasses = '';
+                                            $hasTop = $hasBottom = $hasLeft = $hasRight = $hasBottomRight = false;
+                                            $isPrimaryCell = false;
+
+                                            if ($mId && $tableToRender) {
+                                                $groupData = $mergedGroups[$area->id][$mId];
+                                                $isMergedGroup = true;
+                                                $isPrimaryCell = ($tableToRender->id == $groupData['primaryTable']->id);
+                                                
+                                                $hasTop = isset($occupiedCells[$area->id][$x . ',' . ($y - 1)]) && $occupiedCells[$area->id][$x . ',' . ($y - 1)] == $mId;
+                                                $hasBottom = isset($occupiedCells[$area->id][$x . ',' . ($y + 1)]) && $occupiedCells[$area->id][$x . ',' . ($y + 1)] == $mId;
+                                                $hasLeft = isset($occupiedCells[$area->id][($x - 1) . ',' . $y]) && $occupiedCells[$area->id][($x - 1) . ',' . $y] == $mId;
+                                                $hasRight = isset($occupiedCells[$area->id][($x + 1) . ',' . $y]) && $occupiedCells[$area->id][($x + 1) . ',' . $y] == $mId;
+                                                $hasBottomRight = isset($occupiedCells[$area->id][($x + 1) . ',' . ($y + 1)]) && $occupiedCells[$area->id][($x + 1) . ',' . ($y + 1)] == $mId;
+                                                
+                                                if ($hasTop) $borderClasses .= ' !border-t-0 !rounded-t-none';
+                                                if ($hasBottom) $borderClasses .= ' !border-b-0 !rounded-b-none';
+                                                if ($hasLeft) $borderClasses .= ' !border-l-0 !rounded-l-none';
+                                                if ($hasRight) $borderClasses .= ' !border-r-0 !rounded-r-none';
+                                            }
                                         @endphp
-                                        @if($table)
+                                        
+                                        @if($tableToRender)
+                                            @php
+                                                $t = $tableToRender;
+                                                // If it's a merged group, we use the primary table's status for the UI color
+                                                $effectiveStatus = $isMergedGroup ? $groupData['primaryTable']->status : $t->status;
+                                                $bgColor = '';
+                                                if ($isMergedGroup) {
+                                                    $bgColor = match($effectiveStatus) {
+                                                        'available' => 'bg-slate-100 border-slate-400',
+                                                        'occupied' => 'bg-red-100 border-red-400',
+                                                        'reserved' => 'bg-amber-100 border-amber-400',
+                                                        default => 'bg-slate-100 border-slate-400'
+                                                    };
+                                                } else {
+                                                    $bgColor = match($t->status) {
+                                                        'available' => 'bg-green-50 border-green-300 hover:border-green-500',
+                                                        'occupied' => 'bg-red-50 border-red-300',
+                                                        'reserved' => 'bg-amber-50 border-amber-300',
+                                                        'disabled' => 'bg-gray-100 border-gray-300 opacity-60',
+                                                        'merged' => 'bg-slate-100 border-slate-300 opacity-70',
+                                                        default => 'bg-gray-50'
+                                                    };
+                                                }
+                                                $displayName = $isMergedGroup ? $groupData['name'] : $t->table_name;
+                                                $displayCapacity = $isMergedGroup ? $groupData['capacity'] : $t->capacity;
+                                                $canDrag = !in_array($effectiveStatus, ['occupied', 'reserved']);
+                                                // The status we pass to openTableDetail should be the effective status so the modal knows if it's occupied
+                                            @endphp
                                             <div
-                                                id="table-card-{{ $table->id }}"
-                                                class="table-card group relative rounded-2xl border-2 p-sm cursor-grab active:cursor-grabbing transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 select-none
-                                                    {{ $table->status === 'available' ? 'bg-green-50 border-green-300 hover:border-green-500' : '' }}
-                                                    {{ $table->status === 'occupied' ? 'bg-red-50 border-red-300' : '' }}
-                                                    {{ $table->status === 'reserved' ? 'bg-amber-50 border-amber-300' : '' }}
-                                                    {{ $table->status === 'disabled' ? 'bg-gray-100 border-gray-300 opacity-60' : '' }}
-                                                    {{ $table->status === 'merged' ? 'bg-slate-100 border-slate-300 opacity-70' : '' }}"
-                                                draggable="true"
-                                                ondragstart="handleDragStart(event, {{ $table->id }})"
+                                                id="table-card-{{ $t->id }}"
+                                                class="table-card group relative rounded-2xl border-2 p-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 select-none {{ $bgColor }} flex flex-col items-center justify-center {{ $borderClasses }} {{ $canDrag ? 'cursor-grab active:cursor-grabbing' : '' }}"
+                                                @if($canDrag)
+                                                    draggable="true"
+                                                    ondragstart="handleDragStart(event, {{ $t->id }})"
+                                                @endif
                                                 ondragover="handleDragOver(event)"
                                                 ondragleave="handleDragLeave(event)"
-                                                ondrop="handleDropOnTable(event, {{ $table->id }})"
-                                                data-table-id="{{ $table->id }}"
-                                                data-table-name="{{ $table->table_name }}"
-                                                data-table-status="{{ $table->status }}"
-                                                data-table-capacity="{{ $table->capacity }}"
-                                                data-table-shape="{{ $table->shape }}"
-                                                data-table-qr="{{ $table->qr_token }}"
+                                                ondrop="handleDropOnTable(event, {{ $t->id }})"
+                                                data-table-id="{{ $t->id }}"
+                                                data-table-name="{{ $displayName }}"
+                                                data-table-status="{{ $effectiveStatus }}"
+                                                data-table-capacity="{{ $displayCapacity }}"
+                                                data-table-shape="{{ $t->shape }}"
+                                                data-table-qr="{{ $t->qr_token }}"
                                                 data-area-id="{{ $area->id }}"
-                                                onclick="openTableDetail({{ $table->id }})"
-                                                style="grid-column: {{ $x + 1 }}; grid-row: {{ $y + 1 }}; z-index: 10;"
+                                                data-is-merged="{{ $isMergedGroup ? 'true' : 'false' }}"
+                                                onclick="openTableDetail({{ $t->id }})"
+                                                style="grid-column: {{ $x + 1 }} / span 1; grid-row: {{ $y + 1 }} / span 1; z-index: 10;"
                                             >
+                                                @if ($isMergedGroup)
+                                                    @php
+                                                        $borderColor = match($effectiveStatus) {
+                                                            'available' => 'border-slate-400',
+                                                            'occupied' => 'border-red-400',
+                                                            'reserved' => 'border-amber-400',
+                                                            default => 'border-slate-400'
+                                                        };
+                                                    @endphp
+                                                    @if ($hasRight)
+                                                        <div class="absolute top-[-2px] bottom-[-2px] right-[-16px] w-[16px] bg-inherit border-y-2 {{ $borderColor }} z-0" style="pointer-events: none;"></div>
+                                                    @endif
+                                                    @if ($hasBottom)
+                                                        <div class="absolute left-[-2px] right-[-2px] bottom-[-16px] h-[16px] bg-inherit border-x-2 {{ $borderColor }} z-0" style="pointer-events: none;"></div>
+                                                    @endif
+                                                    @if ($hasRight && $hasBottom && $hasBottomRight)
+                                                        <div class="absolute right-[-16px] bottom-[-16px] w-[16px] h-[16px] bg-inherit z-0" style="pointer-events: none;"></div>
+                                                    @endif
+                                                @endif
+                                                
                                                 {{-- Shape Icon --}}
                                                 <div class="flex justify-center mb-1">
-                                                    @if($table->shape === 'round')
-                                                        <div class="w-8 h-8 rounded-full border-2
-                                                            {{ $table->status === 'available' ? 'border-green-400 bg-green-100' : '' }}
-                                                            {{ $table->status === 'occupied' ? 'border-red-400 bg-red-100' : '' }}
-                                                            {{ $table->status === 'reserved' ? 'border-amber-400 bg-amber-100' : '' }}
-                                                            {{ $table->status === 'merged' ? 'border-slate-400 bg-slate-100' : '' }}
-                                                            flex items-center justify-center">
-                                                            <span class="material-symbols-outlined text-[16px]
-                                                                {{ $table->status === 'available' ? 'text-green-600' : '' }}
-                                                                {{ $table->status === 'occupied' ? 'text-red-600' : '' }}
-                                                                {{ $table->status === 'reserved' ? 'text-amber-600' : '' }}
-                                                                {{ $table->status === 'merged' ? 'text-slate-600' : '' }}
-                                                            ">table_restaurant</span>
-                                                        </div>
-                                                    @else
-                                                        <div class="w-8 h-6 rounded border-2
-                                                            {{ $table->status === 'available' ? 'border-green-400 bg-green-100' : '' }}
-                                                            {{ $table->status === 'occupied' ? 'border-red-400 bg-red-100' : '' }}
-                                                            {{ $table->status === 'reserved' ? 'border-amber-400 bg-amber-100' : '' }}
-                                                            {{ $table->status === 'merged' ? 'border-slate-400 bg-slate-100' : '' }}
-                                                            flex items-center justify-center
-                                                            {{ $table->shape === 'rectangle' ? 'w-12' : '' }}">
-                                                            <span class="material-symbols-outlined text-[16px]
-                                                                {{ $table->status === 'available' ? 'text-green-600' : '' }}
-                                                                {{ $table->status === 'occupied' ? 'text-red-600' : '' }}
-                                                                {{ $table->status === 'reserved' ? 'text-amber-600' : '' }}
-                                                                {{ $table->status === 'merged' ? 'text-slate-600' : '' }}
-                                                            ">table_restaurant</span>
-                                                        </div>
+                                                    @if(!$isMergedGroup)
+                                                        @if($t->shape === 'round')
+                                                            <div class="w-8 h-8 rounded-full border-2
+                                                                {{ $t->status === 'available' ? 'border-green-400 bg-green-100' : '' }}
+                                                                {{ $t->status === 'occupied' ? 'border-red-400 bg-red-100' : '' }}
+                                                                {{ $t->status === 'reserved' ? 'border-amber-400 bg-amber-100' : '' }}
+                                                                {{ $t->status === 'disabled' ? 'border-gray-400 bg-gray-100' : '' }}
+                                                                flex items-center justify-center">
+                                                                <span class="material-symbols-outlined text-[16px]
+                                                                    {{ $t->status === 'available' ? 'text-green-600' : '' }}
+                                                                    {{ $t->status === 'occupied' ? 'text-red-600' : '' }}
+                                                                    {{ $t->status === 'reserved' ? 'text-amber-600' : '' }}
+                                                                    {{ $t->status === 'disabled' ? 'text-gray-600' : '' }}
+                                                                ">table_restaurant</span>
+                                                            </div>
+                                                        @else
+                                                            <div class="w-8 h-6 rounded border-2
+                                                                {{ $t->status === 'available' ? 'border-green-400 bg-green-100' : '' }}
+                                                                {{ $t->status === 'occupied' ? 'border-red-400 bg-red-100' : '' }}
+                                                                {{ $t->status === 'reserved' ? 'border-amber-400 bg-amber-100' : '' }}
+                                                                {{ $t->status === 'disabled' ? 'border-gray-400 bg-gray-100' : '' }}
+                                                                flex items-center justify-center
+                                                                {{ $t->shape === 'rectangle' ? 'w-12' : '' }}">
+                                                                <span class="material-symbols-outlined text-[16px]
+                                                                    {{ $t->status === 'available' ? 'text-green-600' : '' }}
+                                                                    {{ $t->status === 'occupied' ? 'text-red-600' : '' }}
+                                                                    {{ $t->status === 'reserved' ? 'text-amber-600' : '' }}
+                                                                    {{ $t->status === 'disabled' ? 'text-gray-600' : '' }}
+                                                                ">table_restaurant</span>
+                                                            </div>
+                                                        @endif
                                                     @endif
                                                 </div>
 
                                                 {{-- Table Info --}}
-                                                <p class="font-bold text-xs text-on-surface text-center truncate">{{ $table->table_name }}</p>
-                                                <p class="text-[10px] text-center
-                                                    {{ $table->status === 'available' ? 'text-green-600' : '' }}
-                                                    {{ $table->status === 'occupied' ? 'text-red-600' : '' }}
-                                                    {{ $table->status === 'reserved' ? 'text-amber-600' : '' }}
-                                                    {{ $table->status === 'merged' ? 'text-slate-500' : '' }}
-                                                    {{ $table->status === 'disabled' ? 'text-gray-500' : '' }}
-                                                ">{{ $table->status_label }}</p>
-                                                <p class="text-[10px] text-on-surface-variant text-center">
-                                                    <span class="material-symbols-outlined text-[10px] align-middle">person</span> {{ $table->capacity }}
-                                                </p>
-
-                                                {{-- Merged badge --}}
-                                                @if($table->status === 'merged')
-                                                <div class="absolute top-1 right-1">
-                                                    <span class="material-symbols-outlined text-[12px] text-slate-500">link</span>
-                                                </div>
+                                                @if (!$isMergedGroup)
+                                                    <p class="font-bold text-xs text-on-surface text-center truncate w-full">{{ $displayName }}</p>
+                                                    <p class="text-[10px] text-center
+                                                        {{ $t->status === 'available' ? 'text-green-600' : '' }}
+                                                        {{ $t->status === 'occupied' ? 'text-red-600' : '' }}
+                                                        {{ $t->status === 'reserved' ? 'text-amber-600' : '' }}
+                                                        {{ $t->status === 'disabled' ? 'text-gray-500' : '' }}
+                                                    ">{{ $t->status_label }}</p>
+                                                    <p class="text-[10px] text-on-surface-variant text-center">
+                                                        <span class="material-symbols-outlined text-[10px] align-middle">person</span> {{ $displayCapacity }}
+                                                    </p>
                                                 @endif
+
+
                                             </div>
                                         @else
                                             {{-- Empty Dropzone --}}
@@ -196,6 +263,54 @@
                                         @endif
                                     @endfor
                                 @endfor
+
+                                {{-- Centralized Text for Merged Groups --}}
+                                @foreach($mergedGroups[$area->id] ?? [] as $mId => $groupData)
+                                    @php
+                                        $primary = $groupData['primaryTable'];
+                                        $pStatus = $primary->status;
+                                        
+                                        $statusColorClass = match($pStatus) {
+                                            'available' => 'text-green-600',
+                                            'occupied' => 'text-red-600',
+                                            'reserved' => 'text-amber-600',
+                                            default => 'text-slate-600'
+                                        };
+                                        
+                                        $statusLabelsMap = [
+                                            'available' => 'Trống',
+                                            'occupied'  => 'Có khách',
+                                            'reserved'  => 'Đặt trước',
+                                            'disabled'  => 'Không dùng',
+                                            'merged'    => 'Đã ghép',
+                                        ];
+                                        $pStatusLabel = $statusLabelsMap[$pStatus] ?? 'Đã ghép';
+                                        
+                                        $xs = []; $ys = [];
+                                        foreach($groupData['coords'] as $coord) {
+                                            list($x, $y) = explode(',', $coord);
+                                            $xs[] = (int)$x; $ys[] = (int)$y;
+                                        }
+                                        $minX = min($xs); $maxX = max($xs);
+                                        $minY = min($ys); $maxY = max($ys);
+                                        $spanX = $maxX - $minX + 1;
+                                        $spanY = $maxY - $minY + 1;
+                                    @endphp
+                                    <div class="flex items-center justify-center pointer-events-none" style="grid-column: {{ $minX + 1 }} / span {{ $spanX }}; grid-row: {{ $minY + 1 }} / span {{ $spanY }}; z-index: 20;">
+                                        <div class="pointer-events-auto cursor-pointer p-2 rounded-xl transition-transform hover:scale-105" onclick="openTableDetail({{ $primary->id }})">
+                                            <div class="flex justify-center mb-1">
+                                                <div class="w-16 h-8 rounded border-2 border-slate-400 bg-white/50 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                                                    <span class="material-symbols-outlined text-[16px] {{ $statusColorClass }}">table_restaurant</span>
+                                                </div>
+                                            </div>
+                                            <p class="font-bold text-sm text-slate-800 text-center truncate w-full drop-shadow-sm">{{ $groupData['name'] }}</p>
+                                            <p class="text-[11px] text-center {{ $statusColorClass }} font-medium">{{ $pStatusLabel }}</p>
+                                            <p class="text-[11px] text-slate-700 text-center font-bold mt-0.5">
+                                                <span class="material-symbols-outlined text-[12px] align-middle">person</span> {{ $groupData['capacity'] }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -363,6 +478,26 @@
     </div>
 </div>
 
+{{-- Toast Container --}}
+<div id="toast-container" class="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none"></div>
+
+{{-- Modal Xác Nhận (Custom Confirm) --}}
+<div id="customConfirmModal" class="modal-overlay fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="modal-content bg-surface rounded-2xl shadow-2xl border border-outline-variant/30 w-[400px] max-w-[90vw] transform translate-y-4 transition-transform duration-300">
+        <div class="p-lg text-center">
+            <div class="w-16 h-16 rounded-full bg-warning-container text-on-warning-container flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-[32px]">help</span>
+            </div>
+            <h3 class="font-title-lg font-bold text-on-surface mb-2" id="confirmTitle">Xác nhận</h3>
+            <p class="text-on-surface-variant mb-6" id="confirmMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeConfirmModal(false)" class="px-6 py-2 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors font-medium">Hủy</button>
+                <button onclick="closeConfirmModal(true)" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold shadow-sm hover:opacity-90 transition-opacity">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Chi Tiết Bàn --}}
 <div id="tableDetailModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="modal-content bg-surface rounded-2xl shadow-2xl border border-outline-variant/30 w-[440px] max-w-[90vw] transform translate-y-4 transition-transform duration-300">
@@ -407,6 +542,70 @@
 @push('scripts')
 <script>
 const CSRF_TOKEN = '{{ csrf_token() }}';
+
+// ─── Custom UI Helpers ───────────────────────────────────────────
+function showToast(message, type = 'error') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    const colors = {
+        success: 'bg-green-100 text-green-800 border-green-200',
+        error: 'bg-red-100 text-red-800 border-red-200',
+        warning: 'bg-amber-100 text-amber-800 border-amber-200',
+        info: 'bg-blue-100 text-blue-800 border-blue-200'
+    };
+    const icons = {
+        success: 'check_circle',
+        error: 'error',
+        warning: 'warning',
+        info: 'info'
+    };
+    
+    toast.className = `flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border ${colors[type]} transform transition-all duration-300 translate-x-full opacity-0 bg-surface`;
+    // Thêm bg-surface để đè lên nền trong suốt nếu có class màu, hoặc thay bg-x-100 bằng màu nền đặc
+    // Đã dùng bg-x-100 nên nền đặc rồi
+    toast.innerHTML = `
+        <span class="material-symbols-outlined">${icons[type]}</span>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 10);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+let confirmCallback = null;
+
+function showConfirm(message, callback, title = 'Xác nhận') {
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmTitle').textContent = title;
+    confirmCallback = callback;
+    openModal('customConfirmModal');
+}
+
+function closeConfirmModal(result) {
+    closeModal('customConfirmModal');
+    if (confirmCallback) {
+        confirmCallback(result);
+        confirmCallback = null;
+    }
+}
+
+function confirmFormSubmit(e, message) {
+    e.preventDefault();
+    const form = e.currentTarget.closest('form');
+    showConfirm(message, (confirmed) => {
+        if (confirmed) form.submit();
+    });
+}
 
 // ─── Modal Controls ──────────────────────────────────────────────
 function openModal(id) {
@@ -453,6 +652,7 @@ function openTableDetail(tableId) {
     };
 
     const status = data.tableStatus;
+    const isMerged = card.dataset.isMerged === 'true';
 
     document.getElementById('tableDetailContent').innerHTML = `
         <div class="flex items-start justify-between gap-lg mb-md">
@@ -496,27 +696,29 @@ function openTableDetail(tableId) {
             </div>
         </div>
 
-        ${status !== 'merged' ? `
-        <div class="flex gap-sm pt-sm border-t border-outline-variant/20">
-            <button onclick="closeModal('tableDetailModal'); setTimeout(() => initMergeFromDetail(${tableId}), 100)"
-                class="flex-1 py-sm bg-surface-container rounded-xl text-sm font-medium border border-outline-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-xs">
-                <span class="material-symbols-outlined text-[16px]">link</span> Ghép Bàn
-            </button>
-            <form action="/admin/tables/tables/${tableId}" method="POST" class="flex-1 m-0">
-                <input type="hidden" name="_token" value="${CSRF_TOKEN}">
-                <input type="hidden" name="_method" value="DELETE">
-                <button type="submit" onclick="return confirm('Xóa bàn ${data.tableName}?')"
-                    class="w-full py-sm bg-error-container text-on-error-container rounded-xl text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-xs">
-                    <span class="material-symbols-outlined text-[16px]">delete</span> Xóa Bàn
+        ${(status === 'occupied' || status === 'reserved') ? '' : 
+            (isMerged ? `
+            <div class="flex gap-sm pt-sm border-t border-outline-variant/20">
+                <button onclick="unmergeTable(${tableId})"
+                    class="flex-1 py-sm bg-surface-container rounded-xl text-sm font-medium border border-outline-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-xs text-amber-600">
+                    <span class="material-symbols-outlined text-[16px]">link_off</span> Tách Bàn Ghép
                 </button>
-            </form>
-        </div>` : `
-        <div class="flex gap-sm pt-sm border-t border-outline-variant/20">
-            <button onclick="unmergeTable(${tableId})"
-                class="flex-1 py-sm bg-surface-container rounded-xl text-sm font-medium border border-outline-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-xs text-amber-600">
-                <span class="material-symbols-outlined text-[16px]">link_off</span> Tách Bàn Ghép
-            </button>
-        </div>`}
+            </div>` : `
+            <div class="flex gap-sm pt-sm border-t border-outline-variant/20">
+                <button onclick="closeModal('tableDetailModal'); setTimeout(() => initMergeFromDetail(${tableId}), 100)"
+                    class="flex-1 py-sm bg-surface-container rounded-xl text-sm font-medium border border-outline-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-xs">
+                    <span class="material-symbols-outlined text-[16px]">link</span> Ghép Bàn
+                </button>
+                <form action="/admin/tables/tables/${tableId}" method="POST" class="flex-1 m-0">
+                    <input type="hidden" name="_token" value="${CSRF_TOKEN}">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="button" onclick="confirmFormSubmit(event, 'Xóa bàn ${data.tableName}?')"
+                        class="w-full py-sm bg-error-container text-on-error-container rounded-xl text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-xs">
+                        <span class="material-symbols-outlined text-[16px]">delete</span> Xóa Bàn
+                    </button>
+                </form>
+            </div>`)
+        }
     `;
 
     openModal('tableDetailModal');
@@ -572,7 +774,7 @@ function clearMergeSelection() {
 
 function triggerMerge() {
     if (selectedTableIds.length < 2) {
-        alert('Cần chọn ít nhất 2 bàn để ghép!');
+        showToast('Cần chọn ít nhất 2 bàn để ghép!', 'warning');
         return;
     }
 
@@ -604,8 +806,9 @@ function initMergeFromDetail(tableId) {
             selectedTableIds.push(tableId);
             updateMergeActionBar();
         }
+    } else {
+        showToast('Hãy tích chọn thêm các bàn khác muốn ghép, rồi nhấn nút "Ghép Bàn" ở thanh phía dưới.', 'info');
     }
-    alert('Hãy tích chọn thêm các bàn khác muốn ghép, rồi nhấn nút "Ghép Bàn" ở thanh phía dưới.');
 }
 
 function confirmMerge() {
@@ -613,37 +816,48 @@ function confirmMerge() {
 
     fetch('/admin/tables/merge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
         body: JSON.stringify({ primary_table_id: primaryId, table_ids: selectedTableIds })
     })
-    .then(r => r.json())
+    .then(async r => {
+        if (!r.ok) {
+            const err = await r.json().catch(() => ({ error: 'Lỗi máy chủ ' + r.status }));
+            throw new Error(err.error || err.message || 'Lỗi ' + r.status);
+        }
+        return r.json();
+    })
     .then(data => {
         if (data.success) {
             closeModal('mergeConfirmModal');
             clearMergeSelection();
             location.reload();
         } else {
-            alert(data.error || 'Có lỗi xảy ra!');
+            showToast(data.error || 'Có lỗi xảy ra!', 'error');
         }
+    })
+    .catch(err => {
+        showToast('Lỗi: ' + err.message, 'error');
     });
 }
 
 function unmergeTable(tableId) {
-    if (!confirm('Xác nhận tách bàn ghép? Tất cả các bàn trong nhóm sẽ trở về trạng thái Trống.')) return;
+    showConfirm('Xác nhận tách bàn ghép? Tất cả các bàn trong nhóm sẽ trở về trạng thái Trống.', (confirmed) => {
+        if (!confirmed) return;
 
-    fetch('/admin/tables/unmerge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
-        body: JSON.stringify({ table_id: tableId })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            closeModal('tableDetailModal');
-            location.reload();
-        } else {
-            alert(data.error || 'Có lỗi xảy ra!');
-        }
+        fetch('/admin/tables/unmerge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+            body: JSON.stringify({ table_id: tableId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('tableDetailModal');
+                location.reload();
+            } else {
+                showToast(data.error || 'Có lỗi xảy ra!', 'error');
+            }
+        });
     });
 }
 // ─── Drag & Drop Logic ─────────────────────────────────────────────
@@ -708,29 +922,44 @@ function handleDropOnTable(e, targetTableId) {
     const draggedCard = document.querySelector(`[data-table-id="${draggedTableId}"]`);
     const targetCard = document.querySelector(`[data-table-id="${targetTableId}"]`);
     
+    // Capture variables locally before dragend clears them
+    const currentDraggedId = draggedTableId;
+    const currentTargetId = targetTableId;
+
     if (draggedCard.dataset.tableStatus !== 'available' || targetCard.dataset.tableStatus !== 'available') {
-        alert('Chỉ có thể ghép các bàn đang trống!');
+        showToast('Chỉ có thể ghép các bàn đang trống!', 'warning');
         return;
     }
 
-    if (confirm(`Bạn muốn ghép ${draggedCard.dataset.tableName} vào ${targetCard.dataset.tableName}?`)) {
-        fetch('/admin/tables/merge', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
-            body: JSON.stringify({ 
-                primary_table_id: targetTableId, 
-                table_ids: [draggedTableId, targetTableId] 
+    showConfirm(`Bạn muốn ghép ${draggedCard.dataset.tableName} vào ${targetCard.dataset.tableName}?`, (confirmed) => {
+        if (confirmed) {
+            fetch('/admin/tables/merge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+                body: JSON.stringify({ 
+                    primary_table_id: currentTargetId, 
+                    table_ids: [currentDraggedId, currentTargetId] 
+                })
             })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.error || 'Có lỗi xảy ra!');
-            }
-        });
-    }
+            .then(async r => {
+                if (!r.ok) {
+                    const err = await r.json().catch(() => ({ error: 'Lỗi máy chủ ' + r.status }));
+                    throw new Error(err.error || err.message || 'Lỗi ' + r.status);
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showToast(data.error || 'Có lỗi xảy ra!', 'error');
+                }
+            })
+            .catch(err => {
+                showToast('Lỗi: ' + err.message, 'error');
+            });
+        }
+    });
 }
 
 document.addEventListener('dragend', function(e) {

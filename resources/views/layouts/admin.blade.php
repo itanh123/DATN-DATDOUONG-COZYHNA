@@ -179,7 +179,7 @@
 @endif
 
 @if($roleCode === 'admin')
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/restaurant-tables">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/tables">
 <span class="material-symbols-outlined" data-icon="table_restaurant">table_restaurant</span>
 <span class="font-label-md text-label-md">Quản lý Bàn</span>
 </a>
