@@ -53,11 +53,16 @@
                                     <p class="text-label-sm text-on-surface-variant">Tồn: {{ $ingredient->current_stock }} {{ $ingredient->unit->name ?? '' }}</p>
                                 </div>
                                 <div class="w-24 flex items-center gap-1">
-                                    <input type="number" step="0.01" name="recipes[{{ $ps->id }}][ingredients][{{ $ingredient->id }}][quantity]" value="{{ $qty }}" class="w-full px-2 py-1 border border-outline-variant rounded focus:border-primary outline-none" placeholder="0">
+                                    <input type="number" step="0.01" name="recipes[{{ $ps->id }}][ingredients][{{ $ingredient->id }}][quantity]" value="{{ $qty }}" class="w-full px-2 py-1 border border-outline-variant rounded focus:border-primary outline-none disabled:bg-surface-container-low" placeholder="0" {{ !check_permission('edit_products') ? 'disabled' : '' }}>
                                     <span class="text-label-sm text-on-surface-variant">{{ $ingredient->unit->name ?? '' }}</span>
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+                    
+                    <div class="mt-4 border-t border-outline-variant/30 pt-4">
+                        <label class="block font-label-md text-on-surface mb-2">Ghi chú / Hướng dẫn pha chế</label>
+                        <textarea name="recipes[{{ $ps->id }}][instruction]" class="w-full bg-surface border border-outline-variant rounded-xl p-3 focus:border-primary outline-none resize-y disabled:bg-surface-container-low" rows="3" placeholder="Ví dụ: Lắc đều với đá, cho trân châu vào cuối..." {{ !check_permission('edit_products') ? 'disabled' : '' }}>{{ $recipe ? $recipe->instruction : '' }}</textarea>
                     </div>
                 </div>
             @endforeach
@@ -65,11 +70,13 @@
         </div>
 
         @if(!$product->productSizes->isEmpty())
+        @if(check_permission('edit_products'))
         <div class="mt-xl flex justify-end">
             <button type="submit" class="px-8 py-3 bg-primary text-on-primary font-bold rounded-xl shadow hover:opacity-90 transition-all">
                 Lưu Công Thức
             </button>
         </div>
+        @endif
         @endif
     </form>
 </main>

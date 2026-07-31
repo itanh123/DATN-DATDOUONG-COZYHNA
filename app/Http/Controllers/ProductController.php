@@ -212,6 +212,11 @@ class ProductController extends Controller
                 ['name' => 'Recipe for size ' . $productSizeId]
             );
 
+            if (isset($recipeData['instruction'])) {
+                $recipe->instruction = $recipeData['instruction'];
+                $recipe->save();
+            }
+
             $recipe->ingredients()->delete();
 
             if (isset($recipeData['ingredients'])) {

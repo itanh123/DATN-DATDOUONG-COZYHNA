@@ -158,7 +158,6 @@
                                     @endif
                                 </td>
                                 <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                                    @if(check_permission('edit_products') || check_permission('delete_products'))
                                     <button
                                         class="p-1 hover:bg-surface-container rounded transition-colors action-more"
                                         type="button"
@@ -181,6 +180,8 @@
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
                                                 onclick="openEditModalFromButton(this)"
                                             >Edit</button>
+                                            @endif
+                                            
                                             <button
                                                 type="button"
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-primary"
@@ -192,7 +193,7 @@
                                                 href="/admin/product/{{ $product->id }}/recipe"
                                                 class="block w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-tertiary"
                                             >Manage Recipes</a>
-                                            @endif
+                                            
                                             @if(check_permission('delete_products'))
                                             <form action="/admin/product/{{ $product->id }}/delete" method="POST" class="m-0">
                                                 @csrf
@@ -205,7 +206,6 @@
                                             @endif
                                         </div>
                                     </div>
-                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -557,7 +557,7 @@
                             @foreach($sizes as $s)
                                 <tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
                                     <td class="p-3 text-center">
-                                        <input type="checkbox" id="ps_active_{{ $s->id }}" name="sizes[{{ $s->id }}][active]" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="toggleSizeRow({{ $s->id }})" />
+                                        <input type="checkbox" id="ps_active_{{ $s->id }}" name="sizes[{{ $s->id }}][active]" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="toggleSizeRow({{ $s->id }})" {{ !check_permission('edit_products') ? 'disabled' : '' }} />
                                     </td>
                                     <td class="p-3 font-semibold text-on-surface">
                                         {{ $s->name }} <span class="text-xs text-on-surface-variant font-normal">({{ $s->volume_ml }}ml)</span>
@@ -578,7 +578,9 @@
 
                     <div class="pt-4 border-t flex justify-end gap-3 mt-lg">
                         <button onclick="toggleModal('productSizeManageModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
+                        @if(check_permission('edit_products'))
                         <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Sizes</button>
+                        @endif
                     </div>
                 </form>
             </div>

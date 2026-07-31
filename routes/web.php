@@ -89,128 +89,145 @@ Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 Route::get('/auth/google', [\App\Http\Controllers\AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
 
-Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
+Route::middleware(['admin'])->group(function () {
+    Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
 
-Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
-Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
-Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
-Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
+    Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
+    Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
+    Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
+    Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
 
-Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
-    if (!check_permission('view_products')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->index($request);
-});
-Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
-Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
+    Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('view_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->index($request);
+    });
+    Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
+    Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
 
-Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
-    if (!check_permission('create_products')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->store($request);
-});
+    Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->store($request);
+    });
 
-Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-    if (!check_permission('edit_products')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->update($request, $product);
-});
+    Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('edit_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->update($request, $product);
+    });
 
-Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-    if (!check_permission('delete_products')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->destroy($product);
-});
+    Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('delete_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->destroy($product);
+    });
 
-Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-    if (!check_permission('edit_products')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
-});
+    Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('edit_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
+    });
 
-// Size Routes
-Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
-    if (!check_permission('create_sizes')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->storeSize($request);
-});
+    // Size Routes
+    Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_sizes')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->storeSize($request);
+    });
 
-Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-    if (!check_permission('edit_sizes')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
-});
+    Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+        if (!check_permission('edit_sizes')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
+    });
 
-Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-    if (!check_permission('delete_sizes')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->destroySize($size);
-});
+    Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+        if (!check_permission('delete_sizes')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->destroySize($size);
+    });
 
-// Category Routes
-Route::post('/admin/category/store', function (\Illuminate\Http\Request $request) {
-    if (!check_permission('create_categories')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->storeCategory($request);
-});
+    // Category Routes
+    Route::post('/admin/category/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_categories')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->storeCategory($request);
+    });
 
-Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-    if (!check_permission('edit_categories')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
-});
+    Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+        if (!check_permission('edit_categories')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
+    });
 
-Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-    if (!check_permission('delete_categories')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\ProductController')->destroyCategory($category);
-});
+    Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+        if (!check_permission('delete_categories')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->destroyCategory($category);
+    });
 
-// User Management Routes
-Route::get('/admin/users', function () {
-    if (!check_permission('view_users')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\UserController')->index();
-});
+    // User Management Routes
+    Route::get('/admin/users', function () {
+        if (!check_permission('view_users')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\UserController')->index();
+    });
 
-Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
-    // Only admin can create new users (or we can add create_users permission later)
-    if (session('role_code') !== 'admin') {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\UserController')->store($request);
-});
+    Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
+        // Only admin can create new users (or we can add create_users permission later)
+        if (session('role_code') !== 'admin') {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\UserController')->store($request);
+    });
 
-Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-    if (!check_permission('assign_roles')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\UserController')->updateRole($request, $user);
-});
+    Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        if (!check_permission('assign_roles')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\UserController')->updateRole($request, $user);
+    });
 
-Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-    // We check permission inside the controller based on user_id
-    return app('App\Http\Controllers\UserController')->updatePassword($request, $user);
-});
+    Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        // We check permission inside the controller based on user_id
+        return app('App\Http\Controllers\UserController')->updatePassword($request, $user);
+    });
 
-Route::post('/admin/users/{user}/toggle-status', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-    return app('App\Http\Controllers\UserController')->toggleStatus($request, $user);
-});
+    Route::post('/admin/users/{user}/toggle-status', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        return app('App\Http\Controllers\UserController')->toggleStatus($request, $user);
+    });
 
-Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-    return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
+    Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
+    });
+
+    // Roles and Permissions Routes
+    Route::get('/admin/roles', function () {
+        if (!check_permission('view_roles')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\RoleController')->index();
+    });
+
+    Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('manage_permissions')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\RoleController')->updatePermissions($request);
+    });
 });
 
 Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
@@ -218,21 +235,6 @@ Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
     $path = storage_path('app/public/invoices/' . $orderCode . '.pdf');
     if (!file_exists($path)) abort(404, 'Hóa đơn không tồn tại.');
     return response()->file($path);
-});
-
-// Roles and Permissions Routes
-Route::get('/admin/roles', function () {
-    if (!check_permission('view_roles')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\RoleController')->index();
-});
-
-Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) {
-    if (!check_permission('manage_permissions')) {
-        return redirect('/login');
-    }
-    return app('App\Http\Controllers\RoleController')->updatePermissions($request);
 });
 
 // ---------------------------------------------------------

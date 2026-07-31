@@ -10,8 +10,12 @@
 </div>
 <form id="placeOrderForm" action="{{ session('is_table_order') ? '/table/order/confirm' : '/customer/checkout/place-order' }}" method="POST">
     @csrf
-    @if(isset($defaultAddress) && !session('is_table_order'))
-        <input type="hidden" name="address_id" value="{{ $defaultAddress->id }}">
+    @if(!session('is_table_order'))
+        @php 
+            $defaultAddress = count($addresses) > 0 ? $addresses[0] : null; 
+            $fullAddress = $defaultAddress ? $defaultAddress->address . ', ' . $defaultAddress->ward . ', ' . $defaultAddress->district . ', ' . $defaultAddress->province : '';
+        @endphp
+        <input type="hidden" name="address_id" id="addressIdInput" value="{{ $defaultAddress ? $defaultAddress->id : '' }}">
     @endif
 </form>
 
@@ -70,29 +74,39 @@
 <span class="material-symbols-outlined text-primary">location_on</span>
                             Địa Chỉ Giao Hàng
                         </h2>
+@if(count($addresses) > 0)
+<button type="button" onclick="toggleAddressModal()" class="text-primary font-label-md hover:underline flex items-center gap-1">
+    <span class="material-symbols-outlined text-[18px]">book</span> Sổ địa chỉ
+</button>
+@endif
 </div>
 <div class="space-y-sm">
-    @php 
-        $defaultAddress = count($addresses) > 0 ? $addresses[0] : null; 
-        $fullAddress = $defaultAddress ? $defaultAddress->address . ', ' . $defaultAddress->ward . ', ' . $defaultAddress->district . ', ' . $defaultAddress->province : '';
-    @endphp
     <input type="text" name="receiver_name" form="placeOrderForm" placeholder="Tên người nhận" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_name : $user->username }}" />
     
     <input type="text" name="receiver_phone" form="placeOrderForm" placeholder="Số điện thoại" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_phone : '' }}" />
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
-        <select id="provinceSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface">
+        <select id="provinceSelect" name="province_code" form="placeOrderForm" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" required>
             <option value="">Chọn Tỉnh/Thành</option>
         </select>
-        <select id="districtSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled>
+        <select id="districtSelect" name="district_code" form="placeOrderForm" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled required>
             <option value="">Chọn Quận/Huyện</option>
         </select>
-        <select id="wardSelect" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled>
+        <select id="wardSelect" name="ward_code" form="placeOrderForm" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" disabled required>
             <option value="">Chọn Phường/Xã</option>
         </select>
     </div>
-    <input type="text" id="specificAddress" placeholder="Số nhà, Tên đường, Tổ dân phố..." class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" />
+    <input type="text" id="specificAddress" name="specific_address" form="placeOrderForm" placeholder="Số nhà, Tên đường, Tổ dân phố..." class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" required value="{{ $defaultAddress ? $defaultAddress->address : '' }}" />
+    
+    <label class="flex items-center gap-xs mt-2 cursor-pointer">
+        <input type="checkbox" name="save_address" form="placeOrderForm" class="w-4 h-4 text-primary border-outline focus:ring-primary rounded" {{ count($addresses) == 0 ? 'checked' : '' }} />
+        <span class="font-body-md text-body-md text-on-surface-variant">Lưu địa chỉ này vào sổ địa chỉ cho lần sau</span>
+    </label>
+
     <input type="hidden" id="shippingAddress" name="shipping_address" form="placeOrderForm" value="{{ $fullAddress }}" />
+    <input type="hidden" id="provinceName" name="province_name" form="placeOrderForm" value="{{ $defaultAddress ? $defaultAddress->province : '' }}">
+    <input type="hidden" id="districtName" name="district_name" form="placeOrderForm" value="{{ $defaultAddress ? $defaultAddress->district : '' }}">
+    <input type="hidden" id="wardName" name="ward_name" form="placeOrderForm" value="{{ $defaultAddress ? $defaultAddress->ward : '' }}">
     
     <input type="hidden" id="distance_km" name="distance_km" form="placeOrderForm" value="0">
     <input type="hidden" id="calculated_shipping_fee" name="shipping_fee" form="placeOrderForm" value="0">
@@ -246,13 +260,39 @@
 </div>
 </aside>
 </div>
+<!-- Address Modal -->
+<div id="addressModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-surface rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col transform translate-y-4 transition-transform duration-300 max-h-[80vh]">
+        <div class="p-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low">
+            <h3 class="font-title-lg text-title-lg font-bold text-on-surface">Sổ Địa Chỉ</h3>
+            <button onclick="toggleAddressModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-4 overflow-y-auto bg-surface flex-grow space-y-3">
+            @if(count($addresses) > 0)
+                @foreach($addresses as $addr)
+                    <div class="p-3 border border-outline-variant/50 rounded-lg hover:border-primary cursor-pointer transition-colors" onclick="selectSavedAddress({{ json_encode($addr) }})">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-bold text-on-surface">{{ $addr->receiver_name }}</span>
+                            <span class="text-sm font-medium text-on-surface-variant">{{ $addr->receiver_phone }}</span>
+                        </div>
+                        <p class="text-sm text-on-surface-variant/80">{{ $addr->address }}, {{ $addr->ward }}, {{ $addr->district }}, {{ $addr->province }}</p>
+                    </div>
+                @endforeach
+            @else
+                <div class="text-center py-4 text-on-surface-variant">Bạn chưa lưu địa chỉ nào.</div>
+            @endif
+        </div>
+    </div>
+</div>
 </main>
 @endsection
 
 @push('scripts')
 <script>
 
-        function toggleModal() {
+        function toggleAddressModal() {
             const modal = document.getElementById('addressModal');
             const content = modal.firstElementChild;
             if (modal.classList.contains('opacity-0')) {
@@ -264,6 +304,38 @@
                 content.classList.add('translate-y-4');
                 document.body.style.overflow = 'auto';
             }
+        }
+
+        function selectSavedAddress(addr) {
+            document.querySelector('input[name="receiver_name"]').value = addr.receiver_name;
+            document.querySelector('input[name="receiver_phone"]').value = addr.receiver_phone;
+            document.getElementById('specificAddress').value = addr.address;
+            document.getElementById('addressIdInput').value = addr.id;
+            
+            if (addr.province_code) {
+                sessionStorage.setItem('checkout_province', addr.province_code);
+                sessionStorage.setItem('checkout_district', addr.district_code || '');
+                sessionStorage.setItem('checkout_ward', addr.ward_code || '');
+                
+                const provinceSelect = document.getElementById('provinceSelect');
+                provinceSelect.value = addr.province_code;
+                provinceSelect.dispatchEvent(new Event('change'));
+            } else {
+                // For old addresses without code, clear dropdowns and force manual re-selection
+                sessionStorage.removeItem('checkout_province');
+                sessionStorage.removeItem('checkout_district');
+                sessionStorage.removeItem('checkout_ward');
+                document.getElementById('provinceSelect').value = '';
+                document.getElementById('districtSelect').innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+                document.getElementById('wardSelect').innerHTML = '<option value="">Chọn Phường/Xã</option>';
+                document.getElementById('shippingAddress').value = addr.address + ', ' + addr.ward + ', ' + addr.district + ', ' + addr.province;
+                // trigger distance calc
+                if (typeof calculateDistance === 'function') {
+                    calculateDistance(document.getElementById('shippingAddress').value);
+                }
+            }
+            
+            toggleAddressModal();
         }
 
         async function updateCartItemQuantity(cartItemId, action) {
@@ -431,12 +503,21 @@
             }
             if (wardSelect.selectedIndex > 0) {
                 addressParts.push(wardSelect.options[wardSelect.selectedIndex].text);
+                document.getElementById('wardName').value = wardSelect.options[wardSelect.selectedIndex].text;
+            } else {
+                document.getElementById('wardName').value = '';
             }
             if (districtSelect.selectedIndex > 0) {
                 addressParts.push(districtSelect.options[districtSelect.selectedIndex].text);
+                document.getElementById('districtName').value = districtSelect.options[districtSelect.selectedIndex].text;
+            } else {
+                document.getElementById('districtName').value = '';
             }
             if (provinceSelect.selectedIndex > 0) {
                 addressParts.push(provinceSelect.options[provinceSelect.selectedIndex].text);
+                document.getElementById('provinceName').value = provinceSelect.options[provinceSelect.selectedIndex].text;
+            } else {
+                document.getElementById('provinceName').value = '';
             }
             
             const fullAddress = addressParts.join(', ');

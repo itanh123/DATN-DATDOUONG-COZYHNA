@@ -27,6 +27,7 @@ class CheckoutController extends Controller
         if ($customerProfile) {
             $addresses = DB::table('customer_addresses')
                 ->where('customer_id', $customerProfile->id)
+                ->where('is_saved', 1)
                 ->orderBy('is_default', 'desc')
                 ->get();
 
@@ -299,28 +300,40 @@ class CheckoutController extends Controller
             return back()->with('error', 'Khoảng cách giao hàng vượt quá 10km. Cửa hàng không thể hỗ trợ giao đơn hàng này.');
         }
 
-        $addressId = null;
-        $existingAddress = DB::table('customer_addresses')
-            ->where('customer_id', $customerProfile->id)
-            ->where('address', $shippingAddress)
-            ->where('receiver_phone', $receiverPhone)
-            ->first();
+        $addressId = $request->input('address_id');
+        $isSaved = $request->has('save_address');
 
-        if ($existingAddress) {
-            $addressId = $existingAddress->id;
-        } else {
-            $addressId = DB::table('customer_addresses')->insertGetId([
-                'customer_id' => $customerProfile->id,
-                'receiver_name' => $receiverName,
-                'receiver_phone' => $receiverPhone,
-                'address' => $shippingAddress,
-                'province' => '',
-                'district' => '',
-                'ward' => '',
-                'is_default' => 0,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+        if (!$addressId) {
+            // Check if exact address already exists for this user (even if not explicitly "saved in book")
+            $existingAddress = DB::table('customer_addresses')
+                ->where('customer_id', $customerProfile->id)
+                ->where('address', $shippingAddress)
+                ->where('receiver_phone', $receiverPhone)
+                ->first();
+
+            if ($existingAddress) {
+                $addressId = $existingAddress->id;
+                if ($isSaved && !$existingAddress->is_saved) {
+                    DB::table('customer_addresses')->where('id', $addressId)->update(['is_saved' => 1]);
+                }
+            } else {
+                $addressId = DB::table('customer_addresses')->insertGetId([
+                    'customer_id' => $customerProfile->id,
+                    'receiver_name' => $receiverName,
+                    'receiver_phone' => $receiverPhone,
+                    'address' => $request->input('specific_address', ''),
+                    'province' => $request->input('province_name', ''),
+                    'district' => $request->input('district_name', ''),
+                    'ward' => $request->input('ward_name', ''),
+                    'province_code' => $request->input('province_code'),
+                    'district_code' => $request->input('district_code'),
+                    'ward_code' => $request->input('ward_code'),
+                    'is_default' => 0,
+                    'is_saved' => $isSaved ? 1 : 0,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
 
         $paymentMethod = $request->input('payment', 'cash');
