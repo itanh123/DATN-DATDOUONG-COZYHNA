@@ -53,6 +53,14 @@ class AdminOrderController extends Controller
                 ->where('order_items.order_id', $order->id)
                 ->select('order_items.*', 'products.name as product_name')
                 ->get();
+                
+            foreach ($order->items as $item) {
+                $item->toppings = DB::table('order_item_toppings')
+                    ->join('toppings', 'order_item_toppings.topping_id', '=', 'toppings.id')
+                    ->where('order_item_toppings.order_item_id', $item->id)
+                    ->select('toppings.name as topping_name')
+                    ->get();
+            }
         }
 
         // Stats

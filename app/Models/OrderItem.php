@@ -33,4 +33,9 @@ class OrderItem extends Model
     {
         return $this->belongsTo(ProductSize::class, 'product_size_id');
     }
+
+    public function toppings()
+    {
+        return $this->hasMany(OrderItemTopping::class);
+    }
 }

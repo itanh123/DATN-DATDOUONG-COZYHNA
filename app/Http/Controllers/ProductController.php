@@ -27,7 +27,8 @@ class ProductController extends Controller
         $products = $query->paginate(10);
         $sizes = Size::orderBy('name')->get();
         $ingredients = \App\Models\Ingredient::orderBy('name')->get();
-        return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients'));
+        $toppings = \App\Models\Topping::all();
+        return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients', 'toppings'));
     }
 
 

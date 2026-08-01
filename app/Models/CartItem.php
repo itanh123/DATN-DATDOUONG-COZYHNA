@@ -40,9 +40,16 @@ class CartItem extends Model
         return $this->productSize?->size?->name ?? 'Mặc định';
     }
 
+    public function toppings()
+    {
+        return $this->hasMany(CartItemTopping::class);
+    }
+
     /** Line total */
     public function getLineTotalAttribute(): float
     {
-        return $this->unit_price * $this->quantity;
+        $baseTotal = $this->unit_price * $this->quantity;
+        $toppingsTotal = $this->toppings->sum('unit_price') * $this->quantity;
+        return $baseTotal + $toppingsTotal;
     }
 }

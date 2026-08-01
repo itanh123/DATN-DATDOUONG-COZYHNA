@@ -47,6 +47,13 @@
 <div class="flex-grow">
 <h3 class="font-body-lg text-body-lg font-semibold">{{ $item->product_name }}</h3>
 <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $item->size_name }}</p>
+@if(isset($item->toppings) && $item->toppings->count() > 0)
+<div class="mt-1 text-label-sm text-on-surface-variant">
+    @foreach($item->toppings as $topping)
+        <p>+ {{ $topping->topping->name }} ({{ number_format($topping->unit_price, 0, ',', '.') }}đ)</p>
+    @endforeach
+</div>
+@endif
 </div>
 <div class="text-right">
 <p class="font-body-lg text-body-lg font-bold text-primary">{{ number_format($item->price, 0, ',', '.') }} VNĐ</p>

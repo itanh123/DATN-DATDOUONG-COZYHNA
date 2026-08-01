@@ -73,8 +73,9 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
     });
 
     $isFiltered = $request->has('category_id');
+    $toppings = \App\Models\Topping::where('status', true)->get();
 
-    return view('customer.home', compact('products', 'categories', 'isFiltered'));
+    return view('customer.home', compact('products', 'categories', 'isFiltered', 'toppings'));
 });
 
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
@@ -276,7 +277,34 @@ Route::get('/admin/inventory', function () { return view('admin.inventory'); });
 Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
 Route::get('/admin/orders/check-new', [\App\Http\Controllers\AdminOrderController::class, 'checkNew']);
 Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
-Route::get('/admin/products', function () { return view('admin.products'); });
+Route::get('/admin/products', function () {
+    $toppings = \App\Models\Topping::all();
+    return view('admin.products', compact('toppings'));
+});
+Route::post('/admin/toppings', function (\Illuminate\Http\Request $request) {
+    \App\Models\Topping::create([
+        'name' => $request->name,
+        'price' => $request->price,
+        'status' => $request->has('status')
+    ]);
+    return back()->with('success', 'Topping added successfully.');
+});
+Route::post('/admin/toppings/{id}', function (\Illuminate\Http\Request $request, $id) {
+    $topping = \App\Models\Topping::find($id);
+    if ($topping) {
+        $topping->update([
+            'name' => $request->name,
+            'price' => $request->price,
+            'status' => $request->has('status')
+        ]);
+    }
+    return back()->with('success', 'Topping updated successfully.');
+});
+Route::post('/admin/toppings/{id}/delete', function ($id) {
+    $topping = \App\Models\Topping::find($id);
+    if ($topping) $topping->delete();
+    return back()->with('success', 'Topping deleted successfully.');
+});
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });
 Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);

@@ -50,6 +50,8 @@ class CartController extends Controller
             'product_size_id' => ['nullable', 'integer', 'exists:product_sizes,id'],
             'unit_price'      => ['nullable', 'numeric', 'min:0'],
             'quantity'        => ['required', 'integer', 'min:1'],
+            'toppings'        => ['nullable', 'array'],
+            'toppings.*'      => ['integer', 'exists:toppings,id'],
         ]);
 
         $productSizeId = $request->input('product_size_id');
@@ -76,23 +78,51 @@ class CartController extends Controller
         }
 
         // --- Upsert cart item ---
-        // Unique key: (cart_id, product_id, product_size_id)
-        $existing = CartItem::where('cart_id', $cart->id)
-            ->where('product_id', $productId)
-            ->where('product_size_id', $productSizeId) // both nullable → works
-            ->first();
+        $toppingsInput = $request->input('toppings', []);
+        // Convert to integers and sort for easy comparison
+        $toppingsInput = array_map('intval', $toppingsInput);
+        sort($toppingsInput);
 
-        if ($existing) {
-            $existing->quantity += $quantity;
-            $existing->save();
-        } else {
-            CartItem::create([
+        $existingItems = CartItem::where('cart_id', $cart->id)
+            ->where('product_id', $productId)
+            ->where('product_size_id', $productSizeId)
+            ->with('toppings')
+            ->get();
+
+        $merged = false;
+        foreach ($existingItems as $existing) {
+            $itemToppings = $existing->toppings->pluck('topping_id')->toArray();
+            sort($itemToppings);
+            
+            if ($itemToppings === $toppingsInput) {
+                $existing->quantity += $quantity;
+                $existing->save();
+                $merged = true;
+                break;
+            }
+        }
+
+        if (!$merged) {
+            $cartItem = CartItem::create([
                 'cart_id'         => $cart->id,
                 'product_id'      => $productId,
                 'product_size_id' => $productSizeId,
                 'quantity'        => $quantity,
                 'unit_price'      => $unitPrice,
             ]);
+
+            // Add toppings
+            foreach ($toppingsInput as $toppingId) {
+                $topping = \App\Models\Topping::find($toppingId);
+                if ($topping) {
+                    $cartItem->toppings()->create([
+                        'topping_id' => $topping->id,
+                        'quantity' => 1,
+                        'unit_price' => $topping->price,
+                        'total_price' => $topping->price,
+                    ]);
+                }
+            }
         }
 
         return response()->json([
@@ -177,11 +207,11 @@ class CartController extends Controller
 
         if ($cart) {
             $cartItems = CartItem::where('cart_id', $cart->id)
-                ->with(['product', 'productSize.size'])
+                ->with(['product', 'productSize.size', 'toppings.topping'])
                 ->get();
 
             foreach ($cartItems as $item) {
-                $subtotal += $item->unit_price * $item->quantity;
+                $subtotal += $item->line_total;
             }
         }
 
@@ -205,8 +235,8 @@ class CartController extends Controller
     // ---------------------------------------------------------------
     private function calcTotals(Cart $cart): array
     {
-        $items    = CartItem::where('cart_id', $cart->id)->get();
-        $subtotal = $items->sum(fn ($i) => $i->unit_price * $i->quantity);
+        $items    = CartItem::where('cart_id', $cart->id)->with('toppings')->get();
+        $subtotal = $items->sum(fn ($i) => $i->line_total);
         $fee      = $subtotal > 0 ? 15000 : 0;
         $tax      = round($subtotal * 0.08);
         $total    = $subtotal + $fee + $tax;

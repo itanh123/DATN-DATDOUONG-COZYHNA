@@ -125,6 +125,13 @@
                                     <p class="text-primary font-bold">{{ number_format($item->total_price, 0, ',', '.') }}đ</p>
                                 </div>
                                 <p class="text-on-surface-variant text-body-md">Size: {{ $item->size_name }} (x{{ $item->quantity }})</p>
+                                @if(isset($item->toppings) && $item->toppings->count() > 0)
+                                <div class="mt-1 text-label-sm text-on-surface-variant">
+                                    @foreach($item->toppings as $topping)
+                                        <p>+ {{ $topping->topping_name }} ({{ number_format($topping->unit_price, 0, ',', '.') }}đ)</p>
+                                    @endforeach
+                                </div>
+                                @endif
                             </div>
                         </div>
                         @endforeach
@@ -224,6 +231,13 @@
                                         @endif
                                     @endif
                                 </div>
+                                @if(isset($item->toppings) && $item->toppings->count() > 0)
+                                <div class="mt-1 text-label-sm text-on-surface-variant">
+                                    @foreach($item->toppings as $topping)
+                                        <p>+ {{ $topping->topping_name }} ({{ number_format($topping->unit_price, 0, ',', '.') }}đ)</p>
+                                    @endforeach
+                                </div>
+                                @endif
                             </div>
                         </div>
                         @endforeach

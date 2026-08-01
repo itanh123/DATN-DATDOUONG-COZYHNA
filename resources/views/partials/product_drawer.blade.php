@@ -67,6 +67,25 @@
                         </div>
                     </div>
                     
+                    <!-- Toppings Section -->
+                    @if(isset($toppings) && $toppings->count() > 0)
+                    <div id="drawerToppingSection">
+                        <label
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Topping</label>
+                        <div class="flex flex-col gap-2" id="drawerToppingSelector">
+                            @foreach($toppings as $topping)
+                            <label class="flex items-center justify-between p-3 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" class="rounded text-primary focus:ring-primary border-outline topping-checkbox" value="{{ $topping->id }}" data-price="{{ $topping->price }}" onchange="updateTotals()">
+                                    <span class="font-bold text-on-surface">{{ $topping->name }}</span>
+                                </div>
+                                <span class="text-primary font-semibold">+{{ number_format($topping->price, 0, ',', '.') }} đ</span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                    
                   
                  
 
@@ -127,8 +146,14 @@
 
         function updateTotals() {
             document.getElementById('qtyVal').innerText = quantity;
+            
+            let toppingPrice = 0;
+            document.querySelectorAll('.topping-checkbox:checked').forEach(cb => {
+                toppingPrice += parseFloat(cb.dataset.price) || 0;
+            });
+
             // Format total to Vietnamese Dong format if it's a large number, else keep default
-            let total = quantity * unitPrice;
+            let total = quantity * (unitPrice + toppingPrice);
             let formattedTotal = total > 100 ? new Intl.NumberFormat('vi-VN').format(total) + ' đ' : '$' + total.toFixed(2);
             document.getElementById('totalPrice').innerText = formattedTotal;
         }
@@ -166,6 +191,11 @@
         async function addToCartFromDrawer() {
             if (!currentProductForCart) return;
 
+            let selectedToppings = [];
+            document.querySelectorAll('.topping-checkbox:checked').forEach(cb => {
+                selectedToppings.push(parseInt(cb.value));
+            });
+
             try {
                 const response = await fetch('/cart/add', {
                     method: 'POST',
@@ -176,7 +206,8 @@
                     body: JSON.stringify({
                         product_id: currentProductForCart.id,
                         size_id: currentSizeForCart ? currentSizeForCart.id : null,
-                        quantity: quantity
+                        quantity: quantity,
+                        toppings: selectedToppings
                     })
                 });
                 
@@ -214,6 +245,8 @@
                     const sizeSelector = document.getElementById('drawerSizeSelector');
                     
                     if (sizeSelector) sizeSelector.innerHTML = '';
+                    
+                    document.querySelectorAll('.topping-checkbox').forEach(cb => cb.checked = false);
                     
                     currentProductForCart = product;
                     currentSizeForCart = null;

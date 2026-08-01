@@ -36,22 +36,31 @@ class CheckoutController extends Controller
                 ->first();
 
             if ($cart) {
-                $cartItems = DB::table('cart_items')
-                    ->join('product_sizes', 'cart_items.product_size_id', '=', 'product_sizes.id')
-                    ->join('products', 'product_sizes.product_id', '=', 'products.id')
-                    ->join('sizes', 'product_sizes.size_id', '=', 'sizes.id')
-                    ->where('cart_items.cart_id', $cart->id)
-                    ->select(
-                        'cart_items.id as cart_item_id',
-                        'cart_items.quantity',
-                        'products.name as product_name',
-                        'products.image as product_image',
-                        'sizes.name as size_name',
-                        'product_sizes.selling_price as price'
-                    )
+                $cartItemModels = \App\Models\CartItem::where('cart_id', $cart->id)
+                    ->with(['product', 'productSize.size', 'toppings.topping'])
                     ->get();
+
+                foreach ($cartItemModels as $model) {
+                    $item = new \stdClass();
+                    $item->cart_item_id = $model->id;
+                    $item->quantity = $model->quantity;
+                    $item->product_name = $model->product ? $model->product->name : 'Unknown';
+                    $item->product_image = $model->product ? $model->product->image : '';
+                    $item->size_name = $model->productSize && $model->productSize->size ? $model->productSize->size->name : 'N/A';
                     
-                foreach ($cartItems as $item) {
+                    // The price per unit should include the topping price per unit
+                    $toppingUnitSum = $model->toppings->sum('unit_price');
+                    $basePrice = $model->unit_price; 
+                    // Fallback to selling_price if unit_price is 0
+                    if ($basePrice == 0 && $model->productSize) {
+                        $basePrice = $model->productSize->selling_price;
+                    }
+                    $item->price = $basePrice + $toppingUnitSum;
+                    
+                    // Store the toppings just in case the view needs them
+                    $item->toppings = $model->toppings;
+                    
+                    $cartItems[] = $item;
                     $cartTotal += $item->price * $item->quantity;
                 }
             }
@@ -215,24 +224,48 @@ class CheckoutController extends Controller
             return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm'], 404);
         }
 
-        $existingItem = DB::table('cart_items')
-            ->where('cart_id', $cart->id)
-            ->where('product_size_id', $productSize->id)
-            ->first();
+        $toppingsInput = $request->input('toppings', []);
+        $toppingsInput = array_map('intval', $toppingsInput);
+        sort($toppingsInput);
 
-        if ($existingItem) {
-            DB::table('cart_items')->where('id', $existingItem->id)->update([
-                'quantity' => $existingItem->quantity + $quantity,
-                'updated_at' => now()
-            ]);
-        } else {
-            DB::table('cart_items')->insert([
+        $existingItems = \App\Models\CartItem::where('cart_id', $cart->id)
+            ->where('product_size_id', $productSize->id)
+            ->with('toppings')
+            ->get();
+
+        $merged = false;
+        foreach ($existingItems as $existing) {
+            $itemToppings = $existing->toppings->pluck('topping_id')->toArray();
+            sort($itemToppings);
+            
+            if ($itemToppings === $toppingsInput) {
+                $existing->quantity += $quantity;
+                $existing->save();
+                $merged = true;
+                break;
+            }
+        }
+
+        if (!$merged) {
+            $cartItem = \App\Models\CartItem::create([
                 'cart_id' => $cart->id,
                 'product_size_id' => $productSize->id,
                 'quantity' => $quantity,
-                'created_at' => now(),
-                'updated_at' => now()
+                'product_id' => $productId,
+                'unit_price' => $productSize->selling_price,
             ]);
+
+            foreach ($toppingsInput as $toppingId) {
+                $topping = \App\Models\Topping::find($toppingId);
+                if ($topping) {
+                    $cartItem->toppings()->create([
+                        'topping_id' => $topping->id,
+                        'quantity' => 1,
+                        'unit_price' => $topping->price,
+                        'total_price' => $topping->price,
+                    ]);
+                }
+            }
         }
 
         $cartCount = DB::table('cart_items')->where('cart_id', $cart->id)->sum('quantity');
@@ -352,10 +385,8 @@ class CheckoutController extends Controller
             return back()->with('error', 'Giỏ hàng trống.');
         }
 
-        $cartItems = DB::table('cart_items')
-            ->join('product_sizes', 'cart_items.product_size_id', '=', 'product_sizes.id')
-            ->where('cart_items.cart_id', $cart->id)
-            ->select('cart_items.*', 'product_sizes.selling_price as price')
+        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)
+            ->with(['toppings'])
             ->get();
 
         if ($cartItems->isEmpty()) {
@@ -364,7 +395,7 @@ class CheckoutController extends Controller
 
         $cartTotal = 0;
         foreach ($cartItems as $item) {
-            $cartTotal += $item->price * $item->quantity;
+            $cartTotal += $item->line_total;
         }
 
         $discountAmount = 0;
@@ -412,17 +443,26 @@ class CheckoutController extends Controller
             ]);
 
             foreach ($cartItems as $item) {
-                DB::table('order_items')->insert([
+                $orderItemId = DB::table('order_items')->insertGetId([
                     'order_id' => $orderId,
+                    'product_id' => $item->product_id,
                     'product_size_id' => $item->product_size_id,
                     'quantity' => $item->quantity,
-                    'unit_price' => $item->price,
-                    'total_price' => $item->price * $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $item->line_total,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
 
-
+                foreach ($item->toppings as $topping) {
+                    DB::table('order_item_toppings')->insert([
+                        'order_item_id' => $orderItemId,
+                        'topping_id' => $topping->topping_id,
+                        'quantity' => $topping->quantity,
+                        'unit_price' => $topping->unit_price,
+                        'total_price' => $topping->total_price,
+                    ]);
+                }
             }
 
             if ($voucherId) {

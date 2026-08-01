@@ -12,7 +12,7 @@
 <div class="flex bg-surface-container-low p-1 rounded-lg">
 <button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all active-tab bg-white shadow-sm text-primary" data-tab="products" onclick="switchTab('products')">Sản phẩm</button>
 <button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="categories" onclick="switchTab('categories')">Categories</button>
-<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="recipes" onclick="switchTab('recipes')">Recipes & Ingredients</button>
+<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="recipes" onclick="switchTab('recipes')">Quản lý Topping</button>
 <button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="sizes" onclick="switchTab('sizes')">Sizes</button>
 </div>
 </div>
@@ -208,89 +208,51 @@
 <p class="font-bold">Thêm Mới Category</p>
 </div>
 </section>
-<!-- Recipes & Ingredients Tab (Hidden by Default) -->
-<section class="tab-pane hidden flex flex-col lg:flex-row gap-lg" id="recipes-content">
-<!-- Ingredients Kho hàng -->
-<div class="flex-1 bg-white p-lg rounded-2xl border border-outline-variant/30 shadow-sm">
-<div class="flex justify-between items-center mb-lg">
-<h3 class="font-title-lg text-title-lg text-on-surface">Ingredients Kho hàng</h3>
-<button class="text-primary font-bold text-label-md flex items-center gap-1"><span class="material-symbols-outlined">add</span> Update Stock</button>
+<!-- Toppings Tab (Hidden by Default) -->
+<section class="tab-pane hidden" id="recipes-content">
+<div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-outline-variant/30 flex justify-between items-center">
+    <h3 class="font-title-lg text-title-lg text-on-surface">Danh sách Topping</h3>
+    <button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="toggleToppingModal()">
+        <span class="material-symbols-outlined">add</span> Thêm Topping
+    </button>
 </div>
-<div class="space-y-md">
-<div class="flex items-center justify-between p-md border border-outline-variant/20 rounded-xl hover:bg-surface-container-low transition-colors">
-<div class="flex items-center gap-4">
-<div class="p-2 bg-secondary-container/20 rounded-lg text-secondary"><span class="material-symbols-outlined">opacity</span></div>
-<div>
-<p class="font-bold text-on-surface">Whole Milk (Oatly)</p>
-<p class="text-label-md text-on-surface-variant">Unit: Liter</p>
-</div>
-</div>
-<div class="text-right">
-<p class="font-bold text-on-surface">42.5 L</p>
-<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden mt-1">
-<div class="h-full bg-primary w-[65%]"></div>
-</div>
-</div>
-</div>
-<div class="flex items-center justify-between p-md border border-outline-variant/20 rounded-xl hover:bg-surface-container-low transition-colors">
-<div class="flex items-center gap-4">
-<div class="p-2 bg-secondary-container/20 rounded-lg text-secondary"><span class="material-symbols-outlined">coffee_maker</span></div>
-<div>
-<p class="font-bold text-on-surface">Espresso Roast Beans</p>
-<p class="text-label-md text-on-surface-variant">Unit: Kilogram</p>
-</div>
-</div>
-<div class="text-right">
-<p class="font-bold text-error">2.1 kg</p>
-<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden mt-1">
-<div class="h-full bg-error w-[15%]"></div>
-</div>
-</div>
-</div>
-<div class="flex items-center justify-between p-md border border-outline-variant/20 rounded-xl hover:bg-surface-container-low transition-colors">
-<div class="flex items-center gap-4">
-<div class="p-2 bg-secondary-container/20 rounded-lg text-secondary"><span class="material-symbols-outlined">liquor</span></div>
-<div>
-<p class="font-bold text-on-surface">Vanilla Syrup</p>
-<p class="text-label-md text-on-surface-variant">Unit: Bottle (1L)</p>
-</div>
-</div>
-<div class="text-right">
-<p class="font-bold text-on-surface">8 bottles</p>
-<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden mt-1">
-<div class="h-full bg-primary w-[80%]"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Hoạt động Recipes Panel -->
-<div class="w-full lg:w-96 bg-white p-lg rounded-2xl border border-outline-variant/30 shadow-sm">
-<h3 class="font-title-lg text-title-lg text-on-surface mb-lg">Quick Recipes</h3>
-<div class="space-y-4">
-<div class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/10 group cursor-pointer hover:border-primary/40 transition-colors">
-<div class="flex items-center gap-3 mb-2">
-<div class="w-8 h-8 rounded bg-primary-container/20 text-primary flex items-center justify-center font-bold">M</div>
-<h4 class="font-bold text-on-surface">Matcha Latte</h4>
-</div>
-<ul class="text-label-md text-on-surface-variant space-y-1 pl-11">
-<li>• 1.5g Ceremonial Matcha</li>
-<li>• 250ml Whole Milk</li>
-<li>• 15ml Liquid Cane Sugar</li>
-</ul>
-</div>
-<div class="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/10 group cursor-pointer hover:border-primary/40 transition-colors">
-<div class="flex items-center gap-3 mb-2">
-<div class="w-8 h-8 rounded bg-primary-container/20 text-primary flex items-center justify-center font-bold">C</div>
-<h4 class="font-bold text-on-surface">Caramel Macchiato</h4>
-</div>
-<ul class="text-label-md text-on-surface-variant space-y-1 pl-11">
-<li>• 2 shots Espresso</li>
-<li>• 200ml Steamed Milk</li>
-<li>• 20ml Caramel Drizzle</li>
-</ul>
-</div>
-</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/30">
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tên Topping</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Giá tiền</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
+<th class="p-4 w-20">Hành động</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+@if(isset($toppings))
+    @foreach($toppings as $topping)
+    <tr class="hover:bg-surface-container-lowest transition-colors">
+    <td class="p-4 text-on-surface">{{ $topping->id }}</td>
+    <td class="p-4 font-semibold text-on-surface">{{ $topping->name }}</td>
+    <td class="p-4 text-primary font-bold">{{ number_format($topping->price, 0, ',', '.') }} đ</td>
+    <td class="p-4">
+        @if($topping->status)
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-label-md font-bold">Hoạt động</span>
+        @else
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-label-md font-bold">Ẩn</span>
+        @endif
+    </td>
+    <td class="p-4 text-right flex gap-2">
+        <button class="text-primary hover:bg-primary/10 p-2 rounded transition-colors" onclick="editTopping({{ $topping }})"><span class="material-symbols-outlined">edit</span></button>
+        <form action="/admin/toppings/{{ $topping->id }}/delete" method="POST" onsubmit="return confirm('Xóa topping này?');" class="inline">
+            @csrf
+            <button class="text-error hover:bg-error/10 p-2 rounded transition-colors"><span class="material-symbols-outlined">delete</span></button>
+        </form>
+    </td>
+    </tr>
+    @endforeach
+@endif
+</tbody>
+</table>
 </div>
 </section>
 <!-- Sizes Tab Content (Hidden by Default) -->
@@ -337,11 +299,47 @@
 </main>
 @endsection
 
+<!-- Topping Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" id="toppingModal">
+    <div class="bg-surface w-[500px] max-w-full rounded-2xl shadow-xl transform scale-95 transition-all flex flex-col max-h-[90vh]">
+        <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest rounded-t-2xl">
+            <h3 class="font-title-lg text-title-lg text-on-surface" id="toppingModalTitle">Thêm Mới Topping</h3>
+            <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors" onclick="toggleToppingModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="p-lg overflow-y-auto flex-1 custom-scrollbar">
+            <form action="/admin/toppings" method="POST" id="toppingForm">
+                @csrf
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Tên Topping <span class="text-error">*</span></label>
+                        <input name="name" id="toppingName" type="text" class="w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Giá tiền (VNĐ) <span class="text-error">*</span></label>
+                        <input name="price" id="toppingPrice" type="number" min="0" class="w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" name="status" id="toppingStatus" value="1" class="w-5 h-5 rounded text-primary focus:ring-primary border-outline-variant" checked>
+                        <label class="text-body-md text-on-surface">Đang hoạt động</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="p-lg border-t border-outline-variant/30 flex justify-end gap-md bg-surface-container-lowest rounded-b-2xl">
+            <button class="px-6 py-2.5 text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-md transition-colors" onclick="toggleToppingModal()">Hủy</button>
+            <button type="submit" form="toppingForm" class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-label-md shadow-sm hover:shadow active:scale-95 transition-all">Lưu Topping</button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 
         function toggleModal(id) {
             const modal = document.getElementById(id);
+            if (!modal) return;
             if (modal.classList.contains('hidden')) {
                 modal.classList.remove('hidden');
                 setTimeout(() => {
@@ -355,6 +353,22 @@
                     modal.classList.add('hidden');
                 }, 150);
             }
+        }
+
+        function toggleToppingModal() {
+            document.getElementById('toppingForm').reset();
+            document.getElementById('toppingForm').action = '/admin/toppings';
+            document.getElementById('toppingModalTitle').innerText = 'Thêm Mới Topping';
+            toggleModal('toppingModal');
+        }
+
+        function editTopping(topping) {
+            document.getElementById('toppingForm').action = '/admin/toppings/' + topping.id;
+            document.getElementById('toppingName').value = topping.name;
+            document.getElementById('toppingPrice').value = topping.price;
+            document.getElementById('toppingStatus').checked = topping.status ? true : false;
+            document.getElementById('toppingModalTitle').innerText = 'Chỉnh Sửa Topping';
+            toggleModal('toppingModal');
         }
 
         function switchTab(tabId) {

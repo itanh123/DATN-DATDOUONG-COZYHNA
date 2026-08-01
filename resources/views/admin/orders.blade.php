@@ -341,9 +341,20 @@
             const tbody = document.getElementById('modalOrderItems');
             tbody.innerHTML = '';
             order.items.forEach(item => {
+                let toppingsHtml = '';
+                if (item.toppings && item.toppings.length > 0) {
+                    toppingsHtml = '<div class="text-xs text-on-surface-variant mt-1">';
+                    item.toppings.forEach(t => {
+                        toppingsHtml += `<div>+ ${t.topping_name}</div>`;
+                    });
+                    toppingsHtml += '</div>';
+                }
                 tbody.innerHTML += `
                     <tr class="text-sm">
-                        <td class="px-md py-sm font-medium">${item.product_name}</td>
+                        <td class="px-md py-sm font-medium">
+                            ${item.product_name}
+                            ${toppingsHtml}
+                        </td>
                         <td class="px-md py-sm text-center">${item.quantity}</td>
                         <td class="px-md py-sm text-right">${new Intl.NumberFormat('vi-VN').format(item.unit_price)}đ</td>
                         <td class="px-md py-sm text-right font-semibold">${new Intl.NumberFormat('vi-VN').format(item.total_price)}đ</td>
