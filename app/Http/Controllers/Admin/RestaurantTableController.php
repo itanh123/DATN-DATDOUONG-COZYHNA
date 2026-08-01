@@ -42,7 +42,7 @@ class RestaurantTableController extends Controller
                             $mergedTableRecord = MergedTable::find($mId);
 
                             if ($primaryTable && $primaryTable->area_id == $area->id) {
-                                $coords = $mTables->map(fn($t) => $t->location_x . ',' . $t->location_y)->toArray();
+                                $coords = $mTables->map(fn($t) => (int)$t->location_x . ',' . (int)$t->location_y)->toArray();
                                 $mergedGroups[$area->id][$mId] = [
                                     'primaryTable' => $primaryTable,
                                     'capacity' => $mergedTableRecord ? $mergedTableRecord->capacity : $mTables->sum('capacity'),
@@ -52,7 +52,7 @@ class RestaurantTableController extends Controller
                                 ];
                                 
                                 foreach ($mTables as $mt) {
-                                    $occupiedCells[$area->id][$mt->location_x . ',' . $mt->location_y] = $mId;
+                                    $occupiedCells[$area->id][(int)$mt->location_x . ',' . (int)$mt->location_y] = $mId;
                                 }
                             }
                         }
@@ -254,16 +254,20 @@ class RestaurantTableController extends Controller
         $graph = [];
         $tableDict = [];
         foreach ($tablesToMerge as $t) {
+            $x = (int)$t->location_x;
+            $y = (int)$t->location_y;
             $graph[$t->id] = [];
-            $tableDict[$t->location_x . ',' . $t->location_y] = $t->id;
+            $tableDict[$x . ',' . $y] = $t->id;
         }
         
         foreach ($tablesToMerge as $t) {
+            $x = (int)$t->location_x;
+            $y = (int)$t->location_y;
             $neighbors = [
-                ($t->location_x - 1) . ',' . $t->location_y,
-                ($t->location_x + 1) . ',' . $t->location_y,
-                $t->location_x . ',' . ($t->location_y - 1),
-                $t->location_x . ',' . ($t->location_y + 1),
+                ($x - 1) . ',' . $y,
+                ($x + 1) . ',' . $y,
+                $x . ',' . ($y - 1),
+                $x . ',' . ($y + 1),
             ];
             foreach ($neighbors as $n) {
                 if (isset($tableDict[$n])) {

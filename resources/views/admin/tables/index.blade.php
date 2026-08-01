@@ -101,7 +101,7 @@
                                     @for($x = 0; $x < 4; $x++)
                                         @php
                                             $mId = $occupiedCells[$area->id]["$x,$y"] ?? null;
-                                            $tableToRender = $area->tables->where('location_x', $x)->where('location_y', $y)->first();
+                                            $tableToRender = $area->tables->first(fn($t) => (int)$t->location_x === $x && (int)$t->location_y === $y);
                                             $isMergedGroup = false;
                                             $groupData = null;
                                             $borderClasses = '';
