@@ -83,17 +83,17 @@ class TableOrderController extends Controller
             return redirect('/customer/checkout')->with('error', 'Không tìm thấy giỏ hàng trong CSDL.');
         }
 
-        $cartItems = DB::table('cart_items')->where('cart_id', $cart->id)->get();
+        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)
+            ->with(['toppings'])
+            ->get();
+            
         if ($cartItems->isEmpty()) {
             return redirect('/customer/checkout')->with('error', 'Giỏ hàng không có sản phẩm nào.');
         }
 
         $subtotal = 0;
         foreach ($cartItems as $item) {
-            $productSize = DB::table('product_sizes')->where('id', $item->product_size_id)->first();
-            if ($productSize) {
-                $subtotal += $productSize->selling_price * $item->quantity;
-            }
+            $subtotal += $item->line_total;
         }
 
         DB::beginTransaction();
@@ -116,16 +116,24 @@ class TableOrderController extends Controller
 
             // Add Order Items
             foreach ($cartItems as $item) {
-                $productSize = DB::table('product_sizes')->where('id', $item->product_size_id)->first();
-                if ($productSize) {
-                    DB::table('order_items')->insert([
-                        'order_id' => $orderId,
-                        'product_size_id' => $item->product_size_id,
-                        'quantity' => $item->quantity,
-                        'unit_price' => $productSize->selling_price,
-                        'total_price' => $productSize->selling_price * $item->quantity,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                $orderItemId = DB::table('order_items')->insertGetId([
+                    'order_id' => $orderId,
+                    'product_id' => $item->product_id,
+                    'product_size_id' => $item->product_size_id,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $item->line_total,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                foreach ($item->toppings as $topping) {
+                    DB::table('order_item_toppings')->insert([
+                        'order_item_id' => $orderItemId,
+                        'topping_id' => $topping->topping_id,
+                        'quantity' => $topping->quantity,
+                        'unit_price' => $topping->unit_price,
+                        'total_price' => $topping->total_price,
                     ]);
                 }
             }

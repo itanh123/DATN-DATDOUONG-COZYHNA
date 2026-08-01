@@ -272,61 +272,63 @@ Route::get('/customer/notifications', function () { return view('customer.notifi
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 Route::post('/customer/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
 
-Route::get('/admin/add_product', function () { return view('admin.add_product'); });
-Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
-Route::get('/admin/orders/check-new', [\App\Http\Controllers\AdminOrderController::class, 'checkNew']);
-Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
-Route::get('/admin/products', function () {
-    $toppings = \App\Models\Topping::all();
-    return view('admin.products', compact('toppings'));
-});
-Route::post('/admin/toppings', function (\Illuminate\Http\Request $request) {
-    \App\Models\Topping::create([
-        'name' => $request->name,
-        'price' => $request->price,
-        'status' => $request->has('status')
-    ]);
-    return back()->with('success', 'Topping added successfully.');
-});
-Route::post('/admin/toppings/{id}', function (\Illuminate\Http\Request $request, $id) {
-    $topping = \App\Models\Topping::find($id);
-    if ($topping) {
-        $topping->update([
+Route::middleware(['admin'])->group(function () {
+    Route::get('/admin/add_product', function () { return view('admin.add_product'); });
+    Route::get('/admin/inventory', function () { return view('admin.inventory'); });
+    Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
+    Route::get('/admin/orders/check-new', [\App\Http\Controllers\AdminOrderController::class, 'checkNew']);
+    Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
+    Route::get('/admin/products', function () {
+        $toppings = \App\Models\Topping::all();
+        return view('admin.products', compact('toppings'));
+    });
+    Route::post('/admin/toppings', function (\Illuminate\Http\Request $request) {
+        \App\Models\Topping::create([
             'name' => $request->name,
             'price' => $request->price,
             'status' => $request->has('status')
         ]);
-    }
-    return back()->with('success', 'Topping updated successfully.');
+        return back()->with('success', 'Topping added successfully.');
+    });
+    Route::post('/admin/toppings/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $topping = \App\Models\Topping::find($id);
+        if ($topping) {
+            $topping->update([
+                'name' => $request->name,
+                'price' => $request->price,
+                'status' => $request->has('status')
+            ]);
+        }
+        return back()->with('success', 'Topping updated successfully.');
+    });
+    Route::post('/admin/toppings/{id}/delete', function ($id) {
+        $topping = \App\Models\Topping::find($id);
+        if ($topping) $topping->delete();
+        return back()->with('success', 'Topping deleted successfully.');
+    });
+    Route::get('/admin/promotions', function () { return view('admin.promotions'); });
+    Route::get('/admin/reports', function () { return view('admin.reports'); });
+    Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
+    Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
+    Route::post('/admin/reviews/{review}/reply', [\App\Http\Controllers\ReviewController::class, 'reply']);
+
+    // Voucher Routes
+    Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
+    Route::get('/admin/voucher/add', [\App\Http\Controllers\VoucherController::class, 'create']);
+    Route::post('/admin/voucher/store', [\App\Http\Controllers\VoucherController::class, 'store']);
+    Route::get('/admin/voucher/{voucher}/edit', [\App\Http\Controllers\VoucherController::class, 'edit']);
+    Route::post('/admin/voucher/{voucher}/update', [\App\Http\Controllers\VoucherController::class, 'update']);
+    Route::post('/admin/voucher/{voucher}/delete', [\App\Http\Controllers\VoucherController::class, 'destroy']);
+
+    Route::get('/staff/dashboard', [App\Http\Controllers\StaffController::class, 'dashboard']);
+    Route::post('/staff/orders/{id}/confirm', [App\Http\Controllers\StaffController::class, 'confirm']);
+    Route::post('/staff/orders/{id}/complete', [App\Http\Controllers\StaffController::class, 'complete']);
+    Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
+
+    Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
+    Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
+    Route::get('/shipper/profile', function () { return view('shipper.profile'); });
 });
-Route::post('/admin/toppings/{id}/delete', function ($id) {
-    $topping = \App\Models\Topping::find($id);
-    if ($topping) $topping->delete();
-    return back()->with('success', 'Topping deleted successfully.');
-});
-Route::get('/admin/promotions', function () { return view('admin.promotions'); });
-Route::get('/admin/reports', function () { return view('admin.reports'); });
-Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
-Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
-Route::post('/admin/reviews/{review}/reply', [\App\Http\Controllers\ReviewController::class, 'reply']);
-
-// Voucher Routes
-Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
-Route::get('/admin/voucher/add', [\App\Http\Controllers\VoucherController::class, 'create']);
-Route::post('/admin/voucher/store', [\App\Http\Controllers\VoucherController::class, 'store']);
-Route::get('/admin/voucher/{voucher}/edit', [\App\Http\Controllers\VoucherController::class, 'edit']);
-Route::post('/admin/voucher/{voucher}/update', [\App\Http\Controllers\VoucherController::class, 'update']);
-Route::post('/admin/voucher/{voucher}/delete', [\App\Http\Controllers\VoucherController::class, 'destroy']);
-
-Route::get('/staff/dashboard', [App\Http\Controllers\StaffController::class, 'dashboard']);
-Route::post('/staff/orders/{id}/confirm', [App\Http\Controllers\StaffController::class, 'confirm']);
-Route::post('/staff/orders/{id}/complete', [App\Http\Controllers\StaffController::class, 'complete']);
-Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
-
-Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
-Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
-Route::get('/shipper/profile', function () { return view('shipper.profile'); });
 
 // Table Ordering Routes
 Route::get('/table/login/{token}', [\App\Http\Controllers\TableOrderController::class, 'loginWithQr']);
@@ -342,48 +344,50 @@ Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::
 
 // Table Calls
 Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
-Route::get('/admin/table-calls/pending', function() {
-    if (!session('user_id')) return response()->json([]);
-    $calls = \Illuminate\Support\Facades\DB::table('table_calls')
-        ->join('dining_tables', 'table_calls.table_id', '=', 'dining_tables.id')
-        ->where('table_calls.status', 'pending')
-        ->select('table_calls.*', 'dining_tables.name as table_name')
-        ->get();
-    return response()->json($calls);
+Route::middleware(['admin'])->group(function () {
+    Route::get('/admin/table-calls/pending', function() {
+        if (!session('user_id')) return response()->json([]);
+        $calls = \Illuminate\Support\Facades\DB::table('table_calls')
+            ->join('dining_tables', 'table_calls.table_id', '=', 'dining_tables.id')
+            ->where('table_calls.status', 'pending')
+            ->select('table_calls.*', 'dining_tables.name as table_name')
+            ->get();
+        return response()->json($calls);
+    });
+    Route::post('/admin/table-calls/{id}/resolve', function($id) {
+        if (!session('user_id')) return response()->json(['success' => false], 403);
+        \Illuminate\Support\Facades\DB::table('table_calls')->where('id', $id)->update([
+            'status' => 'resolved',
+            'updated_at' => now()
+        ]);
+        return response()->json(['success' => true]);
+    });
+
+    // Backup & Restore Routes (Admin only)
+    Route::get('/admin/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index']);
+    Route::post('/admin/backup/create', [\App\Http\Controllers\Admin\BackupController::class, 'create']);
+    Route::post('/admin/backup/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore']);
+    Route::post('/admin/backup/upload', [\App\Http\Controllers\Admin\BackupController::class, 'upload']);
+    Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
+    Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
+
+    // ─── Restaurant Table Management (New System) ────────────────────────────
+    Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
+
+    // Floors
+    Route::post('/admin/tables/floors', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeFloor']);
+    Route::delete('/admin/tables/floors/{floor}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyFloor']);
+
+    // Areas
+    Route::post('/admin/tables/areas', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeArea']);
+
+    // Tables
+    Route::post('/admin/tables/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeTable']);
+    Route::patch('/admin/tables/tables/{table}/status', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updateTableStatus']);
+    Route::patch('/admin/tables/tables/{table}/position', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updatePosition']);
+    Route::delete('/admin/tables/tables/{table}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyTable']);
+
+    // Merge/Unmerge
+    Route::post('/admin/tables/merge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'mergeTables']);
+    Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);
 });
-Route::post('/admin/table-calls/{id}/resolve', function($id) {
-    if (!session('user_id')) return response()->json(['success' => false], 403);
-    \Illuminate\Support\Facades\DB::table('table_calls')->where('id', $id)->update([
-        'status' => 'resolved',
-        'updated_at' => now()
-    ]);
-    return response()->json(['success' => true]);
-});
-
-// Backup & Restore Routes (Admin only)
-Route::get('/admin/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index']);
-Route::post('/admin/backup/create', [\App\Http\Controllers\Admin\BackupController::class, 'create']);
-Route::post('/admin/backup/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore']);
-Route::post('/admin/backup/upload', [\App\Http\Controllers\Admin\BackupController::class, 'upload']);
-Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
-Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
-
-// ─── Restaurant Table Management (New System) ────────────────────────────
-Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
-
-// Floors
-Route::post('/admin/tables/floors', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeFloor']);
-Route::delete('/admin/tables/floors/{floor}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyFloor']);
-
-// Areas
-Route::post('/admin/tables/areas', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeArea']);
-
-// Tables
-Route::post('/admin/tables/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeTable']);
-Route::patch('/admin/tables/tables/{table}/status', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updateTableStatus']);
-Route::patch('/admin/tables/tables/{table}/position', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updatePosition']);
-Route::delete('/admin/tables/tables/{table}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyTable']);
-
-// Merge/Unmerge
-Route::post('/admin/tables/merge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'mergeTables']);
-Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);

@@ -90,7 +90,7 @@
 <div class="space-y-sm">
     <input type="text" name="receiver_name" form="placeOrderForm" placeholder="Tên người nhận" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_name : $user->username }}" />
     
-    <input type="text" name="receiver_phone" form="placeOrderForm" placeholder="Số điện thoại" required class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_phone : '' }}" />
+    <input type="tel" name="receiver_phone" form="placeOrderForm" placeholder="Số điện thoại" required pattern="(03|05|07|08|09)[0-9]{8}" maxlength="10" title="Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09)" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-on-surface-variant/50" value="{{ $defaultAddress ? $defaultAddress->receiver_phone : '' }}" />
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
         <select id="provinceSelect" name="province_code" form="placeOrderForm" class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-on-surface" required>
@@ -392,6 +392,13 @@
         });
     
 </script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<style>
+    /* TomSelect Tailwind Fixes */
+    .ts-control { border-radius: 0.5rem; border-color: #becab9; padding: 0.75rem 1rem; background-color: #eff4ff; font-family: inherit; font-size: inherit; }
+    .ts-control.focus { border-color: #006e1c; box-shadow: 0 0 0 2px rgba(0, 110, 28, 0.2); }
+</style>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const provinceSelect = document.getElementById('provinceSelect');
@@ -420,43 +427,46 @@
             rPhone.value = sessionStorage.getItem('checkout_phone') || rPhone.value;
             rPhone.addEventListener('input', () => sessionStorage.setItem('checkout_phone', rPhone.value));
         }
+
+        const tsConfig = {
+            create: false,
+            sortField: { field: "text", direction: "asc" }
+        };
+        
+        let tsProvince = new TomSelect('#provinceSelect', tsConfig);
+        let tsDistrict = new TomSelect('#districtSelect', tsConfig);
+        let tsWard = new TomSelect('#wardSelect', tsConfig);
         
         fetch('https://provinces.open-api.vn/api/p/')
             .then(response => response.json())
             .then(data => {
-                data.forEach(p => {
-                    const option = document.createElement('option');
-                    option.value = p.code;
-                    option.textContent = p.name;
-                    provinceSelect.appendChild(option);
-                });
+                data.forEach(p => tsProvince.addOption({value: p.code, text: p.name}));
                 if (savedProvince) {
-                    provinceSelect.value = savedProvince;
-                    provinceSelect.dispatchEvent(new Event('change'));
+                    tsProvince.setValue(savedProvince);
                 }
             });
             
         provinceSelect.addEventListener('change', function() {
             sessionStorage.setItem('checkout_province', this.value);
-            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
-            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-            districtSelect.disabled = true;
-            wardSelect.disabled = true;
+            
+            tsDistrict.clear();
+            tsDistrict.clearOptions();
+            tsDistrict.addOption({value: "", text: "Chọn Quận/Huyện"});
+            tsDistrict.disable();
+            
+            tsWard.clear();
+            tsWard.clearOptions();
+            tsWard.addOption({value: "", text: "Chọn Phường/Xã"});
+            tsWard.disable();
             
             if (this.value) {
+                tsDistrict.enable();
                 fetch(`https://provinces.open-api.vn/api/p/${this.value}?depth=2`)
                     .then(response => response.json())
                     .then(data => {
-                        data.districts.forEach(d => {
-                            const option = document.createElement('option');
-                            option.value = d.code;
-                            option.textContent = d.name;
-                            districtSelect.appendChild(option);
-                        });
-                        districtSelect.disabled = false;
+                        data.districts.forEach(d => tsDistrict.addOption({value: d.code, text: d.name}));
                         if (savedDistrict && provinceSelect.value === savedProvince) {
-                            districtSelect.value = savedDistrict;
-                            districtSelect.dispatchEvent(new Event('change'));
+                            tsDistrict.setValue(savedDistrict);
                         }
                     });
             }
@@ -465,23 +475,20 @@
         
         districtSelect.addEventListener('change', function() {
             sessionStorage.setItem('checkout_district', this.value);
-            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
-            wardSelect.disabled = true;
+            
+            tsWard.clear();
+            tsWard.clearOptions();
+            tsWard.addOption({value: "", text: "Chọn Phường/Xã"});
+            tsWard.disable();
             
             if (this.value) {
+                tsWard.enable();
                 fetch(`https://provinces.open-api.vn/api/d/${this.value}?depth=2`)
                     .then(response => response.json())
                     .then(data => {
-                        data.wards.forEach(w => {
-                            const option = document.createElement('option');
-                            option.value = w.code;
-                            option.textContent = w.name;
-                            wardSelect.appendChild(option);
-                        });
-                        wardSelect.disabled = false;
+                        data.wards.forEach(w => tsWard.addOption({value: w.code, text: w.name}));
                         if (savedWard && districtSelect.value === savedDistrict) {
-                            wardSelect.value = savedWard;
-                            wardSelect.dispatchEvent(new Event('change'));
+                            tsWard.setValue(savedWard);
                             
                             savedWard = null;
                             savedDistrict = null;
