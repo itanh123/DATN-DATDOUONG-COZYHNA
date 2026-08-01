@@ -15,14 +15,7 @@
     <p class="font-body-md text-body-md text-on-surface-variant">Kiểm tra đơn hàng và hoàn tất thanh toán.</p>
 </div>
 
-@if($cartItems->isEmpty())
-    <div class="text-center py-2xl">
-        <span class="material-symbols-outlined text-[80px] text-outline-variant">shopping_cart</span>
-        <h2 class="font-headline-md text-headline-md text-on-surface mt-md">Giỏ hàng trống</h2>
-        <p class="text-on-surface-variant font-body-md mt-xs mb-xl">Hãy thêm đồ uống vào giỏ hàng để tiếp tục nhé!</p>
-        <a href="/" class="bg-primary text-white px-xl py-md rounded-xl font-bold hover:bg-primary/90 transition-all">Xem thực đơn</a>
-    </div>
-@else
+
 <form method="POST" action="{{ route('orders.place') }}">
 @csrf
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
@@ -59,7 +52,14 @@
                     </div>
                     <div class="flex-grow">
                         <h3 class="font-body-lg text-body-lg font-semibold">{{ $product->name ?? 'Sản phẩm' }}</h3>
-                        <p class="font-label-md text-label-md text-on-surface-variant">{{ $size->name ?? '' }}</p>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $size->name ?? 'Mặc định' }}</p>
+                        @if(isset($item->toppings) && count($item->toppings) > 0)
+                            <div class="mt-1">
+                                @foreach($item->toppings as $topping)
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant">+ {{ $topping['name'] }}</p>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                     <div class="text-right flex-shrink-0">
                         <p class="font-body-lg text-body-lg font-bold text-primary">{{ number_format($price * $item->quantity, 0, ',', '.') }} đ</p>
@@ -69,7 +69,7 @@
                 @endforeach
             </div>
             <div class="mt-md text-right">
-                <a href="/" class="text-primary font-label-md hover:underline">+ Thêm sản phẩm</a>
+                <a href="{{ route('cart.index') }}" class="text-primary font-label-md hover:underline flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[18px]">arrow_back</span> Quay lại giỏ hàng</a>
             </div>
         </section>
 
@@ -192,6 +192,6 @@
     </aside>
 </div>
 </form>
-@endif
+
 </main>
 @endsection

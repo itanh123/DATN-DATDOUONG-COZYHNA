@@ -39,7 +39,6 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('admin123'),
                 'phone' => DB::table('users')->where('email', $email)->value('phone') ?? '0000000000',
                 'avatar' => null,
-                'status' => true,
                 'last_login_at' => null,
                 'created_at' => now(),
                 'updated_at' => now(),

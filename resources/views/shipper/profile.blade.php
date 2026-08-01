@@ -4,6 +4,18 @@
 
 @section('content')
 <main class="ml-[280px] pt-16 min-h-screen px-gutter pb-xl">
+@if(session('success'))
+    <div class="bg-green-100 text-green-800 p-4 rounded-lg mb-4 mt-4">{{ session('success') }}</div>
+@endif
+@if($errors->any())
+    <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-4 mt-4">
+        <ul class="list-disc pl-5">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 <!-- Profile Header Giâytion -->
 <section class="mt-xl mb-lg">
 <div class="relative w-full h-48 rounded-2xl overflow-hidden mb-[-4rem]">
@@ -25,7 +37,7 @@
 <p class="text-on-surface-variant font-body-lg">Senior Logistics Specialist • ID: COZY-9920</p>
 </div>
 <div class="pb-2">
-<button class="bg-surface-container-highest text-on-surface border border-outline-variant px-md py-2 rounded-xl font-title-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
+<button onclick="document.getElementById('editShipperModal').classList.remove('hidden')" class="bg-surface-container-highest text-on-surface border border-outline-variant px-md py-2 rounded-xl font-title-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
 <span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
                         Sửa Profile
                     </button>
@@ -106,7 +118,7 @@
 <div class="flex justify-between items-start mb-lg">
 <div>
 <h4 class="font-title-lg text-title-lg">Assigned Vehicle</h4>
-<p class="text-on-surface-variant text-body-md">2023 Electric Beverage Van</p>
+<p class="text-on-surface-variant text-body-md">{{ $shipper->vehicle_type ?? 'Chưa cập nhật loại xe' }}</p>
 </div>
 <span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-sm">In Good Standing</span>
 </div>
@@ -114,7 +126,7 @@
 <img class="w-full h-full object-cover" data-alt="A modern, sleek electric delivery van in a clean white and forest green livery parked in a sunlit urban charging station. The van features the 'CozyHNA' logo on the side. The scene is bright and professional, emphasizing eco-friendly logistics and modern technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkrInxMgFfQ7ostrznlj2Duzh_aNhddnMzKrVBeXgjcGDmAltUuJVZ58xcn3vbzdeKN2jqLS_WwXWapWgB9SVbesp_XDVzscnh9nac1oPwdw2pZ3AVISu0FD-55v6UB7_Y772BtZEl-luPU2VsxF04YJe0o6SOnz32omnvLPBLqNRwTo5_V991o-ADmhDs5OjqQyFyRxEvxvxUWiySh4igrp4QSR7xqFCP9SJBnegS9XZvn9ajXCg8R4W3RjBZMydGL9mh80uE"/>
 <div class="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-lg text-white">
 <p class="text-label-sm opacity-80">Plate Number</p>
-<p class="font-bold tracking-widest">BVRG-202</p>
+<p class="font-bold tracking-widest">{{ $shipper->license_plate ?? 'N/A' }}</p>
 </div>
 </div>
 <div class="grid grid-cols-2 gap-lg">
@@ -236,6 +248,36 @@
 <button class="px-lg py-2 rounded-xl bg-primary text-on-primary font-title-lg active:scale-95 transition-transform">Save Preferences</button>
 </div>
 </div>
+</div>
+<!-- Modal Edit Shipper Profile -->
+<div id="editShipperModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-surface rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+        <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center">
+            <h3 class="font-headline-sm text-on-surface">Sửa thông tin hồ sơ</h3>
+            <button onclick="document.getElementById('editShipperModal').classList.add('hidden')" class="text-on-surface-variant hover:text-on-surface">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form action="{{ route('shipper.profile.update') }}" method="POST" class="p-lg space-y-md">
+            @csrf
+            <div>
+                <label class="font-label-sm text-on-surface-variant block mb-1">Tên hiển thị (Username)</label>
+                <input name="username" type="text" value="{{ $shipper->user->username }}" required class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-md py-2 focus:ring-primary focus:border-primary" />
+            </div>
+            <div>
+                <label class="font-label-sm text-on-surface-variant block mb-1">Loại xe</label>
+                <input name="vehicle_type" type="text" value="{{ $shipper->vehicle_type }}" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-md py-2 focus:ring-primary focus:border-primary" />
+            </div>
+            <div>
+                <label class="font-label-sm text-on-surface-variant block mb-1">Biển số xe</label>
+                <input name="license_plate" type="text" value="{{ $shipper->license_plate }}" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-md py-2 focus:ring-primary focus:border-primary" />
+            </div>
+            <div class="flex justify-end gap-md pt-md border-t border-outline-variant/30">
+                <button type="button" onclick="document.getElementById('editShipperModal').classList.add('hidden')" class="px-lg py-2 rounded-full font-label-md bg-surface-container-high text-on-surface hover:bg-surface-container-highest">Hủy</button>
+                <button type="submit" class="px-lg py-2 rounded-full font-label-md bg-primary text-on-primary hover:opacity-90">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
 </div>
 </main>
 @endsection

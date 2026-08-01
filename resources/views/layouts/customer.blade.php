@@ -144,7 +144,7 @@
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
 </div>
-<a href="/customer/checkout" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="shopping_cart" title="Giỏ hàng">shopping_cart</a>
+<a href="/customer/cart" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="shopping_cart" title="Giỏ hàng">shopping_cart</a>
 @if(session('user_id'))
     <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="person" title="Hồ sơ">person</a>
     <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
@@ -162,7 +162,7 @@
 <span class="material-symbols-outlined" data-icon="home">home</span>
 <span class="font-label-sm text-label-sm">Trang chủ</span>
 </a>
-<a href="/customer/checkout" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<a href="/customer/cart" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
 <span class="font-label-sm text-label-sm">Đặt hàng</span>
 </a>

@@ -6,9 +6,26 @@
 <main class="flex-grow md:ml-72 p-md md:p-xl bg-background">
 <!-- Profile Tab Content -->
 <section class="max-w-4xl mx-auto space-y-xl" id="content-profile">
-<div class="flex items-center justify-between">
+@if(session('success'))
+    <div class="bg-green-100 text-green-800 p-4 rounded-lg mb-4">{{ session('success') }}</div>
+@endif
+@if(session('error'))
+    <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-4">{{ session('error') }}</div>
+@endif
+@if($errors->any())
+    <div class="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
+        <ul class="list-disc pl-5">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+<form action="{{ route('customer.profile.update') }}" method="POST">
+@csrf
+<div class="flex items-center justify-between mb-lg">
 <h1 class="font-headline-lg text-on-surface">Thông tin cá nhân</h1>
-<button class="bg-primary text-on-primary px-lg py-2 rounded-full font-label-md hover:opacity-90 transition-opacity active:scale-95">Lưu Thay Đổi</button>
+<button type="submit" class="bg-primary text-on-primary px-lg py-2 rounded-full font-label-md hover:opacity-90 transition-opacity active:scale-95">Lưu Thay Đổi</button>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
 <!-- Avatar Card -->
@@ -27,42 +44,49 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Họ và Tên</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="{{ $user->customerProfile->full_name ?? '' }}"/>
+<input name="full_name" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="{{ $user->customerProfile->full_name ?? '' }}"/>
 </div>
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Email Address</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="email" value="{{ $user->email ?? '' }}"/>
+<input name="email" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="email" value="{{ $user->email ?? '' }}"/>
 </div>
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Số điện thoại Number</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="{{ $user->phone ?? '' }}"/>
+<input name="phone" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="tel" value="{{ $user->phone ?? '' }}"/>
 </div>
 <div class="space-y-base">
 <label class="font-label-sm text-on-surface-variant ml-1">Ngày sinh</label>
-<input class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="date" value="{{ $user->customerProfile->birthday ? \Carbon\Carbon::parse($user->customerProfile->birthday)->format('Y-m-d') : '' }}"/>
+<input name="birthday" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="date" value="{{ $user->customerProfile->birthday ? \Carbon\Carbon::parse($user->customerProfile->birthday)->format('Y-m-d') : '' }}"/>
 </div>
 </div>
 </div>
 </div>
+</form>
 <!-- Giâyurity Giâytion -->
-<div class="glass-card p-lg rounded-xl">
+<form action="{{ route('profile.password') }}" method="POST" class="glass-card p-lg rounded-xl">
+@csrf
 <h3 class="font-title-lg mb-md flex items-center gap-2">
 <span class="material-symbols-outlined text-primary">security</span>
-                        Giâyurity &amp; Login
+                        Bảo mật &amp; Đổi mật khẩu
                     </h3>
-<div class="flex items-center justify-between p-md bg-surface-container-low rounded-lg">
-<div class="flex items-center gap-md">
-<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">password</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+    <div class="space-y-base">
+        <label class="font-label-sm text-on-surface-variant">Mật khẩu hiện tại</label>
+        <input name="current_password" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="password" required/>
+    </div>
+    <div class="space-y-base">
+        <label class="font-label-sm text-on-surface-variant">Mật khẩu mới</label>
+        <input name="new_password" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="password" required/>
+    </div>
+    <div class="space-y-base">
+        <label class="font-label-sm text-on-surface-variant">Xác nhận mật khẩu mới</label>
+        <input name="new_password_confirmation" class="w-full bg-surface border border-outline-variant/50 rounded-lg px-md py-2 text-body-md focus:ring-primary focus:border-primary" type="password" required/>
+    </div>
 </div>
-<div>
-<p class="font-body-md font-bold">Mật khẩu</p>
-<p class="font-label-md text-on-surface-variant">Last changed 3 months ago</p>
+<div class="mt-md flex justify-end">
+    <button type="submit" class="bg-primary text-on-primary px-lg py-2 rounded-full font-label-md hover:opacity-90 transition-opacity">Đổi Mật khẩu</button>
 </div>
-</div>
-<button class="text-primary font-label-md hover:underline">Change Mật khẩu</button>
-</div>
-</div>
+</form>
 </section>
 <!-- Addresses Tab Content (Hidden by default) -->
 <section class="hidden max-w-4xl mx-auto space-y-xl" id="content-addresses">

@@ -31,13 +31,13 @@
                 <div class="p-lg border-b border-outline-variant/10 flex flex-col sm:flex-row sm:items-center justify-between gap-md">
                     <div>
                         <p class="font-label-md text-label-md text-on-surface-variant mb-xs">Mã đơn hàng</p>
-                        <p class="font-title-lg text-title-lg font-bold tracking-wider">{{ $order->order_code }}</p>
+                        <p class="font-title-lg text-title-lg font-bold tracking-wider">{{ $order->code }}</p>
                     </div>
-                    <div class="flex items-center gap-md">
+                    <div class="flex items-center gap-2">
                         <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold {{ $order->status_color }}">
                             {{ $order->status_label }}
                         </span>
-                        @if(in_array($order->status, ['pending', 'confirmed']))
+                        @if(in_array($order->order_status, ['PENDING', 'CONFIRMED']))
                             <button onclick="cancelOrder({{ $order->id }}, this)"
                                 class="px-md py-xs rounded-full border border-red-300 text-red-600 font-label-md text-label-md hover:bg-red-50 transition-colors">
                                 Hủy đơn
@@ -51,8 +51,7 @@
                     <div class="space-y-sm mb-lg">
                         @foreach($order->items as $item)
                         @php
-                            $product = $item->productSize->product ?? $item->product;
-                            $size    = $item->productSize->size ?? null;
+                            $product = $item->productSize->product ?? null;
                         @endphp
                         <div class="flex items-center gap-md">
                             <div class="w-14 h-14 rounded-xl bg-surface-container overflow-hidden flex-shrink-0">
@@ -65,11 +64,11 @@
                                 @endif
                             </div>
                             <div class="flex-grow">
-                                <p class="font-body-lg text-body-lg font-medium">{{ $product->name ?? 'Sản phẩm' }}</p>
-                                <p class="font-label-md text-label-md text-on-surface-variant">{{ $size->name ?? '' }} × {{ $item->quantity }}</p>
+                                <p class="font-body-lg text-body-lg font-medium">{{ $item->product_name ?? 'Sản phẩm' }}</p>
+                                <p class="font-label-md text-label-md text-on-surface-variant">{{ $item->size_name ?? '' }} × {{ $item->quantity }}</p>
                             </div>
                             <p class="font-body-lg text-body-lg font-bold text-primary flex-shrink-0">
-                                {{ number_format($item->total_price, 0, ',', '.') }} đ
+                                {{ number_format($item->unit_price * $item->quantity, 0, ',', '.') }} đ
                             </p>
                         </div>
                         @endforeach
@@ -78,7 +77,7 @@
                     {{-- Order Footer --}}
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-sm pt-md border-t border-outline-variant/10">
                         <p class="font-label-md text-label-md text-on-surface-variant">
-                            Đặt lúc: {{ $order->ordered_at ? $order->ordered_at->format('d/m/Y H:i') : 'N/A' }}
+                            Đặt lúc: {{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : 'N/A' }}
                         </p>
                         <div class="flex items-center gap-sm">
                             <p class="font-body-md text-body-md text-on-surface-variant">Tổng cộng:</p>

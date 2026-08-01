@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\CustomerProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,9 @@ class AuthController extends Controller
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', $roleCode);
 
-        if (in_array($roleCode, ['admin', 'staff', 'shipper'])) {
+        if ($roleCode === 'shipper') {
+            return redirect('/shipper/delivery_portal');
+        } elseif (in_array($roleCode, ['admin', 'staff'])) {
             return redirect('/admin/dashboard');
         }
 
@@ -67,8 +70,9 @@ class AuthController extends Controller
             'phone' => $request->input('phone'),
             'password' => Hash::make($request->input('password')),
             'role_id' => $roleId,
-            'status' => true,
         ]);
+        
+        CustomerProfile::firstOrCreate(['user_id' => $user->id]);
 
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', 'customer');
@@ -76,4 +80,3 @@ class AuthController extends Controller
         return redirect('/');
     }
 }
-

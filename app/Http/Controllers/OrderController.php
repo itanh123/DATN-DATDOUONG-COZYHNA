@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
 use App\Models\CustomerAddress;
 use App\Models\CustomerProfile;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\Product;
+use App\Models\ProductSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,83 +29,114 @@ class OrderController extends Controller
             'note'            => ['nullable', 'string'],
         ]);
 
-        // Get customer profile
         $profile = CustomerProfile::where('user_id', $userId)->first();
         if (!$profile) {
             return back()->with('error', 'Không tìm thấy hồ sơ khách hàng.');
         }
 
-        // Get cart
-        $cart = Cart::where('customer_id', $profile->id)->first();
-        if (!$cart) {
-            return back()->with('error', 'Giỏ hàng của bạn đang trống.');
+        $cartItemsRaw = session('cart', []);
+        $checkoutItemIds = session('checkout_items', []);
+        $cartItems = [];
+        
+        foreach ($cartItemsRaw as $item) {
+            if (in_array($item['id'], $checkoutItemIds)) {
+                $cartItems[] = $item;
+            }
         }
 
-        $cartItems = CartItem::where('cart_id', $cart->id)
-            ->with(['product', 'productSize.product', 'productSize.size'])
-            ->get();
-
-        if ($cartItems->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng của bạn đang trống.');
+        if (empty($cartItems)) {
+            return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào được chọn để thanh toán.');
         }
 
-        DB::transaction(function () use ($request, $profile, $cart, $cartItems) {
-            // Create or find address
-            $address = CustomerAddress::create([
+        DB::transaction(function () use ($request, $profile, $cartItems, $userId, $checkoutItemIds) {
+            // Save address
+            CustomerAddress::firstOrCreate([
                 'customer_id'    => $profile->id,
-                'receiver_name'  => $request->receiver_name,
-                'receiver_phone' => $request->receiver_phone,
                 'address'        => $request->address,
+            ], [
                 'is_default'     => false,
             ]);
 
-            // Calculate totals using stored unit_price (works for both sized & no-size products)
             $subtotal = 0;
             foreach ($cartItems as $item) {
-                $subtotal += $item->unit_price * $item->quantity;
+                $subtotal += $item['unit_price'] * $item['quantity'];
             }
-            $shippingFee = 15000;
+            $shippingFee = $subtotal > 0 ? 15000 : 0;
+            $tax = round($subtotal * 0.08);
             $discount    = 0;
-            $total       = $subtotal + $shippingFee - $discount;
+            $total       = $subtotal + $shippingFee + $tax - $discount;
 
-            // Create Order
             $order = Order::create([
-                'order_code'      => 'ORD-' . strtoupper(uniqid()),
                 'customer_id'     => $profile->id,
-                'address_id'      => $address->id,
+                'code'            => 'ORD-' . strtoupper(uniqid()),
+                'order_source'    => 'WEBSITE',
+                'order_type'      => 'DELIVERY',
+                'order_status'    => 'PENDING',
+                'receiver_name'   => $request->receiver_name,
+                'receiver_phone'  => $request->receiver_phone,
+                'delivery_address'=> $request->address,
+                'customer_note'   => $request->note,
                 'subtotal'        => $subtotal,
                 'discount_amount' => $discount,
                 'shipping_fee'    => $shippingFee,
+                'tax_amount'      => $tax,
                 'total_amount'    => $total,
-                'payment_method'  => $request->payment_method,
-                'status'          => 'pending',
-                'note'            => $request->note,
-                'ordered_at'      => now(),
+                'created_by'      => $userId
             ]);
 
-            // Create Order Items — works for both sized and no-size products
             foreach ($cartItems as $item) {
-                $productId = $item->product_id
-                    ?? $item->productSize?->product_id
-                    ?? null;
+                $productName = '';
+                $sizeName = '';
+                if ($item['product_id']) {
+                    $p = Product::find($item['product_id']);
+                    if ($p) $productName = $p->name;
+                }
+                if ($item['product_size_id']) {
+                    $ps = ProductSize::with('size')->find($item['product_size_id']);
+                    if ($ps && $ps->size) $sizeName = $ps->size->name;
+                }
 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id'        => $order->id,
-                    'product_id'      => $productId,
-                    'product_size_id' => $item->product_size_id, // nullable
-                    'quantity'        => $item->quantity,
-                    'unit_price'      => $item->unit_price,
-                    'total_price'     => $item->unit_price * $item->quantity,
-                    'note'            => null,
+                    'product_size_id' => $item['product_size_id'],
+                    'product_name'    => $productName,
+                    'size_name'       => $sizeName,
+                    'quantity'        => $item['quantity'],
+                    'unit_price'      => $item['unit_price'],
+                    'discount'        => 0,
+                    'final_price'     => $item['unit_price'],
                 ]);
+
+                if (!empty($item['toppings'])) {
+                    foreach ($item['toppings'] as $topping) {
+                        \App\Models\OrderItemTopping::create([
+                            'order_item_id' => $orderItem->id,
+                            'topping_id'    => $topping['id'],
+                            'quantity'      => $item['quantity'],
+                            'unit_price'    => $topping['price'],
+                            'total_price'   => $topping['price'] * $item['quantity'],
+                        ]);
+                    }
+                }
             }
 
-            // Update customer stats
+            Payment::create([
+                'order_id'       => $order->id,
+                'payment_method' => $request->payment_method,
+                'payment_status' => 'PENDING',
+                'amount'         => $total,
+            ]);
+
             $profile->increment('total_orders');
             $profile->increment('total_spent', $total);
 
-            // Clear cart
-            $cart->items()->delete();
+            // Clear only purchased items from cart
+            $currentCart = session('cart', []);
+            foreach ($checkoutItemIds as $id) {
+                unset($currentCart[$id]);
+            }
+            session(['cart' => $currentCart]);
+            session()->forget('checkout_items');
         });
 
         return redirect('/customer/orders')->with('success', 'Đặt hàng thành công! Chúng tôi sẽ xử lý đơn hàng của bạn sớm nhất.');
@@ -122,8 +154,8 @@ class OrderController extends Controller
 
         if ($profile) {
             $orders = Order::where('customer_id', $profile->id)
-                ->with(['items.productSize.product', 'items.productSize.size', 'items.product'])
-                ->orderByDesc('ordered_at')
+                ->with(['items.productSize.product', 'items.productSize.size'])
+                ->orderByDesc('created_at')
                 ->get();
         }
 
@@ -150,11 +182,12 @@ class OrderController extends Controller
             return response()->json(['error' => 'Không tìm thấy đơn hàng.'], 404);
         }
 
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
+        if (!in_array($order->order_status, ['PENDING', 'CONFIRMED'])) {
             return response()->json(['error' => 'Không thể hủy đơn hàng đang trong trạng thái này.'], 400);
         }
 
-        $order->status = 'cancelled';
+        $order->order_status = 'CANCELLED';
+        $order->cancelled_at = now();
         $order->save();
 
         return response()->json(['success' => true, 'message' => 'Đã hủy đơn hàng thành công.']);

@@ -2,31 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerProfile extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected $table = 'customer_profiles';
 
-    protected $fillable = [
-        'user_id',
-        'full_name',
-        'gender',
-        'birthday',
-        'total_orders',
-        'total_spent',
-        'status'
-    ];
 
-    public function user()
-    {
+    protected $fillable = array (
+  0 => 'user_id',
+  1 => 'loyalty_points',
+  2 => 'membership_level',
+  3 => 'total_orders',
+  4 => 'total_spent',
+  5 => 'favorite_category',
+  6 => 'last_order_at',
+  7 => 'status',
+);
+
+    public function user() {
         return $this->belongsTo(User::class);
-    }
-
-    public function cart()
-    {
-        return $this->hasOne(Cart::class, 'customer_id');
     }
 }

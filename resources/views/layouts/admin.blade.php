@@ -127,6 +127,7 @@
 @php
     $roleCode = session('role_code');
     $userPermissions = [];
+    $isAdmin = ($roleCode === 'admin');
     if ($roleCode) {
         $role = \Illuminate\Support\Facades\DB::table('roles')->where('code', $roleCode)->first();
         if ($role) {
@@ -136,23 +137,27 @@
                 ->pluck('permissions.code')->toArray();
         }
     }
+    
+    $hasPermission = function($code) use ($isAdmin, $userPermissions) {
+        return $isAdmin || in_array($code, $userPermissions);
+    };
 @endphp
 
-@if(in_array('view_dashboard', $userPermissions))
+@if($hasPermission('view_dashboard'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="/admin/dashboard">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-label-md text-label-md">Bảng điều khiển</span>
 </a>
 @endif
 
-@if(in_array('view_orders', $userPermissions))
+@if($hasPermission('view_orders'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/orders">
 <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
 <span class="font-label-md text-label-md">Đơn hàng</span>
 </a>
 @endif
 
-@if(in_array('view_products', $userPermissions))
+@if($hasPermission('view_products'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/inventory">
 <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
 <span class="font-label-md text-label-md">Kho hàng</span>
@@ -163,14 +168,14 @@
 </a>
 @endif
 
-@if(in_array('view_users', $userPermissions))
+@if($hasPermission('view_users'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/users">
 <span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
 <span class="font-label-md text-label-md">Người dùng</span>
 </a>
 @endif
 
-@if(in_array('view_roles', $userPermissions))
+@if($hasPermission('view_roles'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/roles">
 <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
 <span class="font-label-md text-label-md">Phân quyền</span>
@@ -193,7 +198,7 @@
 <span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
 <span class="font-label-md text-label-md">Hỗ trợ</span>
 </a>
-<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all" href="/">
+<a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all" href="/logout">
 <span class="material-symbols-outlined" data-icon="logout">logout</span>
 <span class="font-label-md text-label-md">Đăng xuất</span>
 </a>

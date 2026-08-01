@@ -170,18 +170,16 @@ Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) 
 // Static UI Routes (From branch anhvh)
 // ---------------------------------------------------------
 Route::get('/customer/auth', function () { return view('customer.auth'); });
+Route::get('/customer/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+Route::post('/customer/checkout/init', [\App\Http\Controllers\CartController::class, 'initCheckout'])->name('cart.initCheckout');
 Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
 Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 Route::get('/customer/contact', function () { return view('customer.contact'); });
-Route::get('/customer/account', function () {
-    $userId = session('user_id');
-    if (!$userId) return redirect('/login');
-    $user = \App\Models\User::with('customerProfile')->find($userId);
-    if (!$user) return redirect('/login');
-    return view('customer.account', compact('user'));
-})->name('customer.account');
+Route::get('/customer/account', [\App\Http\Controllers\ProfileController::class, 'customerAccount'])->name('customer.account');
+Route::post('/customer/account/update', [\App\Http\Controllers\ProfileController::class, 'updateCustomer'])->name('customer.profile.update');
+Route::post('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'history'])->name('customer.orders');
 Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'place'])->name('orders.place');
 Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
@@ -190,7 +188,10 @@ Route::get('/customer/product_detail', function () { return view('customer.produ
 
 Route::get('/admin/add_product', function () { return view('admin.add_product'); });
 Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-Route::get('/admin/orders', function () { return view('admin.orders'); });
+Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index'])->name('admin.orders.index');
+Route::get('/admin/orders/{id}', [\App\Http\Controllers\AdminOrderController::class, 'show'])->name('admin.orders.show');
+Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
+Route::post('/admin/orders/{id}/assign', [\App\Http\Controllers\AdminOrderController::class, 'assignShipper'])->name('admin.orders.assign');
 Route::get('/admin/products', function () { return view('admin.products'); });
 Route::get('/admin/promotions', function () { return view('admin.promotions'); });
 Route::get('/admin/reports', function () { return view('admin.reports'); });
@@ -200,6 +201,11 @@ Route::get('/staff/order_fulfillment', [\App\Http\Controllers\StaffController::c
 Route::post('/staff/orders/{id}/confirm', [\App\Http\Controllers\StaffController::class, 'confirm'])->name('staff.orders.confirm');
 Route::post('/staff/orders/{id}/complete', [\App\Http\Controllers\StaffController::class, 'complete'])->name('staff.orders.complete');
 
-Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
+// Shipper Routes
+Route::get('/shipper/delivery_portal', [\App\Http\Controllers\ShipperController::class, 'portal'])->name('shipper.portal');
+Route::post('/shipper/orders/{id}/accept', [\App\Http\Controllers\ShipperController::class, 'acceptOrder'])->name('shipper.orders.accept');
+Route::post('/shipper/orders/{id}/status', [\App\Http\Controllers\ShipperController::class, 'updateStatus'])->name('shipper.orders.status');
 Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
-Route::get('/shipper/profile', function () { return view('shipper.profile'); });
+Route::get('/shipper/profile', [\App\Http\Controllers\ProfileController::class, 'shipperProfile'])->name('shipper.profile');
+Route::post('/shipper/profile/update', [\App\Http\Controllers\ProfileController::class, 'updateShipper'])->name('shipper.profile.update');
+

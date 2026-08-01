@@ -2,41 +2,31 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['username', 'email', 'phone', 'password', 'role_id', 'status'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    protected $table = 'users';
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
 
-    public function customerProfile()
-    {
-        return $this->hasOne(CustomerProfile::class);
-    }
+    protected $fillable = array (
+  0 => 'role_id',
+  1 => 'username',
+  2 => 'full_name',
+  3 => 'email',
+  4 => 'password',
+  5 => 'phone',
+  6 => 'avatar',
+  7 => 'email_verified_at',
+  8 => 'gender',
+  9 => 'birthday',
+  10 => 'remember_token',
+  11 => 'login_provider',
+  12 => 'last_login_at',
+  13 => 'last_login_ip',
+);
 
-    public function role()
-    {
+    public function role() {
         return $this->belongsTo(Role::class);
     }
 }

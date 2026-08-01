@@ -39,14 +39,15 @@ class UserController extends Controller
             'role_id' => ['required', 'exists:roles,id'],
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $request->input('username'),
             'email' => $request->input('email'),
             'phone' => $request->input('phone'),
             'password' => \Illuminate\Support\Facades\Hash::make($request->input('password')),
             'role_id' => $request->input('role_id'),
-            'status' => true,
         ]);
+
+        $this->ensureShipperProfile($user);
 
         return back()->with('success', 'Đã tạo người dùng mới thành công!');
     }
@@ -61,6 +62,21 @@ class UserController extends Controller
             'role_id' => $request->input('role_id')
         ]);
 
+        $this->ensureShipperProfile($user);
+
         return back()->with('success', 'Cập nhật quyền hạn thành công!');
+    }
+
+    private function ensureShipperProfile(User $user)
+    {
+        $role = DB::table('roles')->where('id', $user->role_id)->first();
+        if ($role && $role->code === 'shipper') {
+            \App\Models\ShipperProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'status' => 'OFFLINE'
+                ]
+            );
+        }
     }
 }

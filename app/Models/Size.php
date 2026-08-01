@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Size extends Model
 {
-    use HasFactory;
+    protected $table = 'sizes';
 
-    protected $fillable = [
-        'name',
-        'volume_ml',
-        'description',
-    ];
+
+    protected $fillable = array (
+  0 => 'name',
+  1 => 'volume_ml',
+  2 => 'description',
+  3 => 'status',
+);
+
+
 }
