@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CozyHNA | @yield('title', 'Premium Beverages')</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+        }
+        @stack('styles')
+</style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#becab9",
+                        "on-primary-fixed": "#002204",
+                        "on-primary-fixed-variant": "#005313",
+                        "primary-fixed": "#94f990",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#006e1c",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#3e6a00",
+                        "on-surface": "#0b1c30",
+                        "secondary-container": "#b9f474",
+                        "surface": "#f8f9ff",
+                        "on-secondary-container": "#437000",
+                        "surface-container-high": "#dce9ff",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed-variant": "#2e4f00",
+                        "on-secondary-fixed": "#0f2000",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary-container": "#003c0b",
+                        "tertiary-fixed": "#ffdf9e",
+                        "secondary-fixed": "#b9f474",
+                        "surface-variant": "#d3e4fe",
+                        "primary": "#006e1c",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-container": "#c49400",
+                        "tertiary": "#785900",
+                        "surface-container": "#e5eeff",
+                        "inverse-surface": "#213145",
+                        "on-surface-variant": "#3f4a3c",
+                        "tertiary-fixed-dim": "#fabd00",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed-dim": "#78dc77",
+                        "surface-dim": "#cbdbf5",
+                        "on-background": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#433000",
+                        "primary-container": "#4caf50",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#78dc77",
+                        "outline": "#6f7a6b",
+                        "secondary-fixed-dim": "#9ed75b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "2xl": "48px",
+                        "md": "16px",
+                        "container-max": "1280px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+</script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm">
+<div class="flex items-center gap-xl">
+<span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
+<nav class="hidden md:flex gap-lg">
+<a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
+@if(!session('is_table_order'))
+<a class="font-body-lg text-body-lg {{ request()->is('customer/orders') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/orders">Đơn hàng</a>
+<a class="font-body-lg text-body-lg {{ request()->is('customer/favorites') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/favorites">Yêu thích</a>
+@endif
+<a class="font-body-lg text-body-lg {{ request()->is('customer/vouchers') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/vouchers">Khuyến mãi</a>
+<a class="font-body-lg text-body-lg {{ request()->is('customer/contact') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/customer/contact">Giới thiệu</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden md:block">
+<form action="/" id="search-form" method="GET" class="flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20">
+<button type="submit" class="flex items-center justify-center outline-none group">
+    <span class="material-symbols-outlined text-outline text-[20px] group-hover:text-primary transition-colors cursor-pointer">search</span>
+</button>
+<input id="search-input" name="q" value="{{ request('q') }}" autocomplete="off" class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
+</form>
+<div id="recent-searches-dropdown" class="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-lg border border-outline-variant/20 hidden z-[60] py-2">
+    <div class="px-4 py-1 text-label-sm text-outline font-bold uppercase tracking-wider">Tìm kiếm gần đây</div>
+    <ul id="recent-searches-list" class="flex flex-col"></ul>
+</div>
+</div>
+<a href="/customer/checkout" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+    <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+    <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
+</a>
+@if(!session('is_table_order'))
+@if(session()->has('user_id'))
+    <a href="/customer/notifications" class="relative text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Thông báo">
+        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+        @php
+            $unreadCount = \App\Models\Notification::where('user_id', session('user_id'))->where('is_read', false)->count();
+        @endphp
+        @if($unreadCount > 0)
+            <span class="absolute top-1 right-1 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
+        @endif
+    </a>
+    <a href="/customer/favorites" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="favorite" title="Yêu thích">favorite</a>
+    <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
+@else
+    <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
+@endif
+@else
+    <a href="/" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="table_restaurant" title="Đang ở bàn {{ session('table_name') }}">table_restaurant</a>
+@endif
+</div>
+</header>
+
+@yield('content')
+
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface flex justify-around items-center px-4 py-2 pb-safe rounded-t-xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] border-t border-outline-variant/10">
+<a href="/" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm">Trang chủ</span>
+</a>
+<a href="/customer/checkout" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
+<span class="font-label-sm text-label-sm">Đặt hàng</span>
+</a>
+@if(!session('is_table_order'))
+<a href="/customer/orders" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-sm text-label-sm">Lịch sử</span>
+</a>
+<a href="/customer/favorites" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-label-sm text-label-sm">Yêu thích</span>
+</a>
+<a href="/customer/account" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Hồ sơ</span>
+</a>
+@endif
+</nav>
+<!-- Footer (Desktop) -->
+<footer class="hidden md:block bg-surface-container-low border-t border-outline-variant/30 py-2xl mt-auto">
+<div class="max-w-container-max mx-auto px-lg grid grid-cols-4 gap-2xl">
+<div class="col-span-1">
+<span class="font-title-lg text-title-lg font-bold text-primary mb-md block">CozyHNA</span>
+<p class="text-on-surface-variant text-body-md mb-xl">Tạo nên những khoảnh khắc tuyệt vời trong từng ngụm trà. Hãy tham gia cộng đồng người yêu thích đồ uống của chúng tôi.</p>
+</div>
+<div>
+<h4 class="font-bold mb-lg">Công ty</h4>
+<ul class="space-y-md text-on-surface-variant text-body-md">
+<li><a class="hover:text-primary" href="/customer/contact">Về chúng tôi</a></li>
+<li><a class="hover:text-primary" href="#">Tuyển dụng</a></li>
+<li><a class="hover:text-primary" href="#">Nguồn gốc</a></li>
+<li><a class="hover:text-primary" href="#">Báo chí</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-lg">Hỗ trợ</h4>
+<ul class="space-y-md text-on-surface-variant text-body-md">
+<li><a class="hover:text-primary" href="#">Trung tâm trợ giúp</a></li>
+<li><a class="hover:text-primary" href="#">Giao hàng</a></li>
+<li><a class="hover:text-primary" href="/customer/contact">Liên hệ</a></li>
+<li><a class="hover:text-primary" href="#">Trợ năng</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-lg">Đăng ký nhận tin</h4>
+<p class="text-on-surface-variant text-body-md mb-lg">Nhận tin tức và ưu đãi mới nhất qua email.</p>
+<div class="flex gap-base">
+<input class="bg-white border border-outline-variant/30 rounded-xl px-4 py-2 flex-1 focus:ring-primary focus:border-primary" placeholder="Địa chỉ email" type="email"/>
+<button class="bg-primary text-white px-lg py-2 rounded-xl font-bold active:scale-95 transition-transform">Đăng ký</button>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-lg mt-2xl pt-xl border-t border-outline-variant/10 text-center text-label-md text-on-surface-variant">
+            © 2024 CozyHNA. Bảo lưu mọi quyền.
+        </div>
+</footer>
+
+<script>
+    window.serverCartCount = {{ $cartItemCount ?? 0 }};
+
+    function updateCartBadge() {
+        const badge = document.getElementById('cart-badge');
+        if (badge) {
+            if (window.serverCartCount > 0) {
+                badge.innerText = window.serverCartCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateCartBadge);
+</script>
+
+@include('partials.product_drawer')
+@stack('scripts')
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session()->has('user_id') && !session('is_table_order'))
+        @php
+            $user = \App\Models\User::find(session('user_id'));
+            $favoriteIds = [];
+            if ($user) {
+                $favoriteIds = $user->favoriteProducts()->pluck('product_id')->toArray();
+            }
+        @endphp
+        window.favoriteProductIds = @json($favoriteIds);
+        @else
+        window.favoriteProductIds = [];
+        @endif
+
+        // Initialize favorite icons
+        window.favoriteProductIds.forEach(id => {
+            document.querySelectorAll('.favorite-icon-' + id).forEach(icon => {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                icon.classList.add('text-error');
+            });
+        });
+
+        document.querySelectorAll('.btn-favorite-toggle').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                @if(!session()->has('user_id'))
+                    window.location.href = '/login';
+                    return;
+                @endif
+
+                const productId = this.getAttribute('data-product-id');
+                const icons = document.querySelectorAll('.favorite-icon-' + productId);
+
+                fetch(`/favorites/toggle/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        icons.forEach(icon => {
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                            icon.classList.add('text-error');
+                        });
+                    } else if (data.status === 'removed') {
+                        icons.forEach(icon => {
+                            icon.style.fontVariationSettings = "'FILL' 0";
+                            icon.classList.remove('text-error');
+                        });
+                    }
+                })
+                .catch(error => console.error('Error toggling favorite:', error));
+            });
+        });
+    });
+</script>
+@if(session('is_table_order'))
+<button onclick="callStaff()" class="fixed bottom-24 right-4 z-50 bg-error text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-error/90 transition-all active:scale-95">
+    <span class="material-symbols-outlined">notifications_active</span>
+    <span class="font-bold">Gọi nhân viên</span>
+</button>
+<script>
+function callStaff() {
+    fetch('/table/call-staff', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    }).then(r => r.json()).then(res => {
+        if(res.success) {
+            alert('Đã gửi yêu cầu gọi nhân viên. Vui lòng đợi trong giây lát!');
+        } else {
+            alert('Có lỗi xảy ra hoặc bạn chưa được phép gọi lại.');
+        }
+    }).catch(e => alert('Lỗi kết nối.'));
+}
+</script>
+@endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const dropdown = document.getElementById('recent-searches-dropdown');
+        const list = document.getElementById('recent-searches-list');
+
+        if (!searchForm || !searchInput || !dropdown || !list) return;
+
+        function getRecentSearches() {
+            const searches = localStorage.getItem('recentSearches');
+            return searches ? JSON.parse(searches) : [];
+        }
+
+        function saveRecentSearch(term) {
+            term = term.trim();
+            if (!term) return;
+            let searches = getRecentSearches();
+            searches = searches.filter(s => s.toLowerCase() !== term.toLowerCase());
+            searches.unshift(term);
+            searches = searches.slice(0, 5);
+            localStorage.setItem('recentSearches', JSON.stringify(searches));
+        }
+
+        function renderRecentSearches() {
+            const searches = getRecentSearches();
+            if (searches.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+            
+            list.innerHTML = '';
+            searches.forEach(term => {
+                const li = document.createElement('li');
+                li.className = 'px-4 py-2 hover:bg-surface-container-low cursor-pointer flex items-center gap-2 text-body-md text-on-surface';
+                li.innerHTML = `<span class="material-symbols-outlined text-[18px] text-outline">history</span> <span class="truncate">${term}</span>`;
+                li.addEventListener('mousedown', function(e) {
+                    e.preventDefault(); 
+                    searchInput.value = term;
+                    searchForm.submit();
+                });
+                list.appendChild(li);
+            });
+        }
+
+        searchInput.addEventListener('focus', function() {
+            renderRecentSearches();
+            if (getRecentSearches().length > 0) {
+                dropdown.classList.remove('hidden');
+            }
+        });
+
+        searchInput.addEventListener('blur', function() {
+            dropdown.classList.add('hidden');
+        });
+
+        searchForm.addEventListener('submit', function() {
+            saveRecentSearch(searchInput.value);
+        });
+    });
+</script>
+</body>
+</html>
