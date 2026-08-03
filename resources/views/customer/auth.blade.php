@@ -107,7 +107,7 @@
 <div class="relative">
 <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">lock</span>
 <input name="password" class="w-full pl-11 pr-11 py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" id="passwordInput" placeholder="••••••••" type="password" required/>
-<button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" onclick="toggleMật khẩuVisibility()" type="button">
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" onclick="togglePasswordVisibility()" type="button">
 <span class="material-symbols-outlined" id="passIcon" style="font-size: 20px;">visibility</span>
 </button>
 </div>
@@ -195,7 +195,7 @@
             }
         }
 
-        function toggleMật khẩuVisibility() {
+        function togglePasswordVisibility() {
             const input = document.getElementById('passwordInput');
             const icon = document.getElementById('passIcon');
             if (input.type === 'password') {
