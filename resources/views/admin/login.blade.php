@@ -213,7 +213,7 @@
                         </div>
                     @endif
                     <!-- Main Form -->
-                    <form id="authForm" class="space-y-md" method="POST" action="/loginadmin">
+                    <form id="authForm" class="space-y-md" method="POST" action="/login/admin">
                         @csrf
                         <div>
                             <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email

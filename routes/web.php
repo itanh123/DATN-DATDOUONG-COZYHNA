@@ -81,8 +81,8 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 
-Route::get('/loginadmin', [\App\Http\Controllers\AuthController::class, 'showLoginAdmin']);
-Route::post('/loginadmin', [\App\Http\Controllers\AuthController::class, 'loginAdmin']);
+Route::get('/login/admin', [\App\Http\Controllers\AuthController::class, 'showLoginAdmin'])->name('admin.login');
+Route::post('/login/admin', [\App\Http\Controllers\AuthController::class, 'loginAdmin']);
 
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
