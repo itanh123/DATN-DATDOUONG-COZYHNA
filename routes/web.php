@@ -357,3 +357,10 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/admin/tables/merge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'mergeTables']);
     Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);
 });
+
+// ---------------------------------------------------------
+// Payment & AI Chat Routes
+// ---------------------------------------------------------
+Route::get('/payment/qr/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'getVietQr']);
+Route::post('/payment/confirm/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'confirmPayment']);
+Route::post('/ai/chat', [\App\Http\Controllers\AiChatController::class, 'chat']);
