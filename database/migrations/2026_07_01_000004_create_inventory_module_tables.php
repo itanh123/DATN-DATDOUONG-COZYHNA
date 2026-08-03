@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('symbol', 20)->unique();
             $table->string('description', 255)->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('suppliers', function (Blueprint $table) {

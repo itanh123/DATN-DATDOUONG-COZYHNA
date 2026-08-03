@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('customer_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained('users');
+            $table->string('full_name', 255)->nullable();
+            $table->string('gender', 20)->nullable();
+            $table->date('birthday')->nullable();
             $table->integer('loyalty_points')->default(0);
             $table->string('membership_level', 30)->default('Member');
             $table->integer('total_orders')->default(0);
@@ -24,6 +27,8 @@ return new class extends Migration
         Schema::create('customer_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained('customer_profiles');
+            $table->string('receiver_name', 255)->nullable();
+            $table->string('receiver_phone', 20)->nullable();
             $table->string('province', 100)->nullable();
             $table->string('district', 100)->nullable();
             $table->string('ward', 100)->nullable();
@@ -54,6 +59,8 @@ return new class extends Migration
         Schema::create('shipper_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained('users');
+            $table->string('full_name', 255)->nullable();
+            $table->string('phone', 20)->nullable();
             $table->string('vehicle_type', 50)->nullable();
             $table->string('license_plate', 30)->nullable();
             $table->decimal('current_lat', 10, 7)->nullable();
@@ -62,12 +69,14 @@ return new class extends Migration
             $table->integer('total_deliveries')->nullable();
             $table->string('status', 30)->nullable()->comment('ONLINE | OFFLINE | BUSY');
             $table->timestamps();
-        });    }
+        });
+    }
 
     public function down()
     {
         Schema::dropIfExists('shipper_profiles');
         Schema::dropIfExists('employee_profiles');
         Schema::dropIfExists('customer_addresses');
-        Schema::dropIfExists('customer_profiles');    }
+        Schema::dropIfExists('customer_profiles');
+    }
 };

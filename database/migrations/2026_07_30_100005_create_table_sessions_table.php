@@ -6,26 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('table_sessions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('table_id')->nullable()->constrained('restaurant_tables')->nullOnDelete();
-            $table->foreignId('merged_table_id')->nullable()->constrained('merged_tables')->nullOnDelete();
-            $table->foreignId('customer_id')->nullable()->constrained('customer_profiles')->nullOnDelete();
-            $table->foreignId('opened_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('closed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->integer('guest_count')->default(1);
-            $table->enum('session_status', ['open', 'closed'])->default('open');
-            $table->timestamp('opened_at')->nullable();
-            $table->timestamp('closed_at')->nullable();
-            $table->text('note')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('table_sessions')) {
+            Schema::create('table_sessions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('table_id')->constrained('restaurant_tables')->onDelete('cascade');
+                $table->string('session_code', 50)->unique();
+                $table->dateTime('start_time');
+                $table->dateTime('end_time')->nullable();
+                $table->enum('status', ['ACTIVE', 'CLOSED'])->default('ACTIVE');
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('table_sessions');
     }
 };

@@ -8,17 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('customer_addresses', function (Blueprint $table) {
-            $table->string('province_code', 20)->nullable()->after('province');
-            $table->string('district_code', 20)->nullable()->after('district');
-            $table->string('ward_code', 20)->nullable()->after('ward');
-        });
+        if (Schema::hasTable('customer_addresses')) {
+            Schema::table('customer_addresses', function (Blueprint $table) {
+                if (!Schema::hasColumn('customer_addresses', 'province_code')) {
+                    $table->string('province_code')->nullable();
+                }
+                if (!Schema::hasColumn('customer_addresses', 'district_code')) {
+                    $table->string('district_code')->nullable();
+                }
+                if (!Schema::hasColumn('customer_addresses', 'ward_code')) {
+                    $table->string('ward_code')->nullable();
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('customer_addresses', function (Blueprint $table) {
-            $table->dropColumn(['province_code', 'district_code', 'ward_code']);
-        });
     }
 };

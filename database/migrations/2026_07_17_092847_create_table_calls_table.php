@@ -6,24 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('table_calls', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('table_id')->constrained('dining_tables')->cascadeOnDelete();
-            $table->string('status', 20)->default('pending'); // pending, resolved
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('table_calls')) {
+            Schema::create('table_calls', function (Blueprint $table) {
+                $table->id();
+                $table->string('table_number');
+                $table->string('status')->default('PENDING');
+                $table->timestamps();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('table_calls');
     }
 };

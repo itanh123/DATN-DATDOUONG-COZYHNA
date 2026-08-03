@@ -8,15 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('customer_addresses', function (Blueprint $table) {
-            $table->boolean('is_saved')->default(true)->after('is_default');
-        });
+        if (Schema::hasTable('customer_addresses')) {
+            Schema::table('customer_addresses', function (Blueprint $table) {
+                if (!Schema::hasColumn('customer_addresses', 'is_saved')) {
+                    $table->boolean('is_saved')->default(true);
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('customer_addresses', function (Blueprint $table) {
-            $table->dropColumn('is_saved');
-        });
     }
 };

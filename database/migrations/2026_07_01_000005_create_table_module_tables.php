@@ -35,9 +35,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('area_id')->constrained('table_areas');
             $table->string('code', 30)->unique();
+            $table->string('name', 100)->nullable();
             $table->string('table_name', 100)->nullable();
             $table->string('qr_code', 255)->nullable();
+            $table->string('qr_token', 255)->nullable();
             $table->integer('capacity')->nullable();
+            $table->integer('seating_capacity')->nullable();
             $table->integer('minimum_capacity')->nullable();
             $table->string('shape', 30)->nullable();
             $table->string('status', 30)->nullable();
@@ -97,7 +100,8 @@ return new class extends Migration
             $table->foreignId('cancelled_by')->nullable()->constrained('users');
             $table->text('cancelled_reason')->nullable();
             $table->timestamps();
-        });    }
+        });
+    }
 
     public function down()
     {
@@ -107,5 +111,6 @@ return new class extends Migration
         Schema::dropIfExists('merged_tables');
         Schema::dropIfExists('restaurant_tables');
         Schema::dropIfExists('table_areas');
-        Schema::dropIfExists('floors');    }
+        Schema::dropIfExists('floors');
+    }
 };

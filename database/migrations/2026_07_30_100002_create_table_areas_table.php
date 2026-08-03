@@ -6,23 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('table_areas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('floor_id')->constrained('floors')->cascadeOnDelete();
-            $table->string('code', 30)->nullable();
-            $table->string('name', 100);
-            $table->text('description')->nullable();
-            $table->integer('display_order')->default(1);
-            $table->boolean('status')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('table_areas')) {
+            Schema::create('table_areas', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('floor_id')->constrained('floors')->onDelete('cascade');
+                $table->string('code', 30);
+                $table->string('name', 100);
+                $table->text('description')->nullable();
+                $table->boolean('status')->default(true);
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('table_areas');
     }
 };

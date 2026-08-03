@@ -36,11 +36,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('role_id')->constrained('roles');
             $table->string('username', 50)->unique();
+            $table->string('name', 255)->nullable();
             $table->string('full_name', 255)->nullable();
             $table->string('email', 255)->unique();
             $table->string('password', 255);
             $table->string('phone', 20)->unique()->nullable();
             $table->string('avatar', 255)->nullable();
+            $table->boolean('status')->default(true);
+            $table->boolean('is_restricted')->default(false);
+            $table->string('google_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('gender', 20)->nullable();
             $table->date('birthday')->nullable();

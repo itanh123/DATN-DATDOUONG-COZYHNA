@@ -6,23 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('product_reviews', function (Blueprint $table) {
-            $table->text('admin_reply')->nullable()->after('comment');
-        });
+        if (Schema::hasTable('product_reviews')) {
+            Schema::table('product_reviews', function (Blueprint $table) {
+                if (!Schema::hasColumn('product_reviews', 'admin_reply')) {
+                    $table->text('admin_reply')->nullable();
+                }
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('product_reviews', function (Blueprint $table) {
-            $table->dropColumn('admin_reply');
-        });
     }
 };

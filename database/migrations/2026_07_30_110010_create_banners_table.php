@@ -6,24 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('banners', function (Blueprint $table) {
-            $table->id();
-            $table->string('title', 255)->nullable();
-            $table->string('image', 255)->nullable();
-            $table->string('link', 255)->nullable();
-            $table->string('position', 50)->nullable(); // hero | sidebar | popup
-            $table->integer('priority')->default(1);
-            $table->dateTime('start_date')->nullable();
-            $table->dateTime('end_date')->nullable();
-            $table->boolean('status')->default(true);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('banners')) {
+            Schema::create('banners', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->string('image_url');
+                $table->string('link')->nullable();
+                $table->integer('display_order')->default(0);
+                $table->boolean('status')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('banners');
     }
 };

@@ -6,26 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('inventory_transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('ingredient_id')->constrained('ingredients')->cascadeOnDelete();
-            $table->string('transaction_type', 30); // IMPORT | EXPORT | ADJUST | WASTE
-            $table->decimal('quantity', 10, 2);
-            $table->foreignId('unit_id')->nullable()->constrained('measurement_units')->nullOnDelete();
-            $table->decimal('before_quantity', 10, 2)->default(0);
-            $table->decimal('after_quantity', 10, 2)->default(0);
-            $table->string('reference_type', 50)->nullable(); // PURCHASE | ORDER | RECIPE | MANUAL
-            $table->unsignedBigInteger('reference_id')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->text('note')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-        });
+        if (!Schema::hasTable('inventory_transactions')) {
+            Schema::create('inventory_transactions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('ingredient_id')->constrained('ingredients')->onDelete('cascade');
+                $table->enum('transaction_type', ['IMPORT', 'EXPORT', 'ADJUSTMENT', 'WASTE'])->default('IMPORT');
+                $table->decimal('quantity', 12, 3);
+                $table->string('unit_name', 30);
+                $table->text('reason')->nullable();
+                $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('inventory_transactions');
     }
 };

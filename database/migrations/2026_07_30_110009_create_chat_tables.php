@@ -6,28 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('chat_sessions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('title', 255)->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('chat_sessions')) {
+            Schema::create('chat_sessions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+                $table->string('title')->nullable();
+                $table->timestamps();
+            });
+        }
 
-        Schema::create('chat_messages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('session_id')->constrained('chat_sessions')->cascadeOnDelete();
-            $table->string('role', 30)->default('user'); // user | assistant | system
-            $table->text('message');
-            $table->integer('token_usage')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-        });
+        if (!Schema::hasTable('chat_messages')) {
+            Schema::create('chat_messages', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('session_id')->constrained('chat_sessions')->onDelete('cascade');
+                $table->enum('role', ['user', 'assistant', 'system'])->default('user');
+                $table->text('message');
+                $table->integer('token_usage')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('chat_messages');
-        Schema::dropIfExists('chat_sessions');
     }
 };

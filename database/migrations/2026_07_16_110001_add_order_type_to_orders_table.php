@@ -6,23 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->enum('order_type', ['online', 'at_table'])->default('online')->after('status');
-        });
+        if (!Schema::hasColumn('orders', 'order_type')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->string('order_type')->default('DELIVERY')->nullable();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('order_type');
-        });
+        if (Schema::hasColumn('orders', 'order_type')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->dropColumn('order_type');
+            });
+        }
     }
 };

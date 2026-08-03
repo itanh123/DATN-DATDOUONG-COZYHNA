@@ -10,12 +10,16 @@ return new class extends Migration
     {
         Schema::create('product_reviews', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users');
             $table->foreignId('product_id')->nullable()->constrained('products');
             $table->foreignId('customer_id')->nullable()->constrained('customer_profiles');
+            $table->foreignId('order_id')->nullable()->constrained('orders');
             $table->integer('rating')->nullable();
             $table->text('comment')->nullable();
             $table->string('image', 255)->nullable();
+            $table->string('status', 30)->nullable();
             $table->text('reply')->nullable();
+            $table->text('admin_reply')->nullable();
             $table->foreignId('reply_by')->nullable()->constrained('users');
             $table->timestamp('reply_at')->nullable();
             $table->timestamps();
@@ -35,10 +39,12 @@ return new class extends Migration
             $table->timestamp('resolved_at')->nullable();
             $table->text('resolution_note')->nullable();
             $table->timestamps();
-        });    }
+        });
+    }
 
     public function down()
     {
         Schema::dropIfExists('product_complaints');
-        Schema::dropIfExists('product_reviews');    }
+        Schema::dropIfExists('product_reviews');
+    }
 };
