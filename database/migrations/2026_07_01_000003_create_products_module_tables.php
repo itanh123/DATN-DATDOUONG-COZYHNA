@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('code', 30)->unique();
             $table->string('name', 255);
             $table->string('slug', 255)->unique()->nullable();
+            $table->string('image', 255)->nullable();
             $table->string('short_description', 500)->nullable();
             $table->text('description')->nullable();
             $table->integer('sold_count')->default(0);
