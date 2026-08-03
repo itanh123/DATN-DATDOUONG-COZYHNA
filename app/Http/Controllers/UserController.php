@@ -33,9 +33,15 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->paginate(15);
+        $staffUsers = (clone $query)->whereHas('role', function($q) {
+            $q->where('code', '!=', 'customer');
+        })->get();
 
-        return view('admin.users', compact('users', 'roles'));
+        $customerUsers = (clone $query)->whereHas('role', function($q) {
+            $q->where('code', 'customer');
+        })->get();
+
+        return view('admin.users', compact('staffUsers', 'customerUsers', 'roles'));
     }
 
     public function store(Request $request)
