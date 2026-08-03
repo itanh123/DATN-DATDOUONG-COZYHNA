@@ -14,7 +14,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        return view('customer.login');
+        return view('customer.auth');
     }
 
     public function login(Request $request)
