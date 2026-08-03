@@ -47,7 +47,27 @@ class AdminOrderController extends Controller
             ]);
         }
 
-        return view('admin.orders', compact('orders', 'shippers'));
+        $today = \Carbon\Carbon::today();
+        $todayOrders = Order::whereDate('created_at', $today)->count();
+        $pendingPrep = Order::whereIn('order_status', ['PENDING', 'PREPARING'])->count();
+        $delivering = Order::where('order_status', 'DELIVERING')->count();
+        
+        $completedToday = Order::whereDate('created_at', $today)
+            ->where('order_status', 'COMPLETED')
+            ->whereNotNull('completed_at')
+            ->get();
+            
+        $avgFulfillment = 'N/A';
+        if ($completedToday->count() > 0) {
+            $totalMinutes = 0;
+            foreach ($completedToday as $o) {
+                $totalMinutes += $o->created_at->diffInMinutes(\Carbon\Carbon::parse($o->completed_at));
+            }
+            $avgMinutes = round($totalMinutes / $completedToday->count());
+            $avgFulfillment = $avgMinutes . 'p';
+        }
+
+        return view('admin.orders', compact('orders', 'shippers', 'todayOrders', 'pendingPrep', 'delivering', 'avgFulfillment'));
     }
 
     public function show($id)
