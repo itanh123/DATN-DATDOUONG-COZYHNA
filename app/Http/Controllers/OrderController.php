@@ -104,7 +104,7 @@ class OrderController extends Controller
             'receiver_name'   => ['required', 'string', 'max:255'],
             'receiver_phone'  => ['required', 'string', 'max:20'],
             'address'         => ['required', 'string'],
-            'payment_method'  => ['required', 'in:cash,momo,vnpay,bank'],
+            'payment_method'  => ['required', 'in:cash,momo,vnpay,bank,vietqr'],
             'note'            => ['nullable', 'string'],
         ]);
 
@@ -127,7 +127,9 @@ class OrderController extends Controller
             return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào được chọn để thanh toán.');
         }
 
-        DB::transaction(function () use ($request, $profile, $cartItems, $userId, $checkoutItemIds) {
+        $createdOrderCode = null;
+
+        DB::transaction(function () use ($request, $profile, $cartItems, $userId, $checkoutItemIds, &$createdOrderCode) {
             // Save address
             CustomerAddress::firstOrCreate([
                 'customer_id'    => $profile->id,
@@ -145,9 +147,12 @@ class OrderController extends Controller
             $discount    = 0;
             $total       = $subtotal + $shippingFee + $tax - $discount;
 
+            $orderCode = 'ORD-' . strtoupper(uniqid());
+            $createdOrderCode = $orderCode;
+
             $order = Order::create([
                 'customer_id'     => $profile->id,
-                'code'            => 'ORD-' . strtoupper(uniqid()),
+                'code'            => $orderCode,
                 'order_source'    => 'WEBSITE',
                 'order_type'      => 'DELIVERY',
                 'order_status'    => 'PENDING',
@@ -218,6 +223,13 @@ class OrderController extends Controller
             session(['cart' => $currentCart]);
             session()->forget('checkout_items');
         });
+
+        if (in_array($request->payment_method, ['vietqr', 'bank', 'momo'])) {
+            return redirect()->route('customer.orders')->with([
+                'success' => 'Đặt hàng thành công! Vui lòng quét mã VietQR để hoàn tất thanh toán.',
+                'show_vietqr' => $createdOrderCode
+            ]);
+        }
 
         return redirect()->route('customer.orders')->with('success', 'Đặt hàng thành công!');
     }

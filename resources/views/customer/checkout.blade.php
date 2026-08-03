@@ -121,28 +121,33 @@
             </h2>
             <div class="space-y-sm">
                 <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input checked name="payment_method" type="radio" value="cash" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
+                    <input checked name="payment_method" type="radio" value="vietqr" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                        <span class="material-symbols-outlined text-lg">qr_code_2</span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-2">
+                            <span class="font-body-lg text-body-lg font-bold text-emerald-800">Chuyển khoản VietQR / Ngân hàng</span>
+                            <span class="text-[10px] px-2 py-0.5 bg-emerald-600 text-white font-bold rounded-full uppercase tracking-wider">Khuyên dùng</span>
+                        </div>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Tự động tạo mã VietQR khớp số tiền & nội dung chuyển khoản</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <input name="payment_method" type="radio" value="cash" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
                     <span class="material-symbols-outlined text-on-surface-variant">payments</span>
                     <div class="flex-grow">
                         <span class="font-body-lg text-body-lg font-medium">Tiền mặt khi nhận hàng (COD)</span>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Thanh toán bằng tiền mặt khi nhận đơn</p>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Thanh toán bằng tiền mặt khi shipper giao tới</p>
                     </div>
                 </label>
-                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 opacity-60">
-                    <input disabled name="payment_method" type="radio" value="momo" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
-                    <span class="material-symbols-outlined text-on-surface-variant">phone_iphone</span>
+                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <input name="payment_method" type="radio" value="momo" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
+                    <span class="material-symbols-outlined text-pink-600">phone_iphone</span>
                     <div class="flex-grow">
-                        <span class="font-body-lg text-body-lg font-medium">MoMo</span>
+                        <span class="font-body-lg text-body-lg font-medium">Ví MoMo / QR MoMo</span>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Quét mã QR qua ứng dụng Ví MoMo</p>
                     </div>
-                    <span class="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500 font-label-sm">Sắp có</span>
-                </label>
-                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 opacity-60">
-                    <input disabled name="payment_method" type="radio" value="vnpay" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
-                    <span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
-                    <div class="flex-grow">
-                        <span class="font-body-lg text-body-lg font-medium">VNPay</span>
-                    </div>
-                    <span class="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-500 font-label-sm">Sắp có</span>
                 </label>
             </div>
         </section>

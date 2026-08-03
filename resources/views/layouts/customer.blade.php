@@ -335,7 +335,7 @@ function callStaff() {
     }).catch(e => alert('Lỗi kết nối.'));
 }
 </script>
-@endif
+@include('components.ai-chat-widget')
 
 </body>
 </html>

@@ -104,6 +104,14 @@ Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'pla
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders'])->name('customer.orders');
 Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder'])->name('orders.cancel');
 
+// AI Chat Assistant Routes
+Route::post('/ai/chat', [\App\Http\Controllers\AiChatController::class, 'chat'])->name('ai.chat');
+Route::get('/ai/history/{sessionId}', [\App\Http\Controllers\AiChatController::class, 'history'])->name('ai.history');
+
+// VietQR Payment Routes
+Route::get('/payment/qr/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'getVietQr'])->name('payment.qr');
+Route::post('/payment/confirm/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'confirmPayment'])->name('payment.confirm');
+
 Route::get('/customer/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('customer.favorites');
 Route::post('/favorites/toggle/{product}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
