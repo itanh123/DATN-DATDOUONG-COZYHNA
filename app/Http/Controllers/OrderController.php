@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CustomerAddress;
-use App\Models\CustomerProfile;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Payment;
-use App\Models\Product;
-use App\Models\ProductSize;
+use App\Models\Profiles\CustomerAddress;
+use App\Models\Profiles\CustomerProfile;
+use App\Models\Orders\Order;
+use App\Models\Orders\OrderItem;
+use App\Models\Orders\Payment;
+use App\Models\Products\Product;
+use App\Models\Products\ProductSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -109,9 +109,7 @@ class OrderController extends Controller
 
                 if (!empty($item['toppings'])) {
                     foreach ($item['toppings'] as $topping) {
-                        \App\Models\OrderItemTopping::create([
-                            'order_item_id' => $orderItem->id,
-                            'topping_id'    => $topping['id'],
+                        $orderItem->toppings()->attach($topping['id'], [
                             'quantity'      => $item['quantity'],
                             'unit_price'    => $topping['price'],
                             'total_price'   => $topping['price'] * $item['quantity'],

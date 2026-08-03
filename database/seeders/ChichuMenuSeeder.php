@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\Size;
-use App\Models\ProductSize;
+use App\Models\Products\Category;
+use App\Models\Products\Product;
+use App\Models\Products\Size;
+use App\Models\Products\ProductSize;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -220,7 +220,7 @@ class ChichuMenuSeeder extends Seeder
             ['name' => 'Pudding Trứng', 'price' => 10000],
         ];
         foreach ($toppings as $top) {
-            \App\Models\Topping::create([
+            \App\Models\Products\Topping::create([
                 'code' => strtoupper(\Illuminate\Support\Str::random(6)),
                 'name' => $top['name'],
                 'price' => $top['price'],

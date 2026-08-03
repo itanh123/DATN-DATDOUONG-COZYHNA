@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\OrderStatusHistory;
-use App\Models\ShipperProfile;
+use App\Models\Orders\Order;
+use App\Models\Orders\OrderStatusHistory;
+use App\Models\Profiles\ShipperProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -113,14 +113,14 @@ class AdminOrderController extends Controller
                 
                 // Đồng bộ thống kê shipper
                 if ($order->shipper_id && $oldStatus !== 'COMPLETED') {
-                    $shipper = \App\Models\ShipperProfile::find($order->shipper_id);
+                    $shipper = \App\Models\Profiles\ShipperProfile::find($order->shipper_id);
                     if ($shipper) {
                         $shipper->increment('total_deliveries');
                     }
                 }
                 
                 // Cập nhật trạng thái thanh toán nếu là tiền mặt
-                \App\Models\Payment::where('order_id', $order->id)
+                \App\Models\Orders\Payment::where('order_id', $order->id)
                     ->where('payment_status', 'PENDING')
                     ->update(['payment_status' => 'COMPLETED']);
 

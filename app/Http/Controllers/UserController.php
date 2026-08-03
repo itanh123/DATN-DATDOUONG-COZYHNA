@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Auth\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -71,7 +71,7 @@ class UserController extends Controller
     {
         $role = DB::table('roles')->where('id', $user->role_id)->first();
         if ($role && $role->code === 'shipper') {
-            \App\Models\ShipperProfile::firstOrCreate(
+            \App\Models\Profiles\ShipperProfile::firstOrCreate(
                 ['user_id' => $user->id],
                 [
                     'status' => 'OFFLINE'

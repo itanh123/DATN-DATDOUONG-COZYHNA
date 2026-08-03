@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OrderStatusHistory;
-use App\Models\Order;
-use App\Models\ShipperProfile;
+use App\Models\Orders\OrderStatusHistory;
+use App\Models\Orders\Order;
+use App\Models\Profiles\ShipperProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -145,7 +145,7 @@ class ShipperController extends Controller
                 $order->save();
 
                 // Cập nhật trạng thái thanh toán nếu là tiền mặt
-                \App\Models\Payment::where('order_id', $order->id)
+                \App\Models\Orders\Payment::where('order_id', $order->id)
                     ->where('payment_status', 'PENDING')
                     ->update(['payment_status' => 'COMPLETED']);
 

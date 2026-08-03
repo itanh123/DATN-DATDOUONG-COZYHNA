@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Category;
+use App\Models\Products\Category;
 use Illuminate\Support\Facades\Route;
 
 // Helper to check permission
@@ -26,13 +26,13 @@ if (!function_exists('check_permission')) {
 // ---------------------------------------------------------
 
 Route::get('/', function () {
-    $products = \App\Models\Product::query()
+    $products = \App\Models\Products\Product::query()
         ->whereNull('deleted_at')
         ->where('status', true)
         ->with(['productSizes.size', 'category'])
         ->get();
 
-    $categories = \App\Models\Category::where('status', true)->get();
+    $categories = \App\Models\Products\Category::where('status', true)->get();
 
     return view('customer.home', compact('products', 'categories'));
 });
@@ -63,21 +63,21 @@ Route::post('/admin/product/store', function (\Illuminate\Http\Request $request)
     return app('App\Http\Controllers\ProductController')->store($request);
 });
 
-Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Products\Product $product) {
     if (!check_permission('edit_products')) {
         return redirect('/login');
     }
     return app('App\Http\Controllers\ProductController')->update($request, $product);
 });
 
-Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Products\Product $product) {
     if (!check_permission('delete_products')) {
         return redirect('/login');
     }
     return app('App\Http\Controllers\ProductController')->destroy($product);
 });
 
-Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Products\Product $product) {
     if (!check_permission('edit_products')) {
         return redirect('/login');
     }
@@ -92,14 +92,14 @@ Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
     return app('App\Http\Controllers\ProductController')->storeSize($request);
 });
 
-Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Products\Size $size) {
     if (!check_permission('edit_sizes')) {
         return redirect('/login');
     }
     return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
 });
 
-Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Products\Size $size) {
     if (!check_permission('delete_sizes')) {
         return redirect('/login');
     }
@@ -114,14 +114,14 @@ Route::post('/admin/category/store', function (\Illuminate\Http\Request $request
     return app('App\Http\Controllers\ProductController')->storeCategory($request);
 });
 
-Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Products\Category $category) {
     if (!check_permission('edit_categories')) {
         return redirect('/login');
     }
     return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
 });
 
-Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Products\Category $category) {
     if (!check_permission('delete_categories')) {
         return redirect('/login');
     }
@@ -144,7 +144,7 @@ Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
     return app('App\Http\Controllers\UserController')->store($request);
 });
 
-Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\Auth\User $user) {
     if (!check_permission('assign_roles')) {
         return redirect('/login');
     }
@@ -175,11 +175,15 @@ Route::post('/customer/checkout/init', [\App\Http\Controllers\CartController::cl
 Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
 Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/update-variant/{id}', [\App\Http\Controllers\CartController::class, 'updateVariant'])->name('cart.updateVariant');
 Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/account', [\App\Http\Controllers\ProfileController::class, 'customerAccount'])->name('customer.account');
 Route::post('/customer/account/update', [\App\Http\Controllers\ProfileController::class, 'updateCustomer'])->name('customer.profile.update');
 Route::post('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+Route::post('/customer/address/store', [\App\Http\Controllers\ProfileController::class, 'storeAddress'])->name('customer.address.store');
+Route::delete('/customer/address/{id}', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete');
+Route::post('/customer/address/{id}/delete', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete.post');
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'history'])->name('customer.orders');
 Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'place'])->name('orders.place');
 Route::post('/orders/{id}/cancel', [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');

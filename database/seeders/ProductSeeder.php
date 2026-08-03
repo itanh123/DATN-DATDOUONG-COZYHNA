@@ -4,10 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Product;
-use App\Models\ProductSize;
-use App\Models\Size;
-use App\Models\Category;
+use App\Models\Products\Product;
+use App\Models\Products\ProductSize;
+use App\Models\Products\Size;
+use App\Models\Products\Category;
 
 class ProductSeeder extends Seeder
 {
