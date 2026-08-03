@@ -10,6 +10,7 @@ class OrderItemTopping extends Model
     use HasFactory;
 
     protected $table = 'order_item_toppings';
+    public $timestamps = false;
 
     protected $fillable = [
         'order_item_id',
