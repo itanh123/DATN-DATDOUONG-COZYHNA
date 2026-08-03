@@ -89,19 +89,12 @@
         background: white;
     }
     .custom-checkbox:checked {
-        background: #006e1c;
+        background-color: #006e1c;
         border-color: #006e1c;
-    }
-    .custom-checkbox:checked::after {
-        content: '';
-        position: absolute;
-        left: 6px;
-        top: 2px;
-        width: 6px;
-        height: 12px;
-        border: solid white;
-        border-width: 0 2.5px 2.5px 0;
-        transform: rotate(45deg);
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E") !important;
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 
     /* Modal */

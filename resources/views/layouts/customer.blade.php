@@ -28,8 +28,8 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9ff;
         }
-        @stack('styles')
 </style>
+@stack('styles')
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
