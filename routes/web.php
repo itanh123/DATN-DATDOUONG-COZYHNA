@@ -271,9 +271,9 @@ Route::middleware(['admin'])->group(function () {
     });
 
     // User Management
-    Route::get('/admin/users', function () {
+    Route::get('/admin/users', function (\Illuminate\Http\Request $request) {
         if (!check_permission('view_users')) return redirect('/login');
-        return app('App\Http\Controllers\UserController')->index();
+        return app('App\Http\Controllers\UserController')->index($request);
     });
     Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
         if (session('role_code') !== 'admin') return redirect('/login');
