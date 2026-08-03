@@ -78,6 +78,10 @@ class OrderController extends Controller
                     ->select('users.name as name')
                     ->first();
             }
+
+            $order->payment = DB::table('payments')
+                ->where('order_id', $order->id)
+                ->first();
         }
 
         $activeOrders = $orders->filter(function ($order) {
