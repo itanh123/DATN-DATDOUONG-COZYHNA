@@ -9,7 +9,7 @@ class OrderItemTopping extends Model
 {
     use HasFactory;
 
-    public $timestamps = false; // Based on migration, there are no timestamps
+    protected $table = 'order_item_toppings';
 
     protected $fillable = [
         'order_item_id',
@@ -27,11 +27,11 @@ class OrderItemTopping extends Model
 
     public function orderItem()
     {
-        return $this->belongsTo(OrderItem::class);
+        return $this->belongsTo(OrderItem::class, 'order_item_id');
     }
 
     public function topping()
     {
-        return $this->belongsTo(Topping::class);
+        return $this->belongsTo(Topping::class, 'topping_id');
     }
 }

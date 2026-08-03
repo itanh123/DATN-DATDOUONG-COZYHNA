@@ -31,6 +31,8 @@ class RolePermissionSeeder extends Seeder
             ],
             'shipper' => [
                 'view_dashboard', 
+                'view_orders',
+                'update_orders',
                 'deliver_orders'
             ],
             'customer' => [],

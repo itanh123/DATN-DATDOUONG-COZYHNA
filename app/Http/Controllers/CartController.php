@@ -2,54 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
 use App\Models\CustomerProfile;
 use App\Models\Product;
 use App\Models\ProductSize;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
-    // ---------------------------------------------------------------
-    // Internal helper: get or create cart for logged-in customer
-    // ---------------------------------------------------------------
-    private function getOrCreateCart(): ?Cart
+    private function getCartItems()
     {
-        $userId = session('user_id');
-        if (!$userId) return null;
-
-        $user = User::find($userId);
-        if (!$user) return null;
-
-        $profile = CustomerProfile::firstOrCreate(
-            ['user_id' => $userId],
-            ['full_name' => $user->username, 'status' => true]
-        );
-
-        return Cart::firstOrCreate(['customer_id' => $profile->id]);
+        return session('cart', []);
     }
 
-    // ---------------------------------------------------------------
-    // POST /cart/add
-    // Accepts EITHER:
-    //   { product_size_id, quantity }          ← product with sizes
-    //   { product_id, unit_price, quantity }   ← product without sizes
-    // ---------------------------------------------------------------
+    private function saveCartItems($cartItems)
+    {
+        session(['cart' => $cartItems]);
+    }
+
     public function add(Request $request)
     {
         if (!session('user_id')) {
             return response()->json(['error' => 'Bạn cần đăng nhập để thêm vào giỏ hàng.'], 401);
         }
 
-        // --- Validate ---
         $request->validate([
             'product_id'      => ['nullable', 'integer', 'exists:products,id'],
             'product_size_id' => ['nullable', 'integer', 'exists:product_sizes,id'],
             'unit_price'      => ['nullable', 'numeric', 'min:0'],
             'quantity'        => ['required', 'integer', 'min:1'],
+            'topping_ids'     => ['nullable', 'array'],
+            'topping_ids.*'   => ['integer', 'exists:toppings,id'],
             'toppings'        => ['nullable', 'array'],
             'toppings.*'      => ['integer', 'exists:toppings,id'],
         ]);
@@ -58,83 +41,59 @@ class CartController extends Controller
         $productId     = $request->input('product_id');
         $quantity      = (int) $request->input('quantity', 1);
 
-        // --- Resolve product + price ---
         if ($productSizeId) {
-            // Product WITH a size
-            $ps = ProductSize::with('product')->findOrFail($productSizeId);
+            $ps = ProductSize::findOrFail($productSizeId);
             $productId = $ps->product_id;
             $unitPrice = (float) $ps->selling_price;
         } elseif ($productId) {
-            // Product WITHOUT a size
-            $product   = Product::findOrFail($productId);
-            $unitPrice = (float) ($request->input('unit_price') ?? $product->base_price ?? 0);
+            $unitPrice = (float) $request->input('unit_price', 0);
         } else {
             return response()->json(['error' => 'Thiếu thông tin sản phẩm.'], 422);
         }
 
-        $cart = $this->getOrCreateCart();
-        if (!$cart) {
-            return response()->json(['error' => 'Không thể tạo giỏ hàng.'], 500);
-        }
-
-        // --- Upsert cart item ---
-        $toppingsInput = $request->input('toppings', []);
-        // Convert to integers and sort for easy comparison
-        $toppingsInput = array_map('intval', $toppingsInput);
-        sort($toppingsInput);
-
-        $existingItems = CartItem::where('cart_id', $cart->id)
-            ->where('product_id', $productId)
-            ->where('product_size_id', $productSizeId)
-            ->with('toppings')
-            ->get();
-
-        $merged = false;
-        foreach ($existingItems as $existing) {
-            $itemToppings = $existing->toppings->pluck('topping_id')->toArray();
-            sort($itemToppings);
-            
-            if ($itemToppings === $toppingsInput) {
-                $existing->quantity += $quantity;
-                $existing->save();
-                $merged = true;
-                break;
+        $toppingIds = $request->input('topping_ids') ?? $request->input('toppings', []);
+        $toppingIds = array_map('intval', $toppingIds);
+        $toppings = [];
+        if (!empty($toppingIds)) {
+            $dbToppings = \App\Models\Topping::whereIn('id', $toppingIds)->get();
+            foreach ($dbToppings as $top) {
+                $toppings[] = [
+                    'id' => $top->id,
+                    'name' => $top->name,
+                    'price' => (float) $top->price,
+                ];
+                $unitPrice += (float) $top->price;
             }
         }
 
-        if (!$merged) {
-            $cartItem = CartItem::create([
-                'cart_id'         => $cart->id,
+        sort($toppingIds);
+        $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
+
+        $cartItems = $this->getCartItems();
+        $cartItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+
+        if (isset($cartItems[$cartItemId])) {
+            $cartItems[$cartItemId]['quantity'] += $quantity;
+        } else {
+            $cartItems[$cartItemId] = [
+                'id'              => $cartItemId,
                 'product_id'      => $productId,
                 'product_size_id' => $productSizeId,
                 'quantity'        => $quantity,
                 'unit_price'      => $unitPrice,
-            ]);
-
-            // Add toppings
-            foreach ($toppingsInput as $toppingId) {
-                $topping = \App\Models\Topping::find($toppingId);
-                if ($topping) {
-                    $cartItem->toppings()->create([
-                        'topping_id' => $topping->id,
-                        'quantity' => 1,
-                        'unit_price' => $topping->price,
-                        'total_price' => $topping->price,
-                    ]);
-                }
-            }
+                'toppings'        => $toppings,
+            ];
         }
+
+        $this->saveCartItems($cartItems);
 
         return response()->json([
             'success'         => true,
             'message'         => 'Đã thêm sản phẩm vào giỏ hàng!',
-            'cart_item_count' => $cart->items()->sum('quantity'),
+            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
         ]);
     }
 
-    // ---------------------------------------------------------------
-    // POST /cart/update/{id}
-    // ---------------------------------------------------------------
     public function update(Request $request, $id)
     {
         if (!session('user_id')) {
@@ -142,87 +101,155 @@ class CartController extends Controller
         }
 
         $request->validate(['quantity' => ['required', 'integer', 'min:0']]);
-
-        $cart = $this->getOrCreateCart();
-        if (!$cart) return response()->json(['error' => 'Giỏ hàng không hợp lệ'], 404);
-
-        $cartItem = CartItem::where('cart_id', $cart->id)->where('id', $id)->first();
-        if (!$cartItem) return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        
+        $cartItems = $this->getCartItems();
+        
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
 
         $quantity = (int) $request->input('quantity');
         if ($quantity <= 0) {
-            $cartItem->delete();
+            unset($cartItems[$id]);
             $message = 'Đã xóa sản phẩm khỏi giỏ hàng';
         } else {
-            $cartItem->quantity = $quantity;
-            $cartItem->save();
+            $cartItems[$id]['quantity'] = $quantity;
             $message = 'Đã cập nhật số lượng';
         }
+
+        $this->saveCartItems($cartItems);
 
         return response()->json([
             'success'         => true,
             'message'         => $message,
-            'cart_item_count' => $cart->items()->sum('quantity'),
-            'total_price'     => $this->calcTotals($cart),
+            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'total_price'     => $this->calcTotals($cartItems),
         ]);
     }
 
-    // ---------------------------------------------------------------
-    // POST /cart/remove/{id}
-    // ---------------------------------------------------------------
     public function remove($id)
     {
         if (!session('user_id')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $cart = $this->getOrCreateCart();
-        if (!$cart) return response()->json(['error' => 'Giỏ hàng không hợp lệ'], 404);
+        $cartItems = $this->getCartItems();
+        
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
 
-        $cartItem = CartItem::where('cart_id', $cart->id)->where('id', $id)->first();
-        if (!$cartItem) return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
-
-        $cartItem->delete();
+        unset($cartItems[$id]);
+        $this->saveCartItems($cartItems);
 
         return response()->json([
             'success'         => true,
             'message'         => 'Đã xóa sản phẩm khỏi giỏ hàng',
-            'cart_item_count' => $cart->items()->sum('quantity'),
-            'total_price'     => $this->calcTotals($cart),
+            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'total_price'     => $this->calcTotals($cartItems),
         ]);
     }
 
-    // ---------------------------------------------------------------
-    // GET /customer/checkout
-    // ---------------------------------------------------------------
+    public function index()
+    {
+        if (!session('user_id')) {
+            return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
+        }
+
+        $cartItemsRaw = $this->getCartItems();
+        $cartItems = collect();
+        $subtotal = 0;
+
+        foreach ($cartItemsRaw as $item) {
+            $product = Product::find($item['product_id']);
+            $productSize = $item['product_size_id'] ? ProductSize::with('size')->find($item['product_size_id']) : null;
+            
+            if ($product) {
+                $obj = new \stdClass();
+                $obj->id = $item['id'];
+                $obj->product_id = $item['product_id'];
+                $obj->product_size_id = $item['product_size_id'];
+                $obj->quantity = $item['quantity'];
+                $obj->unit_price = $item['unit_price'];
+                $obj->product = $product;
+                $obj->productSize = $productSize;
+                $obj->toppings = $item['toppings'] ?? [];
+                
+                $cartItems->push($obj);
+                $subtotal += $item['unit_price'] * $item['quantity'];
+            }
+        }
+
+        return view('customer.cart', compact('cartItems', 'subtotal'));
+    }
+
+    public function initCheckout(Request $request)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'selected_items' => 'required|array|min:1',
+            'selected_items.*' => 'string'
+        ]);
+
+        session(['checkout_items' => $request->selected_items]);
+        
+        return response()->json(['success' => true, 'redirect' => route('customer.checkout')]);
+    }
+
     public function checkout()
     {
         if (!session('user_id')) {
             return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
         }
 
-        $cart      = $this->getOrCreateCart();
+        $checkoutItemIds = session('checkout_items', []);
+        if (empty($checkoutItemIds)) {
+            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn sản phẩm để thanh toán.');
+        }
+
+        $cartItemsRaw = $this->getCartItems();
         $cartItems = collect();
-        $subtotal  = 0;
+        $subtotal = 0;
 
-        if ($cart) {
-            $cartItems = CartItem::where('cart_id', $cart->id)
-                ->with(['product', 'productSize.size', 'toppings.topping'])
-                ->get();
+        foreach ($cartItemsRaw as $item) {
+            if (!in_array($item['id'], $checkoutItemIds)) continue;
 
-            foreach ($cartItems as $item) {
-                $subtotal += $item->line_total;
+            $product = Product::find($item['product_id']);
+            $productSize = $item['product_size_id'] ? ProductSize::with('size')->find($item['product_size_id']) : null;
+            
+            if ($product) {
+                $obj = new \stdClass();
+                $obj->id = $item['id'];
+                $obj->product_id = $item['product_id'];
+                $obj->product_size_id = $item['product_size_id'];
+                $obj->quantity = $item['quantity'];
+                $obj->unit_price = $item['unit_price'];
+                $obj->product = $product;
+                $obj->productSize = $productSize;
+                $obj->toppings = $item['toppings'] ?? [];
+                
+                $cartItems->push($obj);
+                $subtotal += $item['unit_price'] * $item['quantity'];
             }
+        }
+
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Không tìm thấy sản phẩm được chọn.');
         }
 
         $deliveryFee = $subtotal > 0 ? 15000 : 0;
         $tax         = round($subtotal * 0.08);
         $total       = $subtotal + $deliveryFee + $tax;
 
+        $userId = session('user_id');
+        $profile = CustomerProfile::where('user_id', $userId)->first();
         $addresses = collect();
-        if ($cart) {
+        if ($profile) {
             $addresses = DB::table('customer_addresses')
-                ->where('customer_id', $cart->customer_id)
+                ->where('customer_id', $profile->id)
                 ->whereNull('deleted_at')
                 ->get();
         }
@@ -230,13 +257,12 @@ class CartController extends Controller
         return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'total', 'addresses'));
     }
 
-    // ---------------------------------------------------------------
-    // Private: calculate totals for a cart
-    // ---------------------------------------------------------------
-    private function calcTotals(Cart $cart): array
+    private function calcTotals($cartItems): array
     {
-        $items    = CartItem::where('cart_id', $cart->id)->with('toppings')->get();
-        $subtotal = $items->sum(fn ($i) => $i->line_total);
+        $subtotal = 0;
+        foreach ($cartItems as $item) {
+            $subtotal += $item['unit_price'] * $item['quantity'];
+        }
         $fee      = $subtotal > 0 ? 15000 : 0;
         $tax      = round($subtotal * 0.08);
         $total    = $subtotal + $fee + $tax;

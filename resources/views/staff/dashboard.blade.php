@@ -43,7 +43,7 @@
                     <div class="flex justify-between items-start mb-md">
                         <div>
                             <p class="font-label-md text-label-md text-on-surface-variant">Mã đơn</p>
-                            <p class="font-bold text-on-surface tracking-wider">{{ $order->order_code }}</p>
+                            <p class="font-bold text-on-surface tracking-wider">{{ $order->code }}</p>
                         </div>
                         <span class="px-sm py-xs rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Chờ xác nhận</span>
                     </div>
@@ -53,8 +53,8 @@
                         <span class="material-symbols-outlined text-on-surface-variant text-[20px]">person</span>
                         <div>
                             <p class="font-body-md text-body-md font-medium">{{ $order->customer->full_name ?? 'Khách hàng' }}</p>
-                            @if($order->address)
-                                <p class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[200px]">{{ $order->address->address }}</p>
+                            @if($order->delivery_address)
+                                <p class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[200px]">{{ $order->delivery_address }}</p>
                             @endif
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                     <div class="flex justify-between items-start mb-md">
                         <div>
                             <p class="font-label-md text-label-md text-on-surface-variant">Mã đơn</p>
-                            <p class="font-bold text-on-surface tracking-wider">{{ $order->order_code }}</p>
+                            <p class="font-bold text-on-surface tracking-wider">{{ $order->code }}</p>
                         </div>
                         <span class="px-sm py-xs rounded-full text-xs font-bold bg-orange-100 text-orange-700">Đang pha chế</span>
                     </div>
@@ -137,6 +137,63 @@
                             class="px-lg py-sm bg-secondary text-white rounded-xl font-bold shadow-sm hover:shadow-md active:scale-95 transition-all">
                             Hoàn thành pha chế
                         </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    {{-- Shipping Orders (theo dõi giao hàng) --}}
+    <section class="mb-xl">
+        <div class="flex items-center gap-sm mb-lg">
+            <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
+            <h3 class="font-title-lg text-title-lg text-on-background">Đang Giao
+                <span class="ml-sm text-sm font-label-md px-sm py-xs bg-purple-100 text-purple-700 rounded-full">{{ $shippingOrders->count() }}</span>
+            </h3>
+        </div>
+
+        @if($shippingOrders->isEmpty())
+            <div class="glass-card rounded-2xl p-xl text-center shadow-sm border border-outline-variant/10">
+                <span class="material-symbols-outlined text-[48px] text-outline-variant">local_shipping</span>
+                <p class="font-body-lg text-on-surface-variant mt-sm">Không có đơn hàng đang giao</p>
+            </div>
+        @else
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg">
+                @foreach($shippingOrders as $order)
+                <div class="glass-card rounded-2xl p-lg shadow-sm border border-purple-200 bg-purple-50/20">
+                    <div class="flex justify-between items-start mb-md">
+                        <div>
+                            <p class="font-label-md text-label-md text-on-surface-variant">Mã đơn</p>
+                            <p class="font-bold text-on-surface tracking-wider">{{ $order->code }}</p>
+                        </div>
+                        <span class="px-sm py-xs rounded-full text-xs font-bold bg-purple-100 text-purple-700">Đang giao</span>
+                    </div>
+
+                    {{-- Thông tin Shipper --}}
+                    <div class="flex items-center gap-sm mb-md pb-md border-b border-outline-variant/20">
+                        <span class="material-symbols-outlined text-purple-500 text-[20px]">delivery_truck_speed</span>
+                        <div>
+                            @if($order->shipper)
+                                <p class="font-body-md font-medium">{{ $order->shipper->full_name }}</p>
+                                <p class="font-label-sm text-on-surface-variant">SĐT: {{ $order->shipper->phone ?? 'Chưa cập nhật' }}</p>
+                            @else
+                                <p class="font-body-md text-on-surface-variant italic">Chưa có Shipper nhận</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Địa chỉ --}}
+                    @if($order->delivery_address)
+                        <p class="font-body-md text-body-md text-on-surface-variant flex items-start gap-xs mb-md">
+                            <span class="material-symbols-outlined text-[18px] mt-[2px] shrink-0">location_on</span>
+                            {{ $order->delivery_address }}
+                        </p>
+                    @endif
+
+                    <div class="pt-md border-t border-outline-variant/20 flex items-center justify-between">
+                        <p class="font-headline-md text-headline-md text-primary font-bold">{{ number_format($order->total_amount, 0, ',', '.') }}đ</p>
+                        <span class="font-label-sm text-on-surface-variant">{{ $order->updated_at->diffForHumans() }}</span>
                     </div>
                 </div>
                 @endforeach

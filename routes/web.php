@@ -22,7 +22,7 @@ if (!function_exists('check_permission')) {
 }
 
 // ---------------------------------------------------------
-// Backend Integrated Routes (From branch lam, adjusted)
+// Home & Auth Routes
 // ---------------------------------------------------------
 
 Route::get('/', function (\Illuminate\Http\Request $request) {
@@ -90,146 +90,39 @@ Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 Route::get('/auth/google', [\App\Http\Controllers\AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
 
-Route::middleware(['admin'])->group(function () {
-    Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
+// ---------------------------------------------------------
+// Customer Cart & Order Routes
+// ---------------------------------------------------------
+Route::get('/customer/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+Route::post('/customer/checkout/init', [\App\Http\Controllers\CartController::class, 'initCheckout'])->name('cart.initCheckout');
+Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
+Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 
-    Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
-    Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
-    Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
-    Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
+Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'placeOrder'])->name('orders.place');
+Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders'])->name('customer.orders');
+Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder'])->name('orders.cancel');
 
-    Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('view_products')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->index($request);
-    });
-    Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
-    Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
+Route::get('/customer/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('customer.favorites');
+Route::post('/favorites/toggle/{product}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
-    Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_products')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->store($request);
-    });
+Route::get('/customer/account', function () {
+    if (!session()->has('user_id')) return redirect('/login');
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
+    $user = \App\Models\User::find(session('user_id'));
+    return view('customer.account', compact('user'));
+})->name('customer.account');
 
-    Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('edit_products')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->update($request, $product);
-    });
+Route::post('/customer/account/update', function (\Illuminate\Http\Request $request) {
+    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
+    return app('App\Http\Controllers\AuthController')->updateProfile($request);
+})->name('customer.profile.update');
 
-    Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('delete_products')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->destroy($product);
-    });
-
-    Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('edit_products')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
-    });
-
-    // Size Routes
-    Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_sizes')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->storeSize($request);
-    });
-
-    Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-        if (!check_permission('edit_sizes')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
-    });
-
-    Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-        if (!check_permission('delete_sizes')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->destroySize($size);
-    });
-
-    // Category Routes
-    Route::post('/admin/category/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_categories')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->storeCategory($request);
-    });
-
-    Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-        if (!check_permission('edit_categories')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
-    });
-
-    Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-        if (!check_permission('delete_categories')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\ProductController')->destroyCategory($category);
-    });
-
-    // User Management Routes
-    Route::get('/admin/users', function () {
-        if (!check_permission('view_users')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\UserController')->index();
-    });
-
-    Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
-        // Only admin can create new users (or we can add create_users permission later)
-        if (session('role_code') !== 'admin') {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\UserController')->store($request);
-    });
-
-    Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-        if (!check_permission('assign_roles')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\UserController')->updateRole($request, $user);
-    });
-
-    Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-        // We check permission inside the controller based on user_id
-        return app('App\Http\Controllers\UserController')->updatePassword($request, $user);
-    });
-
-    Route::post('/admin/users/{user}/toggle-status', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-        return app('App\Http\Controllers\UserController')->toggleStatus($request, $user);
-    });
-
-    Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-        return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
-    });
-
-    // Roles and Permissions Routes
-    Route::get('/admin/roles', function () {
-        if (!check_permission('view_roles')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\RoleController')->index();
-    });
-
-    Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('manage_permissions')) {
-            return redirect('/login');
-        }
-        return app('App\Http\Controllers\RoleController')->updatePermissions($request);
-    });
-});
+Route::get('/customer/contact', function () { return view('customer.contact'); });
+Route::get('/customer/notifications', function () { return view('customer.notifications'); });
+Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
+Route::post('/customer/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
 
 Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
     if (!session('user_id')) return redirect('/login');
@@ -239,49 +132,83 @@ Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
 });
 
 // ---------------------------------------------------------
-// Static UI Routes (From branch anhvh)
+// Table Ordering Routes
 // ---------------------------------------------------------
-Route::get('/customer/auth', function () { return view('customer.auth'); });
-Route::get('/customer/checkout', [\App\Http\Controllers\CheckoutController::class, 'index']);
-Route::post('/customer/checkout/apply-voucher', [\App\Http\Controllers\CheckoutController::class, 'applyVoucher']);
-Route::post('/customer/checkout/place-order', [\App\Http\Controllers\CheckoutController::class, 'placeOrder']);
-Route::post('/cart/add', [\App\Http\Controllers\CheckoutController::class, 'addToCart']);
-Route::post('/cart/update-quantity', [\App\Http\Controllers\CheckoutController::class, 'updateQuantity']);
-Route::get('/customer/contact', function () { return view('customer.contact'); });
-Route::get('/customer/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('customer.favorites');
-Route::post('/favorites/toggle/{product}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
-Route::get('/customer/account', function () {
-    if (!session()->has('user_id')) return redirect('/login');
-    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    $user = \App\Models\User::find(session('user_id'));
-    return view('customer.account', compact('user'));
-});
-Route::post('/customer/account/update', function (\Illuminate\Http\Request $request) {
-    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    return app('App\Http\Controllers\AuthController')->updateProfile($request);
-});
-Route::get('/customer/orders', function () {
-    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    return app('App\Http\Controllers\OrderController')->customerOrders();
-});
-Route::post('/customer/orders/{order}/cancel', function (\Illuminate\Http\Request $request, $order) {
-    if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    return app('App\Http\Controllers\OrderController')->cancelOrder($request, $order);
-});
-Route::get('/customer/notifications', function () { return view('customer.notifications'); });
-Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
-Route::post('/customer/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
+Route::get('/table/login/{token}', [\App\Http\Controllers\TableOrderController::class, 'loginWithQr']);
+Route::post('/table/order/confirm', [\App\Http\Controllers\TableOrderController::class, 'confirmOrder']);
+Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::class, 'success']);
+Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
 
+// ---------------------------------------------------------
+// Staff Routes
+// ---------------------------------------------------------
+Route::get('/staff/dashboard', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+Route::get('/staff/order_fulfillment', [\App\Http\Controllers\StaffController::class, 'dashboard']);
+Route::post('/staff/orders/{id}/confirm', [\App\Http\Controllers\StaffController::class, 'confirm'])->name('staff.orders.confirm');
+Route::post('/staff/orders/{id}/complete', [\App\Http\Controllers\StaffController::class, 'complete'])->name('staff.orders.complete');
+
+// ---------------------------------------------------------
+// Shipper Routes
+// ---------------------------------------------------------
+Route::get('/shipper/delivery_portal', [\App\Http\Controllers\ShipperController::class, 'portal'])->name('shipper.portal');
+Route::post('/shipper/orders/{id}/accept', [\App\Http\Controllers\ShipperController::class, 'acceptOrder'])->name('shipper.orders.accept');
+Route::post('/shipper/orders/{id}/status', [\App\Http\Controllers\ShipperController::class, 'updateStatus'])->name('shipper.orders.status');
+Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
+Route::get('/shipper/profile', [\App\Http\Controllers\ProfileController::class, 'shipperProfile'])->name('shipper.profile');
+Route::post('/shipper/profile/update', [\App\Http\Controllers\ProfileController::class, 'updateShipper'])->name('shipper.profile.update');
+
+// ---------------------------------------------------------
+// Admin Routes (Protected by middleware 'admin')
+// ---------------------------------------------------------
 Route::middleware(['admin'])->group(function () {
-    Route::get('/admin/add_product', function () { return view('admin.add_product'); });
-    Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-    Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index']);
+    Route::get('/admin/dashboard', [\App\Http\Controllers\AdminDashboardController::class, 'index']);
+
+    // Admin Orders
+    Route::get('/admin/orders', [\App\Http\Controllers\AdminOrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/admin/orders/check-new', [\App\Http\Controllers\AdminOrderController::class, 'checkNew']);
-    Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus']);
+    Route::get('/admin/orders/{id}', [\App\Http\Controllers\AdminOrderController::class, 'show'])->name('admin.orders.show');
+    Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
+    Route::post('/admin/orders/{id}/assign', [\App\Http\Controllers\AdminOrderController::class, 'assignShipper'])->name('admin.orders.assign');
+
+    // Ingredients
+    Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
+    Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
+    Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
+    Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
+    Route::get('/admin/inventory', function () { return view('admin.inventory'); });
+
+    // Products
+    Route::get('/admin/add_product', function () { return view('admin.add_product'); });
+    Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('view_products')) {
+            return redirect('/login');
+        }
+        return app('App\Http\Controllers\ProductController')->index($request);
+    });
     Route::get('/admin/products', function () {
         $toppings = \App\Models\Topping::all();
         return view('admin.products', compact('toppings'));
     });
+    Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
+    Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
+    Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_products')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->store($request);
+    });
+    Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('edit_products')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->update($request, $product);
+    });
+    Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('delete_products')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->destroy($product);
+    });
+    Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
+        if (!check_permission('edit_products')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
+    });
+
+    // Toppings
     Route::post('/admin/toppings', function (\Illuminate\Http\Request $request) {
         \App\Models\Topping::create([
             'name' => $request->name,
@@ -306,13 +233,76 @@ Route::middleware(['admin'])->group(function () {
         if ($topping) $topping->delete();
         return back()->with('success', 'Topping deleted successfully.');
     });
+
+    // Sizes
+    Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_sizes')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->storeSize($request);
+    });
+    Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+        if (!check_permission('edit_sizes')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
+    });
+    Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
+        if (!check_permission('delete_sizes')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->destroySize($size);
+    });
+
+    // Categories
+    Route::post('/admin/category/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('create_categories')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->storeCategory($request);
+    });
+    Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+        if (!check_permission('edit_categories')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
+    });
+    Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
+        if (!check_permission('delete_categories')) return redirect('/login');
+        return app('App\Http\Controllers\ProductController')->destroyCategory($category);
+    });
+
+    // User Management
+    Route::get('/admin/users', function () {
+        if (!check_permission('view_users')) return redirect('/login');
+        return app('App\Http\Controllers\UserController')->index();
+    });
+    Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
+        if (session('role_code') !== 'admin') return redirect('/login');
+        return app('App\Http\Controllers\UserController')->store($request);
+    });
+    Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        if (!check_permission('assign_roles')) return redirect('/login');
+        return app('App\Http\Controllers\UserController')->updateRole($request, $user);
+    });
+    Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        return app('App\Http\Controllers\UserController')->updatePassword($request, $user);
+    });
+    Route::post('/admin/users/{user}/toggle-status', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        return app('App\Http\Controllers\UserController')->toggleStatus($request, $user);
+    });
+    Route::post('/admin/users/{user}/toggle-restriction', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
+        return app('App\Http\Controllers\UserController')->toggleRestriction($request, $user);
+    });
+
+    // Roles and Permissions
+    Route::get('/admin/roles', function () {
+        if (!check_permission('view_roles')) return redirect('/login');
+        return app('App\Http\Controllers\RoleController')->index();
+    });
+    Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('manage_permissions')) return redirect('/login');
+        return app('App\Http\Controllers\RoleController')->updatePermissions($request);
+    });
+
+    // Promotions, Reports, Reviews
     Route::get('/admin/promotions', function () { return view('admin.promotions'); });
     Route::get('/admin/reports', function () { return view('admin.reports'); });
     Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
     Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
     Route::post('/admin/reviews/{review}/reply', [\App\Http\Controllers\ReviewController::class, 'reply']);
 
-    // Voucher Routes
+    // Vouchers
     Route::get('/admin/voucher', [\App\Http\Controllers\VoucherController::class, 'index']);
     Route::get('/admin/voucher/add', [\App\Http\Controllers\VoucherController::class, 'create']);
     Route::post('/admin/voucher/store', [\App\Http\Controllers\VoucherController::class, 'store']);
@@ -320,31 +310,7 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/admin/voucher/{voucher}/update', [\App\Http\Controllers\VoucherController::class, 'update']);
     Route::post('/admin/voucher/{voucher}/delete', [\App\Http\Controllers\VoucherController::class, 'destroy']);
 
-    Route::get('/staff/dashboard', [App\Http\Controllers\StaffController::class, 'dashboard']);
-    Route::post('/staff/orders/{id}/confirm', [App\Http\Controllers\StaffController::class, 'confirm']);
-    Route::post('/staff/orders/{id}/complete', [App\Http\Controllers\StaffController::class, 'complete']);
-    Route::get('/staff/order_fulfillment', function () { return view('staff.order_fulfillment'); });
-
-    Route::get('/shipper/delivery_portal', function () { return view('shipper.delivery_portal'); });
-    Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
-    Route::get('/shipper/profile', function () { return view('shipper.profile'); });
-});
-
-// Table Ordering Routes
-Route::get('/table/login/{token}', [\App\Http\Controllers\TableOrderController::class, 'loginWithQr']);
-Route::post('/table/order/confirm', [\App\Http\Controllers\TableOrderController::class, 'confirmOrder']);
-Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::class, 'success']);
-
-// Admin Table Management
-// Admin Table Management (Old System - Commented out)
-// Route::get('/admin/tables-old', [\App\Http\Controllers\Admin\DiningTableController::class, 'index']);
-// Route::post('/admin/tables-old', [\App\Http\Controllers\Admin\DiningTableController::class, 'store']);
-// Route::delete('/admin/tables-old/{table}', [\App\Http\Controllers\Admin\DiningTableController::class, 'destroy']);
-// Route::post('/admin/tables-old/{table}/qr', [\App\Http\Controllers\Admin\DiningTableController::class, 'generateQrCode']);
-
-// Table Calls
-Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
-Route::middleware(['admin'])->group(function () {
+    // Table Calls
     Route::get('/admin/table-calls/pending', function() {
         if (!session('user_id')) return response()->json([]);
         $calls = \Illuminate\Support\Facades\DB::table('table_calls')
@@ -363,7 +329,7 @@ Route::middleware(['admin'])->group(function () {
         return response()->json(['success' => true]);
     });
 
-    // Backup & Restore Routes (Admin only)
+    // Backup & Restore
     Route::get('/admin/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index']);
     Route::post('/admin/backup/create', [\App\Http\Controllers\Admin\BackupController::class, 'create']);
     Route::post('/admin/backup/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore']);
@@ -371,23 +337,15 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
     Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
 
-    // ─── Restaurant Table Management (New System) ────────────────────────────
+    // Restaurant Tables Management
     Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
-
-    // Floors
     Route::post('/admin/tables/floors', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeFloor']);
     Route::delete('/admin/tables/floors/{floor}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyFloor']);
-
-    // Areas
     Route::post('/admin/tables/areas', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeArea']);
-
-    // Tables
     Route::post('/admin/tables/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeTable']);
     Route::patch('/admin/tables/tables/{table}/status', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updateTableStatus']);
     Route::patch('/admin/tables/tables/{table}/position', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'updatePosition']);
     Route::delete('/admin/tables/tables/{table}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyTable']);
-
-    // Merge/Unmerge
     Route::post('/admin/tables/merge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'mergeTables']);
     Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);
 });

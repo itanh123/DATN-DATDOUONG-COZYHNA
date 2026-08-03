@@ -2,28 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerAddress extends Model
 {
-    use HasFactory, SoftDeletes;
+    protected $table = 'customer_addresses';
 
-    protected $fillable = [
-        'customer_id',
-        'receiver_name',
-        'receiver_phone',
-        'province',
-        'district',
-        'ward',
-        'address',
-        'is_default',
-        'note',
-    ];
 
-    public function customer()
-    {
+    protected $fillable = array (
+  0 => 'customer_id',
+  1 => 'province',
+  2 => 'district',
+  3 => 'ward',
+  4 => 'address',
+  5 => 'latitude',
+  6 => 'longitude',
+  7 => 'is_default',
+  8 => 'note',
+);
+
+    public function customer() {
         return $this->belongsTo(CustomerProfile::class, 'customer_id');
     }
 }

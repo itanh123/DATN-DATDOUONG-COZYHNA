@@ -10,15 +10,17 @@ class TableArea extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'table_areas';
+
     protected $fillable = ['floor_id', 'code', 'name', 'description', 'display_order', 'status'];
 
     public function floor()
     {
-        return $this->belongsTo(Floor::class);
+        return $this->belongsTo(Floor::class, 'floor_id');
     }
 
     public function tables()
     {
-        return $this->hasMany(RestaurantTable::class, 'area_id')->orderBy('location_y')->orderBy('location_x');
+        return $this->hasMany(RestaurantTable::class, 'area_id');
     }
 }

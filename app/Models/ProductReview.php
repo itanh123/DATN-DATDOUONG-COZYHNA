@@ -9,6 +9,8 @@ class ProductReview extends Model
 {
     use HasFactory;
 
+    protected $table = 'product_reviews';
+
     protected $fillable = [
         'user_id',
         'product_id',
@@ -21,11 +23,11 @@ class ProductReview extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

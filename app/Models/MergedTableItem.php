@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MergedTableItem extends Model
 {
+    protected $table = 'merged_table_items';
+
     protected $fillable = ['merged_table_id', 'table_id', 'is_primary'];
 
     public function mergedTable()

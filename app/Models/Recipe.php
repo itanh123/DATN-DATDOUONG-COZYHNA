@@ -4,28 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Recipe extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    protected $table = 'recipes';
 
     protected $fillable = [
-        'name',
         'product_size_id',
-        'preparation_time',
-        'instruction',
-        'estimated_cost',
-        'status',
+        'recipe_code',
+        'recipe_name',
+        'instructions',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function productSize()
     {
-        return $this->belongsTo(ProductSize::class);
+        return $this->belongsTo(ProductSize::class, 'product_size_id');
     }
 
     public function ingredients()
     {
-        return $this->hasMany(RecipeIngredient::class);
+        return $this->hasMany(RecipeIngredient::class, 'recipe_id');
     }
 }
