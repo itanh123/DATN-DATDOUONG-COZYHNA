@@ -142,12 +142,6 @@ class TableOrderController extends Controller
             DB::table('cart_items')->where('cart_id', $cart->id)->delete();
             DB::table('carts')->where('id', $cart->id)->delete(); // Or just leave cart items deleted
 
-            // Trừ nguyên liệu
-            $orderModel = \App\Models\Order::find($orderId);
-            if ($orderModel) {
-                $orderModel->deductInventory();
-            }
-
             DB::commit();
 
             return redirect('/table/order/success')->with('success', 'Đã đặt món thành công!');

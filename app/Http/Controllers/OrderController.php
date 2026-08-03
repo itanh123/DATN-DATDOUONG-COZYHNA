@@ -212,8 +212,6 @@ class OrderController extends Controller
                 'amount'         => $total,
             ]);
 
-            $order->deductInventory();
-
             $profile->increment('total_orders');
             $profile->increment('total_spent', $total);
 
@@ -265,8 +263,6 @@ class OrderController extends Controller
         $order->cancelled_at = now();
         $order->save();
         
-        $order->restoreInventory();
-
         try {
             $user = DB::table('users')->where('id', $userId)->first();
             if ($user && $user->email) {

@@ -120,6 +120,10 @@ class AdminOrderController extends Controller
             $order->order_status = $newStatusStr;
             $order->status = $newStatusLower;
 
+            if (!in_array($oldStatus, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED']) && in_array($newStatusStr, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED'])) {
+                $order->deductInventory();
+            }
+
             if ($newStatusStr === 'COMPLETED') {
                 $order->completed_at = now();
                 
@@ -137,7 +141,7 @@ class AdminOrderController extends Controller
 
             } else if ($newStatusStr === 'CANCELLED') {
                 $order->cancelled_at = now();
-                if (!in_array($oldStatus, ['CANCELLED'])) {
+                if (in_array($oldStatus, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED'])) {
                     $order->restoreInventory();
                 }
             }

@@ -59,6 +59,8 @@ class StaffController extends Controller
         $order->status = 'preparing';
         $order->save();
 
+        $order->deductInventory();
+
         OrderStatusHistory::create([
             'order_id' => $order->id,
             'old_status' => 'PENDING',
