@@ -120,23 +120,6 @@ class AdminOrderController extends Controller
             $order->order_status = $newStatusStr;
             $order->status = $newStatusLower;
 
-            // Deduct stock if status changed to SHIPPING/DELIVERING
-            if (in_array($newStatusStr, ['DELIVERING', 'SHIPPING']) && !in_array($oldStatus, ['DELIVERING', 'SHIPPING', 'COMPLETED', 'COMPLETED', 'CANCELLED'])) {
-                $orderItems = DB::table('order_items')->where('order_id', $order->id)->get();
-                foreach ($orderItems as $item) {
-                    if ($item->product_size_id) {
-                        $recipe = \App\Models\Recipe::where('product_size_id', $item->product_size_id)->first();
-                        if ($recipe) {
-                            $recipeIngredients = \App\Models\RecipeIngredient::where('recipe_id', $recipe->id)->get();
-                            foreach ($recipeIngredients as $ri) {
-                                \App\Models\Ingredient::where('id', $ri->ingredient_id)
-                                    ->decrement('current_stock', $ri->quantity * $item->quantity);
-                            }
-                        }
-                    }
-                }
-            }
-
             if ($newStatusStr === 'COMPLETED') {
                 $order->completed_at = now();
                 
@@ -154,6 +137,9 @@ class AdminOrderController extends Controller
 
             } else if ($newStatusStr === 'CANCELLED') {
                 $order->cancelled_at = now();
+                if (!in_array($oldStatus, ['CANCELLED'])) {
+                    $order->restoreInventory();
+                }
             }
 
             $order->save();

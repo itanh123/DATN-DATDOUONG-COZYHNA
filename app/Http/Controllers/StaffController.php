@@ -92,6 +92,7 @@ class StaffController extends Controller
         ]);
 
         $code = $order->code ?? $order->order_code ?? $order->id;
+
         return response()->json(['success' => true, 'message' => "Đơn hàng #{$code} đã sẵn sàng giao!"]);
     }
 }

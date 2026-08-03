@@ -212,6 +212,8 @@ class OrderController extends Controller
                 'amount'         => $total,
             ]);
 
+            $order->deductInventory();
+
             $profile->increment('total_orders');
             $profile->increment('total_spent', $total);
 
@@ -242,8 +244,7 @@ class OrderController extends Controller
         $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
         if (!$customerProfile) return back()->with('error', 'Không tìm thấy thông tin khách hàng');
 
-        $order = DB::table('orders')
-            ->where('id', $orderId)
+        $order = Order::where('id', $orderId)
             ->where('customer_id', $customerProfile->id)
             ->first();
 
@@ -258,12 +259,13 @@ class OrderController extends Controller
 
         $cancelReason = request('cancel_reason') ?: 'Không có lý do';
 
-        DB::table('orders')->where('id', $order->id)->update([
-            'status' => 'cancelled',
-            'order_status' => 'CANCELLED',
-            'cancel_reason' => $cancelReason,
-            'updated_at' => now()
-        ]);
+        $order->status = 'cancelled';
+        $order->order_status = 'CANCELLED';
+        $order->cancel_reason = $cancelReason;
+        $order->cancelled_at = now();
+        $order->save();
+        
+        $order->restoreInventory();
 
         try {
             $user = DB::table('users')->where('id', $userId)->first();
