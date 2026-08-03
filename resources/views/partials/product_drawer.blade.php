@@ -187,8 +187,6 @@
 
         let currentProductForCart = null;
         let currentProductSizeId = null;
-        let unitPrice = 0;
-        let quantity = 1;
 
         async function addToCartFromDrawer() {
             if (!currentProductForCart) return;
