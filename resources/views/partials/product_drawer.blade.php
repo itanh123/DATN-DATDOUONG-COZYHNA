@@ -186,7 +186,9 @@
         }
 
         let currentProductForCart = null;
-        let currentSizeForCart = null;
+        let currentProductSizeId = null;
+        let unitPrice = 0;
+        let quantity = 1;
 
         async function addToCartFromDrawer() {
             if (!currentProductForCart) return;
@@ -205,7 +207,8 @@
                     },
                     body: JSON.stringify({
                         product_id: currentProductForCart.id,
-                        size_id: currentSizeForCart ? currentSizeForCart.id : null,
+                        product_size_id: currentProductSizeId,
+                        unit_price: unitPrice,
                         quantity: quantity,
                         toppings: selectedToppings
                     })
@@ -249,14 +252,14 @@
                     document.querySelectorAll('.topping-checkbox').forEach(cb => cb.checked = false);
                     
                     currentProductForCart = product;
-                    currentSizeForCart = null;
+                    currentProductSizeId = null;
 
                     if (product.product_sizes && product.product_sizes.length > 0) {
                         if (sizeSection) sizeSection.style.display = 'block';
                         
                         let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
                         unitPrice = parseFloat(defaultPs.selling_price) || 0;
-                        currentSizeForCart = defaultPs.size || null;
+                        currentProductSizeId = defaultPs.id || null;
                         document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
 
                         product.product_sizes.forEach(ps => {
@@ -279,7 +282,7 @@
                                 btn.className = 'flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all';
                                 
                                 unitPrice = parseFloat(ps.selling_price) || 0;
-                                currentSizeForCart = ps.size || null;
+                                currentProductSizeId = ps.id || null;
                                 document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                                 updateTotals();
                             };
