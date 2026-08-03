@@ -22,6 +22,11 @@
                     <div class="bg-error-container text-on-error-container px-4 py-2 rounded-lg text-label-md">
                         Có lỗi xảy ra, vui lòng kiểm tra lại!
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.getElementById('addUserModal').classList.remove('hidden');
+                        });
+                    </script>
                 @endif
                 @if(session('role_code') === 'admin')
                 <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="px-4 py-2 bg-primary text-white rounded-lg font-label-md hover:bg-primary/90 flex items-center gap-2">
@@ -46,6 +51,11 @@
                         <label class="block font-label-md mb-1 text-on-surface-variant">Tên đăng nhập</label>
                         <input type="text" name="username" required value="{{ old('username') }}" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
                         @error('username') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-1 text-on-surface-variant">Họ và tên</label>
+                        <input type="text" name="name" required value="{{ old('name') }}" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
+                        @error('name') <span class="text-error text-xs">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="block font-label-md mb-1 text-on-surface-variant">Email</label>
