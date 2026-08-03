@@ -11,10 +11,23 @@
 <p class="font-body-md text-body-md text-on-surface-variant">Comprehensive breakdown of your beverage store performance.</p>
 </div>
 <div class="flex items-center gap-sm">
-<div class="bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm flex items-center gap-xs text-body-md shadow-sm">
-<span class="material-symbols-outlined text-primary text-body-lg">date_range</span>
-<span class="font-medium">Oct 1 - Oct 31, 2024</span>
-</div>
+    <form method="GET" action="/admin/reports" class="flex flex-wrap items-center gap-2 m-0 w-full sm:w-auto">
+        <select name="period" onchange="if(this.value !== 'custom') this.form.submit(); else { document.getElementById('custom-date-fields').classList.remove('hidden'); }" class="px-3 py-2 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-surface-container-lowest cursor-pointer shadow-sm font-medium">
+            <option value="all" {{ ($period ?? 'all') == 'all' ? 'selected' : '' }}>Tất cả thời gian</option>
+            <option value="today" {{ ($period ?? 'all') == 'today' ? 'selected' : '' }}>Hôm nay</option>
+            <option value="week" {{ ($period ?? 'all') == 'week' ? 'selected' : '' }}>Tuần này</option>
+            <option value="month" {{ ($period ?? 'all') == 'month' ? 'selected' : '' }}>Tháng này</option>
+            <option value="year" {{ ($period ?? 'all') == 'year' ? 'selected' : '' }}>Năm nay</option>
+            <option value="custom" {{ ($period ?? 'all') == 'custom' ? 'selected' : '' }}>Tùy chỉnh</option>
+        </select>
+        
+        <div id="custom-date-fields" class="flex flex-wrap items-center gap-2 {{ ($period ?? 'all') == 'custom' ? '' : 'hidden' }}">
+            <input type="date" name="start_date" value="{{ request('start_date') }}" class="px-3 py-2 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-surface-container-lowest max-w-[140px] shadow-sm">
+            <span class="text-on-surface-variant">-</span>
+            <input type="date" name="end_date" value="{{ request('end_date') }}" class="px-3 py-2 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-surface-container-lowest max-w-[140px] shadow-sm">
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-label-md font-medium hover:opacity-90 whitespace-nowrap shadow-sm">Lọc</button>
+        </div>
+    </form>
 <button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:shadow-md transition-all">
 <span class="material-symbols-outlined text-body-lg">download</span>
                     Export Report
@@ -24,59 +37,55 @@
 <!-- Executive Summary Cards -->
 <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-lg mb-xl">
 <!-- Tổng cộng Doanh thu -->
-<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<a href="/admin/orders" class="block bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md hover:border-primary transition-all">
 <div class="flex justify-between items-start mb-sm">
 <p class="font-label-md text-label-md text-on-surface-variant">Tổng cộng Doanh thu</p>
 <span class="p-xs bg-primary-container/10 text-primary rounded-lg material-symbols-outlined">payments</span>
 </div>
 <div class="flex items-baseline gap-xs">
-<h4 class="font-headline-md text-headline-md text-on-surface">$48,250.00</h4>
+<h4 class="font-headline-md text-headline-md text-on-surface">{{ number_format($totalRevenue) }}đ</h4>
 </div>
 <div class="flex items-center gap-xs mt-xs text-primary">
-<span class="material-symbols-outlined text-[18px]">trending_up</span>
-<span class="font-label-md text-label-md">+12.5% vs last month</span>
+<span class="font-label-md text-label-md">Đã hoàn thành</span>
 </div>
-</div>
+</a>
 <!-- Average Order Value -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Avg. Order Value</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Giá trị ĐH Trung bình</p>
 <span class="p-xs bg-secondary-container/20 text-secondary rounded-lg material-symbols-outlined">shopping_bag</span>
 </div>
 <div class="flex items-baseline gap-xs">
-<h4 class="font-headline-md text-headline-md text-on-surface">$26.20</h4>
+<h4 class="font-headline-md text-headline-md text-on-surface">{{ number_format($avgOrderValue) }}đ</h4>
 </div>
 <div class="flex items-center gap-xs mt-xs text-primary">
-<span class="material-symbols-outlined text-[18px]">trending_up</span>
-<span class="font-label-md text-label-md">+3.1%</span>
+<span class="font-label-md text-label-md">Từ {{ number_format($totalOrders) }} đơn hàng</span>
 </div>
 </div>
-<!-- Khách hàng Retention -->
-<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<!-- Sản phẩm đã bán -->
+<a href="{{ request()->fullUrlWithQuery(['limit' => 'all']) }}#products-table" class="block bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md hover:border-primary transition-all">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Retention Rate</p>
-<span class="p-xs bg-tertiary-container/10 text-tertiary rounded-lg material-symbols-outlined">group</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Sản phẩm đã bán</p>
+<span class="p-xs bg-tertiary-container/10 text-tertiary rounded-lg material-symbols-outlined">local_cafe</span>
 </div>
 <div class="flex items-baseline gap-xs">
-<h4 class="font-headline-md text-headline-md text-on-surface">68%</h4>
+<h4 class="font-headline-md text-headline-md text-on-surface">{{ number_format($totalItemsSold) }}</h4>
 </div>
 <div class="flex items-center gap-xs mt-xs text-primary">
-<span class="material-symbols-outlined text-[18px]">trending_up</span>
-<span class="font-label-md text-label-md">+5.0%</span>
+<span class="font-label-md text-label-md">Xem chi tiết</span>
 </div>
-</div>
+</a>
 <!-- Gross Margin -->
 <div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
 <div class="flex justify-between items-start mb-sm">
-<p class="font-label-md text-label-md text-on-surface-variant">Gross Margin</p>
-<span class="p-xs bg-surface-variant/30 text-on-surface-variant rounded-lg material-symbols-outlined">bar_chart_4_bars</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Tổng Khách hàng</p>
+<span class="p-xs bg-surface-variant/30 text-on-surface-variant rounded-lg material-symbols-outlined">group</span>
 </div>
 <div class="flex items-baseline gap-xs">
-<h4 class="font-headline-md text-headline-md text-on-surface">42%</h4>
+<h4 class="font-headline-md text-headline-md text-on-surface">{{ number_format($uniqueCustomers) }}</h4>
 </div>
 <div class="flex items-center gap-xs mt-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-[18px]">horizontal_rule</span>
-<span class="font-label-md text-label-md">Stable performance</span>
+<span class="font-label-md text-label-md">Khách hàng duy nhất</span>
 </div>
 </div>
 </section>
@@ -91,82 +100,21 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant">Current Period</span>
 </div>
 </div>
-<!-- Simple SVG Data Viz Mockup -->
 <div class="relative h-[280px] w-full mt-lg">
-<svg class="w-full h-full" viewbox="0 0 800 200">
-<defs>
-<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-<stop offset="0%" stop-color="#4caf50" stop-opacity="0.2"></stop>
-<stop offset="100%" stop-color="#4caf50" stop-opacity="0"></stop>
-</lineargradient>
-</defs>
-<!-- Grid Lines -->
-<line stroke="#e2e8f0" stroke-width="1" x1="0" x2="800" y1="0" y2="0"></line>
-<line stroke="#e2e8f0" stroke-width="1" x1="0" x2="800" y1="50" y2="50"></line>
-<line stroke="#e2e8f0" stroke-width="1" x1="0" x2="800" y1="100" y2="100"></line>
-<line stroke="#e2e8f0" stroke-width="1" x1="0" x2="800" y1="150" y2="150"></line>
-<line stroke="#e2e8f0" stroke-width="1" x1="0" x2="800" y1="200" y2="200"></line>
-<!-- Area -->
-<path d="M0,200 L0,140 C100,160 200,80 300,100 C400,120 500,40 600,60 C700,80 800,20 800,20 L800,200 Z" fill="url(#chartGradient)"></path>
-<!-- Line -->
-<path d="M0,140 C100,160 200,80 300,100 C400,120 500,40 600,60 C700,80 800,20" fill="none" stroke="#4caf50" stroke-linecap="round" stroke-width="3"></path>
-<!-- Data Points -->
-<circle cx="300" cy="100" fill="white" r="4" stroke="#4caf50" stroke-width="2"></circle>
-<circle cx="600" cy="60" fill="white" r="4" stroke="#4caf50" stroke-width="2"></circle>
-</svg>
-<div class="flex justify-between mt-sm font-label-sm text-label-sm text-on-surface-variant">
-<span>Oct 1</span>
-<span>Oct 8</span>
-<span>Oct 15</span>
-<span>Oct 22</span>
-<span>Oct 31</span>
-</div>
+    <canvas id="revenueChart"></canvas>
 </div>
 </div>
 <!-- Category Distribution (Medium Chart) -->
 <div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm flex flex-col">
 <h5 class="font-title-lg text-title-lg text-on-surface mb-xl">Category Mix</h5>
-<div class="flex-grow flex items-center justify-center relative py-md">
-<svg class="w-48 h-48 -rotate-90" viewbox="0 0 100 100">
-<circle cx="50" cy="50" fill="none" r="40" stroke="#e2e8f0" stroke-width="12"></circle>
-<circle cx="50" cy="50" fill="none" r="40" stroke="#4caf50" stroke-dasharray="113.1 251.3" stroke-width="12"></circle> <!-- 45% Coffee -->
-<circle cx="50" cy="50" fill="none" r="40" stroke="#b9f474" stroke-dasharray="75.4 251.3" stroke-dashoffset="-113.1" stroke-width="12"></circle> <!-- 30% Dairy -->
-<circle cx="50" cy="50" fill="none" r="40" stroke="#fabd00" stroke-dasharray="37.7 251.3" stroke-dashoffset="-188.5" stroke-width="12"></circle> <!-- 15% Snacks -->
-<circle cx="50" cy="50" fill="none" r="40" stroke="#3f4a3c" stroke-dasharray="25.1 251.3" stroke-dashoffset="-226.2" stroke-width="12"></circle> <!-- 10% Merch -->
-</svg>
-<div class="absolute text-center">
-<p class="font-headline-md text-headline-md text-on-surface">100%</p>
-<p class="font-label-sm text-label-sm text-on-surface-variant">Tổng cộng Volume</p>
-</div>
-</div>
-<div class="space-y-xs mt-md">
-<div class="flex justify-between items-center text-body-md">
-<div class="flex items-center gap-xs">
-<span class="w-2 h-2 rounded-full bg-primary"></span>
-<span>Coffee</span>
-</div>
-<span class="font-semibold">45%</span>
-</div>
-<div class="flex justify-between items-center text-body-md">
-<div class="flex items-center gap-xs">
-<span class="w-2 h-2 rounded-full bg-secondary"></span>
-<span>Dairy</span>
-</div>
-<span class="font-semibold">30%</span>
-</div>
-<div class="flex justify-between items-center text-body-md">
-<div class="flex items-center gap-xs">
-<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
-<span>Snacks</span>
-</div>
-<span class="font-semibold">15%</span>
-</div>
+<div class="flex-grow flex items-center justify-center relative py-md h-[280px]">
+    <canvas id="categoryChart"></canvas>
 </div>
 </div>
 </div>
 <div class="grid grid-cols-12 gap-lg">
 <!-- Product Performance Table -->
-<div class="col-span-12 xl:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+<div id="products-table" class="col-span-12 xl:col-span-8 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden scroll-mt-24">
 <div class="p-lg border-b border-outline-variant flex flex-col sm:flex-row justify-between sm:items-center gap-4">
 <div class="flex flex-wrap items-center gap-4">
     <h5 class="font-title-lg text-title-lg text-on-surface whitespace-nowrap">
@@ -178,24 +126,7 @@
         <a href="{{ request()->fullUrlWithQuery(['limit' => 'all']) }}" class="text-primary text-label-md hover:underline whitespace-nowrap bg-primary/10 px-3 py-1.5 rounded-lg font-medium">Xem tất cả sản phẩm đã bán</a>
     @endif
 </div>
-<div class="flex flex-wrap items-center gap-2">
-    <form method="GET" action="/admin/reports" class="flex flex-wrap items-center gap-2 m-0 w-full sm:w-auto">
-        <select name="period" onchange="if(this.value !== 'custom') this.form.submit(); else { document.getElementById('custom-date-fields').classList.remove('hidden'); }" class="p-1.5 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-white cursor-pointer">
-            <option value="all" {{ ($period ?? 'all') == 'all' ? 'selected' : '' }}>Tất cả thời gian</option>
-            <option value="week" {{ ($period ?? 'all') == 'week' ? 'selected' : '' }}>Tuần này</option>
-            <option value="month" {{ ($period ?? 'all') == 'month' ? 'selected' : '' }}>Tháng này</option>
-            <option value="year" {{ ($period ?? 'all') == 'year' ? 'selected' : '' }}>Năm nay</option>
-            <option value="custom" {{ ($period ?? 'all') == 'custom' ? 'selected' : '' }}>Tùy chỉnh khoảng thời gian</option>
-        </select>
-        
-        <div id="custom-date-fields" class="flex flex-wrap items-center gap-2 {{ ($period ?? 'all') == 'custom' ? '' : 'hidden' }}">
-            <input type="date" name="start_date" value="{{ request('start_date') }}" class="p-1.5 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-white max-w-[130px]">
-            <span class="text-on-surface-variant">-</span>
-            <input type="date" name="end_date" value="{{ request('end_date') }}" class="p-1.5 border border-outline-variant rounded-lg text-body-md focus:ring-0 focus:border-primary bg-white max-w-[130px]">
-            <button type="submit" class="bg-primary text-white px-3 py-1.5 rounded-lg text-label-md font-medium hover:opacity-90 whitespace-nowrap">Lọc</button>
-        </div>
-    </form>
-</div>
+
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left">
@@ -335,5 +266,69 @@
             bar.style.animationDelay = `${index * 0.1}s`;
         });
     
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chartLabels = {!! json_encode($chartLabels) !!};
+        const chartValues = {!! json_encode($chartValues) !!};
+        
+        const ctxRev = document.getElementById('revenueChart');
+        if(ctxRev) {
+            new Chart(ctxRev, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: chartValues,
+                        borderColor: '#4caf50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        const catLabels = {!! json_encode($catLabels) !!};
+        const catData = {!! json_encode($catData) !!};
+        const ctxCat = document.getElementById('categoryChart');
+        if(ctxCat) {
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catData,
+                        backgroundColor: [
+                            '#4caf50', '#b9f474', '#fabd00', '#3f4a3c', '#8b5cf6', '#ec4899', '#f97316'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+    });
 </script>
 @endpush
