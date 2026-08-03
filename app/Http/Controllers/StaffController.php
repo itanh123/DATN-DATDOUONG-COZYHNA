@@ -49,7 +49,7 @@ class StaffController extends Controller
 
     public function confirm($id)
     {
-        if (!check_permission('edit_orders')) {
+        if (!check_permission('update_orders')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -73,7 +73,7 @@ class StaffController extends Controller
 
     public function complete($id)
     {
-        if (!check_permission('edit_orders')) {
+        if (!check_permission('update_orders')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
