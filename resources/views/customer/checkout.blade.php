@@ -170,6 +170,12 @@
                     <span>Thuế VAT (8%)</span>
                     <span>{{ number_format($tax, 0, ',', '.') }} đ</span>
                 </div>
+                @if(isset($discountAmount) && $discountAmount > 0)
+                <div class="flex justify-between font-body-md text-body-md text-error">
+                    <span>Giảm giá (Voucher)</span>
+                    <span>-{{ number_format($discountAmount, 0, ',', '.') }} đ</span>
+                </div>
+                @endif
                 <div class="pt-sm border-t border-outline-variant/20">
                     <div class="flex justify-between font-headline-md text-headline-md text-on-background">
                         <span>Tổng cộng</span>

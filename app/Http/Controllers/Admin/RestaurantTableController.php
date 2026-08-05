@@ -20,7 +20,7 @@ class RestaurantTableController extends Controller
         }
 
         $floors = Floor::with(['areas.tables' => function ($q) {
-            $q->withCount('mergedTableItems');
+            $q->withCount('mergedTables');
         }])->where('status', true)->orderBy('display_order')->get();
 
         $mergedGroups = [];

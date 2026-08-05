@@ -180,7 +180,35 @@ class CartController extends Controller
             }
         }
 
-        return view('customer.cart', compact('cartItems', 'subtotal'));
+        $appliedVoucher = session('applied_voucher');
+        $discountAmount = 0;
+        if ($appliedVoucher) {
+            $discountAmount = $appliedVoucher['discount_amount'];
+            $voucher = \App\Models\Voucher::find($appliedVoucher['id']);
+            if ($voucher && $voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+                $discountAmount = 0;
+            } else if ($voucher) {
+                if ($voucher->discount_type === 'percent') {
+                    $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+                    if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                        $discountAmount = $voucher->maximum_discount;
+                    }
+                } else {
+                    $discountAmount = $voucher->discount_value;
+                }
+                
+                if ($discountAmount > $subtotal) {
+                    $discountAmount = $subtotal;
+                }
+                
+                $appliedVoucher['discount_amount'] = $discountAmount;
+                session(['applied_voucher' => $appliedVoucher]);
+            }
+        }
+
+        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount'));
     }
 
     public function initCheckout(Request $request)
@@ -196,7 +224,14 @@ class CartController extends Controller
 
         session(['checkout_items' => $request->selected_items]);
         
-        return response()->json(['success' => true, 'redirect' => route('customer.checkout')]);
+        $isTableOrder = session('is_table_order', false);
+        $redirectUrl = $isTableOrder ? '/table/order/confirm' : route('customer.checkout');
+        
+        return response()->json([
+            'success' => true, 
+            'redirect' => $redirectUrl,
+            'is_table_order' => $isTableOrder
+        ]);
     }
 
     public function checkout()
@@ -242,7 +277,42 @@ class CartController extends Controller
 
         $deliveryFee = $subtotal > 0 ? 15000 : 0;
         $tax         = round($subtotal * 0.08);
-        $total       = $subtotal + $deliveryFee + $tax;
+
+        $appliedVoucher = session('applied_voucher');
+        $discountAmount = 0;
+        if ($appliedVoucher) {
+            $discountAmount = $appliedVoucher['discount_amount'];
+            // Revalidate voucher minimum order just in case
+            $voucher = \App\Models\Voucher::find($appliedVoucher['id']);
+            if ($voucher && $voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+                $discountAmount = 0;
+            } else if ($voucher) {
+                // Recalculate discount based on current subtotal
+                if ($voucher->discount_type === 'percent') {
+                    $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+                    if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                        $discountAmount = $voucher->maximum_discount;
+                    }
+                } else {
+                    $discountAmount = $voucher->discount_value;
+                }
+                
+                if ($discountAmount > $subtotal) {
+                    $discountAmount = $subtotal;
+                }
+                
+                // Update session
+                $appliedVoucher['discount_amount'] = $discountAmount;
+                session(['applied_voucher' => $appliedVoucher]);
+            } else {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+            }
+        }
+
+        $total       = $subtotal + $deliveryFee + $tax - $discountAmount;
 
         $userId = session('user_id');
         $profile = CustomerProfile::where('user_id', $userId)->first();
@@ -254,7 +324,7 @@ class CartController extends Controller
                 ->get();
         }
 
-        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'total', 'addresses'));
+        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses'));
     }
 
     private function calcTotals($cartItems): array
@@ -274,5 +344,70 @@ class CartController extends Controller
             'total'       => number_format($total, 0, ',', '.') . ' đ',
             'raw_total'   => $total,
         ];
+    }
+
+    public function applyVoucher(Request $request)
+    {
+        $request->validate([
+            'voucher_code' => 'required|string',
+            'subtotal'     => 'required|numeric'
+        ]);
+
+        $code = $request->voucher_code;
+        $subtotal = $request->subtotal;
+
+        $voucher = \App\Models\Voucher::where('code', $code)->where('status', true)->first();
+
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa.']);
+        }
+
+        if ($voucher->start_date && now()->lt($voucher->start_date)) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá chưa đến thời gian áp dụng.']);
+        }
+
+        if ($voucher->end_date && now()->gt($voucher->end_date)) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết hạn.']);
+        }
+
+        if ($voucher->quantity !== null && $voucher->used >= $voucher->quantity) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá đã hết lượt sử dụng.']);
+        }
+
+        if ($voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+            return response()->json(['success' => false, 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->minimum_order, 0, ',', '.') . ' đ để áp dụng mã này.']);
+        }
+
+        $discountAmount = 0;
+        if ($voucher->discount_type === 'percent') {
+            $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+            if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                $discountAmount = $voucher->maximum_discount;
+            }
+        } else {
+            $discountAmount = $voucher->discount_value;
+        }
+
+        // Save voucher to session
+        session(['applied_voucher' => [
+            'id' => $voucher->id,
+            'code' => $voucher->code,
+            'discount_amount' => $discountAmount,
+            'discount_type' => $voucher->discount_type,
+            'discount_value' => $voucher->discount_value,
+        ]]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Áp dụng mã giảm giá thành công!',
+            'discount_amount' => $discountAmount,
+            'voucher_code' => $voucher->code
+        ]);
+    }
+
+    public function removeVoucher()
+    {
+        session()->forget('applied_voucher');
+        return response()->json(['success' => true, 'message' => 'Đã gỡ mã giảm giá.']);
     }
 }

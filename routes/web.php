@@ -100,8 +100,12 @@ Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->
 Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 
+Route::post('/customer/vouchers/apply', [\App\Http\Controllers\CartController::class, 'applyVoucher'])->name('vouchers.apply');
+Route::post('/customer/vouchers/remove', [\App\Http\Controllers\CartController::class, 'removeVoucher'])->name('vouchers.remove');
 Route::post('/orders/place', [\App\Http\Controllers\OrderController::class, 'placeOrder'])->name('orders.place');
 Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'customerOrders'])->name('customer.orders');
+Route::get('/customer/orders/{order}/review', [\App\Http\Controllers\OrderController::class, 'showReviewForm'])->name('orders.review');
+Route::post('/customer/orders/{order}/review', [\App\Http\Controllers\OrderController::class, 'submitReview'])->name('orders.submitReview');
 Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder'])->name('orders.cancel');
 
 // AI Chat Assistant Routes
@@ -126,6 +130,7 @@ Route::post('/customer/account/update', function (\Illuminate\Http\Request $requ
     if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
     return app('App\Http\Controllers\AuthController')->updateProfile($request);
 })->name('customer.profile.update');
+Route::post('/customer/password/update', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
@@ -322,9 +327,9 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/table-calls/pending', function() {
         if (!session('user_id')) return response()->json([]);
         $calls = \Illuminate\Support\Facades\DB::table('table_calls')
-            ->join('dining_tables', 'table_calls.table_id', '=', 'dining_tables.id')
+            ->join('restaurant_tables', 'table_calls.table_id', '=', 'restaurant_tables.id')
             ->where('table_calls.status', 'pending')
-            ->select('table_calls.*', 'dining_tables.name as table_name')
+            ->select('table_calls.*', 'restaurant_tables.name as table_name')
             ->get();
         return response()->json($calls);
     });

@@ -95,9 +95,37 @@
                 <div class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
                     <h2 class="font-title-lg text-title-lg mb-md">Tóm tắt đơn hàng</h2>
                     
-                    <div class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20">
+                    <div class="flex justify-between items-center mb-sm">
                         <span class="font-body-md text-on-surface-variant">Tổng tiền (<span id="selectedCountDisplay">{{ $cartItems->count() }}</span> sản phẩm)</span>
-                        <span class="font-title-lg font-bold text-primary" id="subtotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
+                        <span class="font-title-md font-bold text-on-surface" id="subtotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
+                    </div>
+
+                    @if(isset($discountAmount) && $discountAmount > 0)
+                    <div class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20">
+                        <span class="font-body-md text-error">Giảm giá (Voucher)</span>
+                        <span class="font-title-md font-bold text-error">-{{ number_format($discountAmount, 0, ',', '.') }} đ</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-md">
+                        <span class="font-body-md font-bold text-on-surface-variant">Tạm tính</span>
+                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format(max(0, $subtotal - $discountAmount), 0, ',', '.') }} đ</span>
+                    </div>
+                    @else
+                    <div class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20">
+                        <span class="font-body-md font-bold text-on-surface-variant">Tạm tính</span>
+                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
+                    </div>
+                    @endif
+
+                    <div class="mb-md">
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-4 py-2 font-body-sm text-on-surface" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
+                            @if($appliedVoucher)
+                                <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg font-label-md hover:bg-error/90 transition-all">Gỡ mã</button>
+                            @else
+                                <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg font-label-md hover:bg-primary/90 transition-all">Áp dụng</button>
+                            @endif
+                        </div>
+                        <p id="voucherMessage" class="text-sm hidden"></p>
                     </div>
                     
                     <p class="font-label-sm text-on-surface-variant mb-md text-center">Phí vận chuyển và thuế sẽ được tính ở bước thanh toán.</p>
@@ -278,9 +306,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const data = await res.json();
                 if (data.success && data.redirect) {
-                    window.location.href = data.redirect;
+                    if (data.is_table_order) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = data.redirect;
+                        const csrf = document.createElement('input');
+                        csrf.type = 'hidden';
+                        csrf.name = '_token';
+                        csrf.value = csrfToken;
+                        form.appendChild(csrf);
+                        document.body.appendChild(form);
+                        form.submit();
+                    } else {
+                        window.location.href = data.redirect;
+                    }
                 } else {
-                    alert(data.error || 'Có lỗi xảy ra.');
+                    alert(data.error || 'Có lỗi xảy ra');
                     this.innerHTML = originalText;
                     this.disabled = false;
                 }
@@ -295,6 +336,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init
     updateTotals();
+    const btnApplyVoucher = document.getElementById('btnApplyVoucher');
+    const btnRemoveVoucher = document.getElementById('btnRemoveVoucher');
+    const inputVoucherCode = document.getElementById('voucherCode');
+    const voucherMessage = document.getElementById('voucherMessage');
+
+    function showVoucherMessage(text, isError) {
+        if (!voucherMessage) return;
+        voucherMessage.textContent = text;
+        voucherMessage.classList.remove('hidden', 'text-error', 'text-primary');
+        voucherMessage.classList.add(isError ? 'text-error' : 'text-primary');
+    }
+
+    if (btnApplyVoucher) {
+        btnApplyVoucher.addEventListener('click', async () => {
+            const code = inputVoucherCode.value.trim();
+            if (!code) {
+                showVoucherMessage('Vui lòng nhập mã giảm giá', true);
+                return;
+            }
+
+            // Get current subtotal of selected items
+            let currentSubtotal = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const row = cb.closest('.cart-item-row');
+                    const price = parseFloat(row.dataset.price);
+                    const quantity = parseInt(row.dataset.quantity);
+                    currentSubtotal += price * quantity;
+                }
+            });
+
+            btnApplyVoucher.disabled = true;
+            btnApplyVoucher.textContent = '...';
+
+            try {
+                const res = await fetch('{{ route("vouchers.apply") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ voucher_code: code, subtotal: currentSubtotal })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    showVoucherMessage(data.message, true);
+                    btnApplyVoucher.disabled = false;
+                    btnApplyVoucher.textContent = 'Áp dụng';
+                }
+            } catch (err) {
+                showVoucherMessage('Có lỗi xảy ra, vui lòng thử lại', true);
+                btnApplyVoucher.disabled = false;
+                btnApplyVoucher.textContent = 'Áp dụng';
+            }
+        });
+    }
+
+    if (btnRemoveVoucher) {
+        btnRemoveVoucher.addEventListener('click', async () => {
+            btnRemoveVoucher.disabled = true;
+            btnRemoveVoucher.textContent = '...';
+            try {
+                const res = await fetch('{{ route("vouchers.remove") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                window.location.reload();
+            } catch (err) {
+                window.location.reload();
+            }
+        });
+    }
 });
 </script>
 @endsection

@@ -66,6 +66,19 @@
                                 Hủy đơn
                             </button>
                         @endif
+
+                        @if($statusUpper === 'COMPLETED')
+                            @if(in_array($order->id, $reviewedOrderIds))
+                                <span class="px-md py-xs rounded-full border border-emerald-300 text-emerald-700 font-label-md text-label-md bg-emerald-50">
+                                    Đã đánh giá
+                                </span>
+                            @else
+                                <a href="{{ route('orders.review', $order->id) }}" class="px-md py-xs rounded-full bg-primary text-on-primary font-label-md text-label-md hover:bg-primary/90 transition-colors flex items-center gap-1 shadow-sm">
+                                    <span class="material-symbols-outlined text-sm">star</span>
+                                    Đánh giá
+                                </a>
+                            @endif
+                        @endif
                     </div>
                 </div>
 

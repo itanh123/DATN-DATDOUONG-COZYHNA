@@ -11,7 +11,7 @@ return new class extends Migration
         if (!Schema::hasTable('table_calls')) {
             Schema::create('table_calls', function (Blueprint $table) {
                 $table->id();
-                $table->string('table_number');
+                $table->foreignId('table_id')->constrained('restaurant_tables')->onDelete('cascade');
                 $table->string('status')->default('PENDING');
                 $table->timestamps();
             });

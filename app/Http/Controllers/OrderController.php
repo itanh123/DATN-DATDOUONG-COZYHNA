@@ -34,14 +34,18 @@ class OrderController extends Controller
             ->get();
 
         $reviewedItems = [];
+        $reviewedOrderIds = [];
         if (SchemaHasTable('product_reviews')) {
-            $reviewedItems = DB::table('product_reviews')
+            $reviews = DB::table('product_reviews')
                 ->where('user_id', $userId)
                 ->select('order_id', 'product_id')
-                ->get()
-                ->map(function ($review) {
+                ->get();
+                
+            $reviewedItems = $reviews->map(function ($review) {
                     return $review->order_id . '_' . $review->product_id;
                 })->toArray();
+                
+            $reviewedOrderIds = $reviews->pluck('order_id')->unique()->toArray();
         }
 
         foreach ($orders as $order) {
@@ -94,7 +98,7 @@ class OrderController extends Controller
             return in_array($status, ['completed', 'cancelled']);
         });
 
-        return view('customer.orders', compact('activeOrders', 'historyOrders', 'orders'));
+        return view('customer.orders', compact('activeOrders', 'historyOrders', 'orders', 'reviewedOrderIds'));
     }
 
     public function placeOrder(Request $request)
@@ -148,7 +152,26 @@ class OrderController extends Controller
             }
             $shippingFee = $subtotal > 0 ? 15000 : 0;
             $tax = round($subtotal * 0.08);
-            $discount    = 0;
+            
+            $appliedVoucher = session('applied_voucher');
+            $discount = 0;
+            $voucherId = null;
+            if ($appliedVoucher) {
+                $discount = $appliedVoucher['discount_amount'];
+                $voucherId = $appliedVoucher['id'];
+                
+                if ($discount > $subtotal) {
+                    $discount = $subtotal;
+                }
+                
+                // Increment voucher usage
+                $voucher = \App\Models\Voucher::find($voucherId);
+                if ($voucher) {
+                    $voucher->increment('used_count');
+                    $voucher->increment('used');
+                }
+            }
+            
             $total       = $subtotal + $shippingFee + $tax - $discount;
 
             $orderCode = 'ORD-' . strtoupper(uniqid());
@@ -170,6 +193,7 @@ class OrderController extends Controller
                 'shipping_fee'    => $shippingFee,
                 'tax_amount'      => $tax,
                 'total_amount'    => $total,
+                'voucher_id'      => $voucherId,
                 'created_by'      => $userId
             ]);
 
@@ -278,6 +302,80 @@ class OrderController extends Controller
         }
 
         return back()->with('cancel_success', 'Đã hủy đơn hàng! Cảm ơn bạn đã góp ý kiến.');
+    }
+
+    public function showReviewForm($orderId)
+    {
+        $userId = session('user_id');
+        if (!$userId) return redirect('/login');
+
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
+        if (!$customerProfile) return redirect('/')->with('error', 'Không tìm thấy hồ sơ');
+
+        $order = Order::where('id', $orderId)
+            ->where('customer_id', $customerProfile->id)
+            ->firstOrFail();
+            
+        $order->items = DB::table('order_items')
+            ->leftJoin('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
+            ->leftJoin('products', function ($join) {
+                $join->on('product_sizes.product_id', '=', 'products.id')
+                     ->orWhereRaw('order_items.product_name = products.name');
+            })
+            ->leftJoin('sizes', 'product_sizes.size_id', '=', 'sizes.id')
+            ->where('order_items.order_id', $order->id)
+            ->select('order_items.*', 'products.name as product_name', 'products.image as product_image', 'sizes.name as size_name', 'products.id as product_id')
+            ->get()
+            ->unique('product_id')
+            ->values();
+
+        // Check if status is completed
+        $status = strtolower($order->status ?? $order->order_status ?? '');
+        if ($status !== 'completed' && $status !== 'hoàn thành') {
+            return redirect()->route('customer.orders')->with('error', 'Chỉ có thể đánh giá đơn hàng đã hoàn thành.');
+        }
+
+        return view('customer.review', compact('order'));
+    }
+
+    public function submitReview(Request $request, $orderId)
+    {
+        $userId = session('user_id');
+        if (!$userId) return redirect('/login');
+
+        $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
+
+        $order = Order::where('id', $orderId)
+            ->where('customer_id', $customerProfile->id)
+            ->firstOrFail();
+
+        $status = strtolower($order->status ?? $order->order_status ?? '');
+        if ($status !== 'completed' && $status !== 'hoàn thành') {
+            return redirect()->route('customer.orders')->with('error', 'Đơn hàng chưa hoàn thành.');
+        }
+
+        $request->validate([
+            'reviews' => 'required|array',
+            'reviews.*.product_id' => 'required|exists:products,id',
+            'reviews.*.rating' => 'required|integer|min:1|max:5',
+            'reviews.*.comment' => 'nullable|string|max:500'
+        ]);
+
+        foreach ($request->reviews as $reviewData) {
+            DB::table('product_reviews')->insert([
+                'user_id' => $userId,
+                'product_id' => $reviewData['product_id'],
+                'customer_id' => $customerProfile->id,
+                'order_id' => $order->id,
+                'rating' => $reviewData['rating'],
+                'comment' => $reviewData['comment'],
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return redirect()->route('customer.orders')->with('success', 'Cảm ơn bạn đã gửi đánh giá!');
     }
 }
 
