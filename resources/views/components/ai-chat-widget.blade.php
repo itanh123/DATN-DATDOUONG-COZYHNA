@@ -82,6 +82,8 @@
 
 <script>
     let aiSessionId = localStorage.getItem('ai_chat_session_id') || null;
+    let userLat = null;
+    let userLon = null;
 
     function toggleAiChat() {
         const win = document.getElementById('ai-chat-window');
@@ -117,6 +119,19 @@
         document.getElementById('ai-typing').classList.remove('hidden');
         scrollAiBottom();
 
+        // Lấy vị trí nếu người dùng hỏi về thời tiết
+        if (msg.toLowerCase().includes('thời tiết') && !userLat) {
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                });
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+            } catch (err) {
+                console.warn('Không thể lấy vị trí:', err);
+            }
+        }
+
         try {
             const response = await fetch('/ai/chat', {
                 method: 'POST',
@@ -126,7 +141,9 @@
                 },
                 body: JSON.stringify({
                     message: msg,
-                    session_id: aiSessionId
+                    session_id: aiSessionId,
+                    lat: userLat,
+                    lon: userLon
                 })
             });
 

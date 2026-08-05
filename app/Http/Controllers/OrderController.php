@@ -35,7 +35,7 @@ class OrderController extends Controller
 
         $reviewedItems = [];
         $reviewedOrderIds = [];
-        if (SchemaHasTable('product_reviews')) {
+        if (\Illuminate\Support\Facades\Schema::hasTable('product_reviews')) {
             $reviews = DB::table('product_reviews')
                 ->where('user_id', $userId)
                 ->select('order_id', 'product_id')
@@ -379,6 +379,3 @@ class OrderController extends Controller
     }
 }
 
-function SchemaHasTable($table) {
-    return \Illuminate\Support\Facades\Schema::hasTable($table);
-}

@@ -30,8 +30,18 @@ class VoucherController extends Controller
             'code' => 'required|string|max:50|unique:vouchers',
             'name' => 'required|string|max:255',
             'discount_type' => 'required|in:percent,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'minimum_order' => 'required|numeric|min:0',
+            'discount_value' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:99999999',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->discount_type === 'percent' && $value > 100) {
+                        $fail('Mức giảm phần trăm không được lớn hơn 100.');
+                    }
+                },
+            ],
+            'minimum_order' => 'required|numeric|min:0|max:99999999',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -56,8 +66,18 @@ class VoucherController extends Controller
             'code' => 'required|string|max:50|unique:vouchers,code,' . $voucher->id,
             'name' => 'required|string|max:255',
             'discount_type' => 'required|in:percent,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'minimum_order' => 'required|numeric|min:0',
+            'discount_value' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:99999999',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->discount_type === 'percent' && $value > 100) {
+                        $fail('Mức giảm phần trăm không được lớn hơn 100.');
+                    }
+                },
+            ],
+            'minimum_order' => 'required|numeric|min:0|max:99999999',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

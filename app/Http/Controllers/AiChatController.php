@@ -21,6 +21,8 @@ class AiChatController extends Controller
         $userMessage = trim($request->input('message', ''));
         $sessionId   = $request->input('session_id');
         $userId      = session('user_id');
+        $lat         = $request->input('lat');
+        $lon         = $request->input('lon');
 
         if (empty($userMessage)) {
             return response()->json(['error' => 'Tin nhắn không được để trống'], 400);
@@ -47,7 +49,7 @@ class AiChatController extends Controller
         ]);
 
         // Process message with local smart engine or Gemini API
-        $responsePayload = $this->generateAiResponse($userMessage, $userId);
+        $responsePayload = $this->generateAiResponse($userMessage, $userId, $lat, $lon);
 
         // Save Assistant Message
         ChatMessage::create([
@@ -80,7 +82,7 @@ class AiChatController extends Controller
     /**
      * AI Response Engine: Intelligent vietnamese coffee shop assistant + order/payment helper
      */
-    private function generateAiResponse(string $userMsg, $userId): array
+    private function generateAiResponse(string $userMsg, $userId, $lat = null, $lon = null): array
     {
         $lowerMsg = mb_strtolower($userMsg, 'UTF-8');
 
@@ -217,15 +219,89 @@ class AiChatController extends Controller
             ];
         }
 
-        // 5. Try calling Gemini API if GEMINI_API_KEY is available in env
+        // 5. Check for Weather Request
+        $weatherContextToGemini = null;
+        if (str_contains($lowerMsg, 'thời tiết')) {
+            $location = 'Hà Nội'; // Default
+            $weatherUrl = "";
+
+            if ($lat && $lon) {
+                $location = "Vị trí của bạn";
+                $weatherUrl = "https://wttr.in/{$lat},{$lon}?format=%C,+nhiệt+độ:+%t,+gió:+%w&lang=vi";
+            } else {
+                // Extract location if specified: "thời tiết tại Đà Nẵng", "thời tiết ở sài gòn"
+                if (preg_match('/thời tiết (?:tại|ở)\s+([a-zA-ZÀ-ỹ\s]+)/iu', $lowerMsg, $matches)) {
+                    $extracted = trim($matches[1]);
+                    $ignoreWords = ['hôm nay', 'ngày mai', 'đâu', 'thế nào', 'ra sao'];
+                    if (!empty($extracted) && !in_array(mb_strtolower($extracted, 'UTF-8'), $ignoreWords)) {
+                        $location = mb_convert_case($extracted, MB_CASE_TITLE, "UTF-8");
+                    }
+                }
+                $weatherUrl = "https://wttr.in/" . urlencode($location) . "?format=%C,+nhiệt+độ:+%t,+gió:+%w&lang=vi";
+            }
+
+            try {
+                $weatherRes = Http::withoutVerifying()->timeout(5)->get($weatherUrl);
+                
+                if ($weatherRes->successful()) {
+                    $weatherData = $weatherRes->body();
+                    
+                    if (strlen($weatherData) < 100 && !str_contains($weatherData, '<html')) {
+                        
+                        $wantsSuggestion = false;
+                        $keywords = ['uống', 'món', 'gợi ý', 'tư vấn', 'phù hợp', 'gì'];
+                        foreach ($keywords as $kw) {
+                            if (str_contains($lowerMsg, $kw)) {
+                                $wantsSuggestion = true;
+                                break;
+                            }
+                        }
+
+                        if ($wantsSuggestion) {
+                            // Chuyển dữ liệu cho Gemini suy nghĩ thay vì trả lời cứng
+                            $weatherContextToGemini = "Thời tiết hiện tại ở {$location}: " . trim($weatherData) . ".";
+                        } else {
+                            $replyText = "🌤️ **Thời tiết hiện tại ở {$location}**:\n\n";
+                            $replyText .= "👉 *" . trim($weatherData) . "*\n\n";
+                            $replyText .= "☕ Thời tiết này mà thưởng thức một ly nước tại **CozyHNA** thì thật tuyệt vời bạn nhé!";
+                            
+                            return [
+                                'text' => $replyText,
+                                'type' => 'weather_info',
+                                'data' => ['location' => $location]
+                            ];
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('Weather API Error: ' . $e->getMessage());
+            }
+        }
+
+        // 6. Try calling Gemini API if GEMINI_API_KEY is available in env
         $geminiApiKey = env('GEMINI_API_KEY');
         if ($geminiApiKey) {
             try {
                 $prompt = "Bạn là AI Trợ Lý Thông Minh cho Quán Cà Phê & Trà CozyHNA. Trả lời bằng tiếng Việt thân thiện, lịch sự, ngắn gọn và hấp dẫn.\n";
+                
+                $menuProducts = Product::where('status', true)->take(12)->get();
+                if ($menuProducts->count() > 0) {
+                    $menuArr = [];
+                    foreach ($menuProducts as $p) {
+                        $menuArr[] = $p->name;
+                    }
+                    $prompt .= "Thực đơn tiêu biểu của quán: " . implode(', ', $menuArr) . ".\n";
+                }
+
+                if ($weatherContextToGemini) {
+                    $prompt .= "{$weatherContextToGemini} Hãy dựa vào thời tiết này để tư vấn món uống phù hợp nhất từ thực đơn cho khách nhé.\n";
+                }
+
                 $prompt .= "Khách hàng hỏi: " . $userMsg;
 
                 $apiRes = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={$geminiApiKey}", [
+                    ->withoutVerifying()
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={$geminiApiKey}", [
                         'contents' => [
                             ['parts' => [['text' => $prompt]]]
                         ]
