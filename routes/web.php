@@ -310,7 +310,124 @@ Route::middleware(['admin'])->group(function () {
 
     // Promotions, Reports, Reviews
     Route::get('/admin/promotions', function () { return view('admin.promotions'); });
-    Route::get('/admin/reports', function () { return view('admin.reports'); });
+    Route::get('/admin/reports', function (\Illuminate\Http\Request $request) { 
+        $period = $request->query('period', 'all');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        // Base query for orders
+        $ordersQuery = \Illuminate\Support\Facades\DB::table('orders')
+            ->whereIn('orders.status', ['completed', 'delivered']);
+
+        // Apply Date Filter
+        if ($period === 'custom') {
+            if ($startDate && $endDate) {
+                $ordersQuery->whereBetween('orders.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            } elseif ($startDate) {
+                $ordersQuery->where('orders.created_at', '>=', $startDate . ' 00:00:00');
+            } elseif ($endDate) {
+                $ordersQuery->where('orders.created_at', '<=', $endDate . ' 23:59:59');
+            }
+        } elseif ($period === 'today') {
+            $ordersQuery->where('orders.created_at', '>=', now()->startOfDay());
+            $ordersQuery->where('orders.created_at', '<=', now()->endOfDay());
+        } elseif ($period === 'week') {
+            $ordersQuery->where('orders.created_at', '>=', now()->startOfWeek());
+        } elseif ($period === 'month') {
+            $ordersQuery->where('orders.created_at', '>=', now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $ordersQuery->where('orders.created_at', '>=', now()->startOfYear());
+        }
+
+        // Clone for aggregations
+        $totalRevenue = (clone $ordersQuery)->sum('orders.total_amount');
+        $totalOrders = (clone $ordersQuery)->count();
+        $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
+        
+        // Total Items Sold
+        $totalItemsSold = (clone $ordersQuery)
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->sum('order_items.quantity');
+            
+        // Unique customers
+        $uniqueCustomers = (clone $ordersQuery)->distinct('orders.customer_id')->count('orders.customer_id');
+
+        // Chart Data: Group by Date via Collections (Cross DB compatible)
+        $ordersForChart = (clone $ordersQuery)->select('orders.total_amount', 'orders.created_at')->get();
+        
+        $format = ($period === 'year') ? 'Y-m' : 'Y-m-d';
+        
+        $chartGrouped = $ordersForChart->groupBy(function($item) use ($format) {
+            return \Carbon\Carbon::parse($item->created_at)->format($format);
+        })->map(function($group) {
+            return $group->sum('total_amount');
+        })->sortKeys();
+        
+        $chartLabels = $chartGrouped->keys()->toArray();
+        $chartValues = $chartGrouped->values()->toArray();
+
+        // Category Mix
+        $categoryMixRaw = (clone $ordersQuery)
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
+            ->join('products', 'product_sizes.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->select('categories.name', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_qty'))
+            ->groupBy('categories.name')
+            ->get();
+            
+        $catLabels = $categoryMixRaw->pluck('name')->toArray();
+        $catData = $categoryMixRaw->pluck('total_qty')->toArray();
+
+        // Top Products (reuse order_items logic)
+        $queryTopProducts = \Illuminate\Support\Facades\DB::table('order_items')
+            ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
+            ->join('products', 'product_sizes.product_id', '=', 'products.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereIn('orders.status', ['completed', 'delivered'])
+            ->select(
+                'products.id',
+                'products.name',
+                'products.image',
+                \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_sold'),
+                \Illuminate\Support\Facades\DB::raw('SUM(order_items.total_price) as total_revenue')
+            );
+
+        if ($period === 'custom') {
+            if ($startDate && $endDate) {
+                $queryTopProducts->whereBetween('orders.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            } elseif ($startDate) {
+                $queryTopProducts->where('orders.created_at', '>=', $startDate . ' 00:00:00');
+            } elseif ($endDate) {
+                $queryTopProducts->where('orders.created_at', '<=', $endDate . ' 23:59:59');
+            }
+        } elseif ($period === 'today') {
+            $queryTopProducts->where('orders.created_at', '>=', now()->startOfDay());
+            $queryTopProducts->where('orders.created_at', '<=', now()->endOfDay());
+        } elseif ($period === 'week') {
+            $queryTopProducts->where('orders.created_at', '>=', now()->startOfWeek());
+        } elseif ($period === 'month') {
+            $queryTopProducts->where('orders.created_at', '>=', now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $queryTopProducts->where('orders.created_at', '>=', now()->startOfYear());
+        }
+
+        $limit = $request->query('limit', 5);
+
+        $topProductsQuery = $queryTopProducts->groupBy('products.id', 'products.name', 'products.image')
+            ->orderByDesc('total_sold');
+            
+        if ($limit !== 'all') {
+            $topProductsQuery->limit((int)$limit);
+        }
+        
+        $topProducts = $topProductsQuery->get();
+            
+        return view('admin.reports', compact(
+            'topProducts', 'period', 'totalRevenue', 'totalOrders', 'avgOrderValue', 
+            'totalItemsSold', 'uniqueCustomers', 'chartLabels', 'chartValues', 'catLabels', 'catData'
+        )); 
+    });
     Route::get('/admin/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
     Route::post('/admin/reviews/{review}/status', [\App\Http\Controllers\ReviewController::class, 'updateStatus']);
     Route::post('/admin/reviews/{review}/reply', [\App\Http\Controllers\ReviewController::class, 'reply']);
