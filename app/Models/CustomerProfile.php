@@ -23,4 +23,8 @@ class CustomerProfile extends Model
     public function user() {
         return $this->belongsTo(User::class);
     }
+
+    public function addresses() {
+        return $this->hasMany(CustomerAddress::class, 'customer_id');
+    }
 }
