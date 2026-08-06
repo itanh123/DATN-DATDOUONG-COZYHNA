@@ -285,8 +285,12 @@ class CartController extends Controller
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Không tìm thấy sản phẩm được chọn.');
         }
+        $minOrderAmount = (float) \App\Models\Setting::get('min_order_amount', 0);
+        if ($subtotal < $minOrderAmount) {
+            return redirect()->route('cart.index')->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để giao hàng (' . number_format($minOrderAmount, 0, ',', '.') . ' đ). Vui lòng mua thêm.');
+        }
 
-        $deliveryFee = $subtotal > 0 ? 15000 : 0;
+        $deliveryFee = 0; // Sẽ được tính lại bằng JS ở frontend khi có địa chỉ
         $tax         = 0;
 
         $appliedVoucher = session('applied_voucher');
@@ -334,8 +338,14 @@ class CartController extends Controller
                 ->whereNull('deleted_at')
                 ->get();
         }
+        $feePerKm = (float) \App\Models\Setting::get('fee_per_km', 0);
+        $maxRadius = (float) \App\Models\Setting::get('max_delivery_radius', 0);
+        $storeProvince = \App\Models\Setting::get('store_province', 'Hà Nội');
+        $storeDistrict = \App\Models\Setting::get('store_district', '');
+        $storeWard = \App\Models\Setting::get('store_ward', '');
+        $storeSpecificAddress = \App\Models\Setting::get('store_specific_address', '');
 
-        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses'));
+        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress'));
     }
 
     private function calcTotals($cartItems): array

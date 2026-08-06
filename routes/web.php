@@ -469,6 +469,11 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
     Route::delete('/admin/backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy']);
 
+    // Delivery Settings
+    Route::get('/admin/delivery-settings', [\App\Http\Controllers\Admin\DeliverySettingController::class, 'index']);
+    Route::post('/admin/delivery-settings', [\App\Http\Controllers\Admin\DeliverySettingController::class, 'update']);
+
+
     // Restaurant Tables Management
     Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
     Route::get('/admin/tables/status-data', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'statusData']);

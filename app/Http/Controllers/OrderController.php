@@ -179,11 +179,10 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'customer_id'     => $profile->id,
-                'code'            => $orderCode,
+                'order_code'      => $orderCode,
                 'order_source'    => 'WEBSITE',
                 'order_type'      => 'DELIVERY',
                 'order_status'    => 'PENDING',
-                'status'          => 'pending',
                 'receiver_name'   => $request->receiver_name,
                 'receiver_phone'  => $request->receiver_phone,
                 'delivery_address'=> $request->address,

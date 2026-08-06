@@ -212,6 +212,10 @@
 <span class="material-symbols-outlined" data-icon="backup">backup</span>
 <span class="font-label-md text-label-md">Sao lưu</span>
 </a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/delivery-settings">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Giao hàng</span>
+</a>
 @endif
 </nav>
 <div class="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
