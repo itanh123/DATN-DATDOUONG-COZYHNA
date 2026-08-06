@@ -44,6 +44,8 @@
                             <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-amber-100 text-amber-800">Chờ xác nhận</span>
                         @elseif($statusUpper === 'CONFIRMED' || $statusUpper === 'PREPARING')
                             <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-blue-100 text-blue-800">Đang pha chế</span>
+                        @elseif($statusUpper === 'READY_FOR_DELIVERY')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-purple-100 text-purple-800">Chờ giao hàng</span>
                         @elseif($statusUpper === 'DELIVERING' || $statusUpper === 'SHIPPING')
                             <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-indigo-100 text-indigo-800">Đang giao hàng</span>
                         @elseif($statusUpper === 'COMPLETED')

@@ -30,11 +30,11 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
         }
 
         // Tab "Available": đơn hàng đã sẵn sàng giao, chưa có shipper nhận
-        $availableOrders = Order::where('order_status', 'DELIVERING')
+        $availableOrders = Order::where('order_status', 'READY_FOR_DELIVERY')
             ->whereNull('shipper_id')
             ->with(['customer.user', 'items'])
             ->orderByDesc('updated_at')
@@ -84,19 +84,21 @@ class ShipperController extends Controller
 
         DB::transaction(function () use ($orderId, $shipper) {
             $order = Order::where('id', $orderId)
-                ->where('order_status', 'DELIVERING')
+                ->where('order_status', 'READY_FOR_DELIVERY')
                 ->whereNull('shipper_id')
                 ->lockForUpdate()
                 ->firstOrFail();
 
             // Gắn shipper vào đơn hàng
             $order->shipper_id = $shipper->id;
+            $order->order_status = 'DELIVERING';
+            $order->status = 'shipping';
             $order->save();
 
             // Tạo bản ghi history
             OrderStatusHistory::create([
                 'order_id'   => $order->id,
-                'old_status' => 'DELIVERING',
+                'old_status' => 'READY_FOR_DELIVERY',
                 'new_status' => 'DELIVERING',
                 'changed_by' => session('user_id'),
                 'note'       => 'Shipper đã nhận đơn hàng.',

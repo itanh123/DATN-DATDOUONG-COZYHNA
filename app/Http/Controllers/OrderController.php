@@ -251,7 +251,16 @@ class OrderController extends Controller
             session()->forget('checkout_items');
         });
 
-        if (in_array($request->payment_method, ['vietqr', 'bank', 'momo'])) {
+        if ($request->payment_method === 'vnpay') {
+            $order = Order::where('order_code', $createdOrderCode)->first();
+            return app(\App\Http\Controllers\PaymentController::class)->createVnpayPayment($order);
+        }
+
+        if ($request->payment_method === 'momo') {
+            return redirect()->route('payment.fake.gateway', ['orderCode' => $createdOrderCode]);
+        }
+
+        if (in_array($request->payment_method, ['vietqr', 'bank'])) {
             return redirect()->route('customer.orders')->with([
                 'success' => 'Đặt hàng thành công! Vui lòng quét mã VietQR để hoàn tất thanh toán.',
                 'show_vietqr' => $createdOrderCode

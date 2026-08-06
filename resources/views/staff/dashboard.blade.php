@@ -148,31 +148,31 @@
     <section class="mb-xl">
         <div class="flex items-center gap-sm mb-lg">
             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
-            <h3 class="font-title-lg text-title-lg text-on-background">Đang Giao
-                <span class="ml-sm text-sm font-label-md px-sm py-xs bg-purple-100 text-purple-700 rounded-full">{{ $shippingOrders->count() }}</span>
+            <h3 class="font-title-lg text-title-lg text-on-background">Chờ Ship Hàng
+                <span class="ml-sm text-sm font-label-md px-sm py-xs bg-purple-100 text-purple-700 rounded-full">{{ $readyOrders->count() }}</span>
             </h3>
         </div>
 
-        @if($shippingOrders->isEmpty())
+        @if($readyOrders->isEmpty())
             <div class="glass-card rounded-2xl p-xl text-center shadow-sm border border-outline-variant/10">
-                <span class="material-symbols-outlined text-[48px] text-outline-variant">local_shipping</span>
-                <p class="font-body-lg text-on-surface-variant mt-sm">Không có đơn hàng đang giao</p>
+                <span class="material-symbols-outlined text-[48px] text-outline-variant">takeout_dining</span>
+                <p class="font-body-lg text-on-surface-variant mt-sm">Không có đơn hàng chờ ship</p>
             </div>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-lg">
-                @foreach($shippingOrders as $order)
+                @foreach($readyOrders as $order)
                 <div class="glass-card rounded-2xl p-lg shadow-sm border border-purple-200 bg-purple-50/20">
                     <div class="flex justify-between items-start mb-md">
                         <div>
                             <p class="font-label-md text-label-md text-on-surface-variant">Mã đơn</p>
                             <p class="font-bold text-on-surface tracking-wider">{{ $order->code }}</p>
                         </div>
-                        <span class="px-sm py-xs rounded-full text-xs font-bold bg-purple-100 text-purple-700">Đang giao</span>
+                        <span class="px-sm py-xs rounded-full text-xs font-bold bg-purple-100 text-purple-700">Chờ Shipper</span>
                     </div>
 
                     {{-- Thông tin Shipper --}}
                     <div class="flex items-center gap-sm mb-md pb-md border-b border-outline-variant/20">
-                        <span class="material-symbols-outlined text-purple-500 text-[20px]">delivery_truck_speed</span>
+                        <span class="material-symbols-outlined text-purple-500 text-[20px]">takeout_dining</span>
                         <div>
                             @if($order->shipper)
                                 <p class="font-body-md font-medium">{{ $order->shipper->full_name }}</p>

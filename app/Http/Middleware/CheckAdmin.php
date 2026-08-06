@@ -15,8 +15,8 @@ class CheckAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!session('role_code')) {
-            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập tài khoản quản trị.');
+        if (!in_array(session('role_code'), ['admin', 'staff', 'shipper'])) {
+            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập bằng tài khoản quản trị/nhân viên.');
         }
 
         return $next($request);

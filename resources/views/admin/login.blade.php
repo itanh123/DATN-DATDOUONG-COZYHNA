@@ -203,6 +203,11 @@
                         <p class="font-body-md text-body-md text-on-surface-variant">Please enter your
                             credentials to access the management portal.</p>
                     </header>
+                    @if(session('error'))
+                        <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
+                            {{ session('error') }}
+                        </div>
+                    @endif
                     @if($errors->any())
                         <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
                             <ul class="list-disc pl-5">

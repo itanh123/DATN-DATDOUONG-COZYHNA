@@ -2,238 +2,531 @@
 
 @section('title', 'Giỏ hàng của bạn')
 
+@push('styles')
+<style>
+    /* Premium background */
+    .cart-bg {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8f5e9 50%, #f0f7ff 100%);
+        min-height: 100vh;
+    }
+
+    /* Premium card */
+    .premium-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        transition: box-shadow 0.3s ease;
+    }
+    .premium-card:hover {
+        box-shadow: 0 8px 32px rgba(0, 110, 28, 0.08);
+    }
+
+    /* Cart item row */
+    .cart-item-row {
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .cart-item-row:hover {
+        background-color: rgba(0, 110, 28, 0.02);
+    }
+
+    /* Green gradient button */
+    .btn-primary {
+        background: linear-gradient(135deg, #006e1c, #3e6a00);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 110, 28, 0.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0, 110, 28, 0.4);
+    }
+    .btn-primary:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: #9ca3af;
+        box-shadow: none;
+    }
+
+    /* Edit variant button */
+    .btn-edit-variant {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        background: rgba(0, 110, 28, 0.1);
+        color: #006e1c;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .btn-edit-variant:hover {
+        background: #006e1c;
+        color: white;
+    }
+
+    /* Custom Checkbox */
+    .custom-checkbox {
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid rgba(190, 202, 185, 0.8);
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+        background: white;
+    }
+    .custom-checkbox:checked {
+        background-color: #006e1c;
+        border-color: #006e1c;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E") !important;
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: none;
+        align-items: flex-end; /* Bottom sheet on mobile */
+        justify-content: center;
+    }
+    @media (min-width: 768px) {
+        .modal-backdrop { align-items: center; }
+    }
+    .modal-backdrop.open {
+        display: flex;
+        animation: fade-in 0.2s ease;
+    }
+    .modal-box {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 768px) {
+        .modal-box {
+            border-radius: 24px;
+            transform: scale(0.95);
+        }
+    }
+    .modal-backdrop.open .modal-box {
+        transform: translateY(0);
+    }
+    @media (min-width: 768px) {
+        .modal-backdrop.open .modal-box { transform: scale(1); }
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Radio variants */
+    .variant-radio:checked + label {
+        background: rgba(0, 110, 28, 0.1);
+        border-color: #006e1c;
+        color: #006e1c;
+    }
+    .topping-checkbox:checked + label {
+        background: rgba(0, 110, 28, 0.1);
+        border-color: #006e1c;
+    }
+    
+    /* Hide number spinners */
+    .quantity-input::-webkit-inner-spin-button,
+    .quantity-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .quantity-input {
+        -moz-appearance: textfield;
+    }
+</style>
+@endpush
+
 @section('content')
-<main class="mt-24 pb-24 max-w-container-max mx-auto px-4 md:px-lg">
-    {{-- Flash messages --}}
-    @if(session('error'))
-        <div class="mb-md p-md bg-red-100 text-red-700 rounded-xl font-body-md">{{ session('error') }}</div>
-    @endif
-    @if(session('success'))
-        <div class="mb-md p-md bg-green-100 text-green-700 rounded-xl font-body-md">{{ session('success') }}</div>
-    @endif
-
-    <div class="mb-xl">
-        <h1 class="font-headline-lg text-headline-lg text-on-background">Giỏ hàng</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant">Quản lý các mặt hàng bạn đã chọn.</p>
-    </div>
-
-    @if($cartItems->isEmpty())
-        <div class="text-center py-2xl">
-            <span class="material-symbols-outlined text-[80px] text-outline-variant">shopping_cart</span>
-            <h2 class="font-headline-md text-headline-md text-on-surface mt-md">Giỏ hàng trống</h2>
-            <p class="text-on-surface-variant font-body-md mt-xs mb-xl">Hãy thêm đồ uống vào giỏ hàng để tiếp tục nhé!</p>
-            <a href="/" class="bg-primary text-white px-xl py-md rounded-xl font-bold hover:bg-primary/90 transition-all">Xem thực đơn</a>
+<div class="pt-20 pb-24 cart-bg">
+    <main class="max-w-6xl mx-auto px-4 md:px-lg">
+        
+        <div class="mb-8">
+            <h1 class="text-[28px] font-bold text-on-surface">Giỏ hàng của bạn</h1>
+            <p class="text-[14px] text-on-surface-variant mt-1">Kiểm tra lại các món đồ uống tuyệt vời trước khi thanh toán.</p>
         </div>
-    @else
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
-            {{-- Left Column: Cart Items --}}
-            <div class="lg:col-span-8 space-y-md">
-                <div class="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 flex items-center justify-between">
-                    <label class="flex items-center gap-xs cursor-pointer select-none">
-                        <input type="checkbox" id="selectAll" class="w-5 h-5 text-primary rounded border-outline-variant focus:ring-primary checked:bg-primary" checked>
-                        <span class="font-label-lg font-bold">Chọn tất cả ({{ $cartItems->count() }})</span>
-                    </label>
-                </div>
 
-                <div class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10 space-y-md divide-y divide-outline-variant/20">
-                    @foreach($cartItems as $item)
-                        @php
-                            $product = $item->productSize->product ?? $item->product;
-                            $size    = $item->productSize->size ?? null;
-                            $price   = $item->unit_price;
-                            $itemTotal = $price * $item->quantity;
-                        @endphp
-                        <div class="py-md flex items-start gap-md cart-item-row" data-id="{{ $item->id }}" data-price="{{ $price }}" data-quantity="{{ $item->quantity }}">
-                            <div class="pt-2">
-                                <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" class="item-checkbox w-5 h-5 text-primary rounded border-outline-variant focus:ring-primary checked:bg-primary" checked>
-                            </div>
-                            
-                            <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container block hover:opacity-80 transition-opacity">
-                                @if($product && $product->image)
-                                    <img class="w-full h-full object-cover" src="{{ $product->image }}" alt="{{ $product->name }}"/>
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-outline-variant text-[36px]">local_cafe</span>
-                                    </div>
-                                @endif
-                            </a>
-                            
-                            <div class="flex-grow flex flex-col justify-between min-h-[6rem]">
-                                <div>
-                                    <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="font-body-lg text-body-lg font-semibold hover:text-primary transition-colors">{{ $product->name ?? 'Sản phẩm' }}</a>
-                                    <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $size->name ?? 'Mặc định' }}</p>
-                                    @if(isset($item->toppings) && count($item->toppings) > 0)
-                                        <div class="mt-1">
-                                            @foreach($item->toppings as $topping)
-                                                <p class="font-label-sm text-label-sm text-on-surface-variant">+ {{ $topping['name'] }}</p>
-                                            @endforeach
+        @if($cartItems->isEmpty())
+            <div class="text-center py-20 bg-white/50 backdrop-blur-md rounded-3xl border border-white">
+                <div class="w-24 h-24 bg-surface rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span class="material-symbols-outlined text-[48px] text-primary/40">shopping_bag</span>
+                </div>
+                <h2 class="text-[20px] font-bold text-on-surface">Giỏ hàng đang trống</h2>
+                <p class="text-[14px] text-on-surface-variant mt-2 mb-8">Bạn chưa chọn món nào. Hãy xem qua thực đơn của chúng tôi nhé!</p>
+                <a href="/" class="btn-primary inline-flex">Khám phá Thực đơn</a>
+            </div>
+        @else
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
+                
+                {{-- LEFT: Cart Items --}}
+                <div class="lg:w-2/3 w-full space-y-4">
+                    
+                    {{-- Select All Header --}}
+                    <div class="premium-card rounded-2xl p-4 flex items-center justify-between">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="selectAll" class="custom-checkbox" checked>
+                            <span class="text-[14px] font-semibold text-on-surface">Chọn tất cả ({{ $cartItems->count() }} món)</span>
+                        </label>
+                    </div>
+
+                    {{-- Items List --}}
+                    <div class="premium-card rounded-2xl overflow-hidden divide-y divide-outline-variant/15">
+                        @foreach($cartItems as $item)
+                            @php
+                                $product = $item->productSize->product ?? $item->product;
+                                $size    = $item->productSize->size ?? null;
+                                $price   = $item->unit_price;
+                                $itemTotal = $price * $item->quantity;
+                                $productSizes = $product->productSizes ?? collect();
+                                $productToppings = $product->toppings ?? collect();
+                            @endphp
+                            <div class="p-4 md:p-5 flex gap-4 cart-item-row relative" 
+                                 data-id="{{ $item->id }}" 
+                                 data-product-id="{{ $product->id ?? '' }}"
+                                 data-price="{{ $price }}" 
+                                 data-quantity="{{ $item->quantity }}"
+                                 data-size-id="{{ $item->product_size_id }}"
+                                 data-topping-ids="{{ json_encode(array_column($item->toppings, 'id')) }}"
+                                 data-sizes="{{ json_encode($productSizes->map(fn($s) => ['id'=>$s->id, 'name'=>$s->size->name, 'price'=>$s->selling_price])) }}"
+                                 data-toppings="{{ json_encode($productToppings->map(fn($t) => ['id'=>$t->id, 'name'=>$t->name, 'price'=>$t->pivot->extra_price])) }}">
+                                
+                                <div class="pt-2">
+                                    <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" class="item-checkbox custom-checkbox" checked>
+                                </div>
+
+                                <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-outline-variant/20 hover:opacity-90 transition-opacity bg-white">
+                                    @if($product && $product->image)
+                                        <img class="w-full h-full object-cover" src="{{ str_starts_with($product->image, 'http') ? $product->image : asset('storage/'.$product->image) }}" alt=""/>
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center bg-surface">
+                                            <span class="material-symbols-outlined text-outline-variant/50 text-[32px]">local_cafe</span>
                                         </div>
                                     @endif
-                                    <p class="font-body-lg text-body-lg font-bold text-primary mt-1">{{ number_format($price, 0, ',', '.') }} đ</p>
-                                </div>
-                                
-                                <div class="flex items-center gap-md mt-sm">
-                                    <div class="flex items-center bg-surface-container border border-outline-variant/30 rounded-lg overflow-hidden">
-                                        <button type="button" class="btn-decrease px-3 py-1 hover:bg-surface-container-high transition-colors material-symbols-outlined text-[20px] text-on-surface-variant" data-id="{{ $item->id }}">-</button>
-                                        <span class="px-4 py-1 font-body-md font-semibold bg-surface-container-lowest quantity-display">{{ $item->quantity }}</span>
-                                        <button type="button" class="btn-increase px-3 py-1 hover:bg-surface-container-high transition-colors material-symbols-outlined text-[20px] text-on-surface-variant" data-id="{{ $item->id }}">+</button>
+                                </a>
+
+                                <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex justify-between items-start gap-2">
+                                            <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="text-[16px] font-bold text-on-surface hover:text-primary transition-colors truncate">
+                                                {{ $product->name ?? 'Sản phẩm' }}
+                                            </a>
+                                            {{-- Delete Button (Desktop) --}}
+                                            <button type="button" class="btn-remove hidden md:block text-error hover:bg-error-container p-1.5 rounded-lg transition-colors" data-id="{{ $item->id }}">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </div>
+
+                                        {{-- Variant info & Edit Button --}}
+                                        <div class="mt-1 flex items-start gap-2 flex-wrap">
+                                            <div class="text-[12px] text-on-surface-variant flex flex-wrap items-center gap-1.5">
+                                                <span>Size: <span class="font-semibold">{{ $size->name ?? 'Mặc định' }}</span></span>
+                                                @if(!empty($item->toppings))
+                                                    <span class="mx-0.5">•</span>
+                                                    @foreach($item->toppings as $topping)
+                                                        <span class="inline-flex items-center gap-0.5 bg-surface-variant/50 text-on-surface-variant px-1.5 py-0.5 rounded text-[11px] border border-outline-variant/30">
+                                                            {{ $topping['name'] }}
+                                                            <button type="button" class="hover:text-error transition-colors flex items-center justify-center" title="Xóa topping" onclick="removeTopping('{{ $item->id }}', {{ $topping['id'] }}, this.closest('.cart-item-row'))">
+                                                                <span class="material-symbols-outlined text-[13px]">close</span>
+                                                            </button>
+                                                        </span>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                            <button type="button" class="btn-edit-variant" onclick="openVariantModal(this.closest('.cart-item-row'))">
+                                                <span class="material-symbols-outlined text-[13px]">edit</span> Thay đổi
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-end justify-between mt-3">
+                                        <div class="text-[15px] font-bold text-primary item-total-display">
+                                            {{ number_format($itemTotal, 0, ',', '.') }} đ
+                                        </div>
+
+                                        <div class="flex items-center gap-3">
+                                            {{-- Quantity Controls --}}
+                                            <div class="flex items-center bg-white border border-outline-variant/40 rounded-full h-8 overflow-hidden shadow-sm">
+                                                <button type="button" class="btn-decrease w-8 h-full flex items-center justify-center hover:bg-surface text-on-surface-variant transition-colors" data-id="{{ $item->id }}">
+                                                    <span class="material-symbols-outlined text-[16px]">remove</span>
+                                                </button>
+                                                <input type="number" min="1" class="w-10 text-center text-[13px] font-bold quantity-input bg-transparent outline-none border-none focus:ring-0 p-0 m-0" value="{{ $item->quantity }}" data-id="{{ $item->id }}">
+                                                <button type="button" class="btn-increase w-8 h-full flex items-center justify-center hover:bg-surface text-on-surface-variant transition-colors" data-id="{{ $item->id }}">
+                                                    <span class="material-symbols-outlined text-[16px]">add</span>
+                                                </button>
+                                            </div>
+                                            
+                                            {{-- Delete Button (Mobile) --}}
+                                            <button type="button" class="btn-remove md:hidden text-error bg-error-container/50 hover:bg-error-container p-1.5 rounded-full transition-colors" data-id="{{ $item->id }}">
+                                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="flex flex-col justify-between items-end min-h-[6rem]">
-                                <button type="button" class="btn-remove text-error hover:bg-error/10 p-2 rounded-full transition-colors material-symbols-outlined" data-id="{{ $item->id }}" title="Xóa">delete</button>
-                                <p class="font-title-md font-bold text-primary item-total-display">{{ number_format($itemTotal, 0, ',', '.') }} đ</p>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- RIGHT: Summary --}}
+                <div class="lg:w-1/3 w-full sticky top-24">
+                    <div class="premium-card rounded-2xl p-6">
+                        <h2 class="text-[18px] font-bold text-on-surface mb-5">Tóm tắt đơn hàng</h2>
+                        
+                        <div class="space-y-3 text-[14px]">
+                            <div class="flex justify-between items-center">
+                                <span class="text-on-surface-variant">Tạm tính (<span id="selectedCountDisplay">{{ $cartItems->count() }}</span> món)</span>
+                                <span class="font-semibold text-on-surface" id="subtotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-on-surface-variant">Phí giao hàng</span>
+                                <span class="text-on-surface-variant text-[12px] italic">Tính ở bước sau</span>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            </div>
 
-            {{-- Right Column: Summary & Checkout --}}
-            <div class="lg:col-span-4 sticky top-24">
-                <div class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
-                    <h2 class="font-title-lg text-title-lg mb-md">Tóm tắt đơn hàng</h2>
-                    
-                    <div class="flex justify-between items-center mb-sm">
-                        <span class="font-body-md text-on-surface-variant">Tổng tiền (<span id="selectedCountDisplay">{{ $cartItems->count() }}</span> sản phẩm)</span>
-                        <span class="font-title-md font-bold text-on-surface" id="subtotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
-                    </div>
+                        <div class="my-5 border-t border-outline-variant/20 border-dashed"></div>
+                        
+                        <div id="discountContainer" class="flex justify-between items-center mb-3 {{ (!isset($discountAmount) || $discountAmount <= 0) ? 'hidden' : '' }}">
+                            <span class="text-[14px] text-error">Giảm giá (Voucher)</span>
+                            <span class="font-semibold text-error" id="discountDisplay">-{{ number_format($discountAmount ?? 0, 0, ',', '.') }} đ</span>
+                        </div>
 
-                    <div id="discountContainer" class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20 {{ (!isset($discountAmount) || $discountAmount <= 0) ? 'hidden' : '' }}">
-                        <span class="font-body-md text-error">Giảm giá (Voucher)</span>
-                        <span class="font-title-md font-bold text-error" id="discountDisplay">-{{ number_format($discountAmount ?? 0, 0, ',', '.') }} đ</span>
-                    </div>
-                    <div class="flex justify-between items-center mb-md {{ (!isset($discountAmount) || $discountAmount <= 0) ? 'pb-md border-b border-outline-variant/20' : '' }}" id="finalTotalContainer">
-                        <span class="font-body-md font-bold text-on-surface-variant">Tạm tính</span>
-                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format(max(0, $subtotal - ($discountAmount ?? 0)), 0, ',', '.') }} đ</span>
-                    </div>
-
-                    <div class="mb-md relative">
-                        <div class="flex gap-2 mb-2">
-                            <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-4 py-2 font-body-sm text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
-                            @if($appliedVoucher)
-                                <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg font-label-md hover:bg-error/90 transition-all shrink-0">Gỡ mã</button>
-                            @else
-                                <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg font-label-md hover:bg-primary/90 transition-all shrink-0">Áp dụng</button>
+                        <div class="mb-5 relative">
+                            <div class="flex gap-2">
+                                <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
+                                @if($appliedVoucher)
+                                    <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-error/90 transition-all shrink-0">Gỡ mã</button>
+                                @else
+                                    <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all shrink-0">Áp dụng</button>
+                                @endif
+                            </div>
+                            
+                            <!-- Voucher Dropdown -->
+                            @if(isset($availableVouchers) && $availableVouchers->count() > 0 && !$appliedVoucher)
+                            <div id="voucherDropdown" class="absolute z-[100] w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl hidden max-h-[250px] overflow-y-auto mt-1 left-0">
+                                <div class="p-2 text-xs font-bold text-on-surface-variant bg-surface-container-lowest sticky top-0 border-b border-outline-variant/30">Mã giảm giá khả dụng</div>
+                                @foreach($availableVouchers as $voucher)
+                                    @php
+                                        $isEligible = $subtotal >= ($voucher->minimum_order ?? 0);
+                                    @endphp
+                                    <div class="p-3 border-b border-outline-variant/10 hover:bg-primary/5 transition-colors flex justify-between items-center {{ $isEligible ? 'voucher-item cursor-pointer' : 'opacity-60 cursor-not-allowed' }}" data-code="{{ $voucher->code }}">
+                                        <div class="flex-1">
+                                            <div class="font-bold text-[13px] text-primary mb-0.5">{{ $voucher->code }}</div>
+                                            <div class="text-[11px] text-on-surface-variant leading-tight">Giảm {{ $voucher->discount_type == 'percent' ? $voucher->discount_value.'%' : number_format($voucher->discount_value, 0, ',', '.').'đ' }} 
+                                            @if($voucher->minimum_order) <br>Đơn tối thiểu {{ number_format($voucher->minimum_order, 0, ',', '.') }}đ @endif
+                                            </div>
+                                        </div>
+                                        @if(!$isEligible)
+                                            <span class="text-[10px] bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded font-medium ml-2 shrink-0">Chưa đạt ĐK</span>
+                                        @else
+                                            <span class="text-[10px] bg-primary-container text-primary px-1.5 py-0.5 rounded font-bold ml-2 shrink-0 border border-primary/20">Dùng ngay</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                             @endif
+
+                            <p id="voucherMessage" class="text-[12px] hidden mt-1"></p>
+                        </div>
+
+                        <div class="flex justify-between items-end mb-6" id="finalTotalContainer">
+                            <span class="text-[14px] font-semibold text-on-surface">Tổng cộng</span>
+                            <span class="text-[24px] font-bold text-primary leading-none" id="totalDisplay">{{ number_format(max(0, $subtotal - ($discountAmount ?? 0)), 0, ',', '.') }} đ</span>
                         </div>
                         
-                        <!-- Voucher Dropdown -->
-                        @if(isset($availableVouchers) && $availableVouchers->count() > 0 && !$appliedVoucher)
-                        <div id="voucherDropdown" class="absolute z-[100] w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl hidden max-h-[250px] overflow-y-auto mt-1 left-0">
-                            <div class="p-2 text-xs font-bold text-on-surface-variant bg-surface-container-lowest sticky top-0 border-b border-outline-variant/30">Mã giảm giá khả dụng</div>
-                            @foreach($availableVouchers as $voucher)
-                                @php
-                                    $isEligible = $subtotal >= ($voucher->minimum_order ?? 0);
-                                @endphp
-                                <div class="p-3 border-b border-outline-variant/10 hover:bg-primary/5 transition-colors flex justify-between items-center {{ $isEligible ? 'voucher-item cursor-pointer' : 'opacity-60 cursor-not-allowed' }}" data-code="{{ $voucher->code }}">
-                                    <div class="flex-1">
-                                        <div class="font-bold text-[13px] text-primary mb-0.5">{{ $voucher->code }}</div>
-                                        <div class="text-[11px] text-on-surface-variant leading-tight">Giảm {{ $voucher->discount_type == 'percent' ? $voucher->discount_value.'%' : number_format($voucher->discount_value, 0, ',', '.').'đ' }} 
-                                        @if($voucher->minimum_order) <br>Đơn tối thiểu {{ number_format($voucher->minimum_order, 0, ',', '.') }}đ @endif
-                                        </div>
-                                    </div>
-                                    @if(!$isEligible)
-                                        <span class="text-[10px] bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded font-medium ml-2 shrink-0">Chưa đạt ĐK</span>
-                                    @else
-                                        <span class="text-[10px] bg-primary-container text-primary px-1.5 py-0.5 rounded font-bold ml-2 shrink-0 border border-primary/20">Dùng ngay</span>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                        @endif
-
-                        <p id="voucherMessage" class="text-sm hidden mt-1"></p>
+                        <button type="button" id="btnCheckout" class="btn-primary w-full flex items-center justify-center gap-2">
+                            Tiến hành thanh toán
+                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </button>
                     </div>
-                    
-                    <p class="font-label-sm text-on-surface-variant mb-md text-center">Phí vận chuyển sẽ được tính ở bước thanh toán.</p>
-                    
-                    <button type="button" id="btnCheckout" class="w-full bg-primary text-white py-md rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-xs">
-                        Tiến hành thanh toán
-                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                    </button>
+                </div>
+
+            </div>
+        @endif
+    </main>
+</div>
+
+{{-- ====== VARIANT EDIT MODAL ====== --}}
+<div id="variant-modal" class="modal-backdrop" onclick="if(event.target===this)closeVariantModal()">
+    <div class="modal-box flex flex-col">
+        <div class="p-5 border-b border-outline-variant/15 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-2xl md:rounded-t-[24px]">
+            <h3 class="text-[18px] font-bold text-on-surface">Tùy chỉnh đồ uống</h3>
+            <button onclick="closeVariantModal()" class="w-8 h-8 rounded-full bg-surface hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        
+        <div class="p-5 overflow-y-auto space-y-6 flex-1">
+            <input type="hidden" id="vm-cart-id">
+            
+            {{-- Size Section --}}
+            <div>
+                <h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center justify-between">
+                    Chọn Size <span class="text-[11px] font-normal text-on-surface-variant bg-surface px-2 py-0.5 rounded">Bắt buộc</span>
+                </h4>
+                <div class="grid grid-cols-2 gap-3" id="vm-sizes-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            {{-- Topping Section --}}
+            <div>
+                <h4 class="text-[14px] font-bold text-on-surface mb-3 flex items-center justify-between">
+                    Thêm Topping <span class="text-[11px] font-normal text-on-surface-variant bg-surface px-2 py-0.5 rounded">Tùy chọn</span>
+                </h4>
+                <div class="space-y-2" id="vm-toppings-container">
+                    <!-- Injected via JS -->
                 </div>
             </div>
         </div>
-    @endif
-</main>
 
+        <div class="p-5 border-t border-outline-variant/15 sticky bottom-0 bg-white md:rounded-b-[24px]">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[13px] text-on-surface-variant">Tạm tính tùy chỉnh:</span>
+                <span class="text-[18px] font-bold text-primary" id="vm-price-display">0 đ</span>
+            </div>
+            <button type="button" onclick="saveVariantChanges()" class="btn-primary w-full" id="vm-save-btn">
+                Cập nhật giỏ hàng
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirm Delete Modal -->
+<div id="delete-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+    <div class="bg-surface rounded-3xl p-6 w-[90%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300">
+        <div class="flex items-center gap-3 text-error mb-4">
+            <span class="material-symbols-outlined text-[32px]">warning</span>
+            <h3 class="text-[18px] font-bold text-on-surface">Xóa sản phẩm?</h3>
+        </div>
+        <p class="text-[14px] text-on-surface-variant mb-6">Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?</p>
+        <div class="flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteModal()" class="px-5 py-2.5 rounded-xl text-on-surface-variant bg-surface-variant/50 hover:bg-surface-variant transition-colors font-semibold text-[14px]">Hủy</button>
+            <button type="button" id="btn-confirm-delete" class="px-5 py-2.5 rounded-xl bg-error text-white hover:opacity-90 transition-opacity font-semibold shadow-sm text-[14px]">Xóa</button>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     const formatMoney = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
     
+    // UI Elements
     const checkboxes = document.querySelectorAll('.item-checkbox');
-    const selectAll = document.getElementById('selectAll');
-    const subtotalDisplay = document.getElementById('subtotalDisplay');
-    const selectedCountDisplay = document.getElementById('selectedCountDisplay');
-    const btnCheckout = document.getElementById('btnCheckout');
-    
     const appliedVoucherDetails = @json(isset($appliedVoucher) ? \App\Models\Voucher::find($appliedVoucher['id']) : null);
-
-    // Cập nhật tổng tiền dựa trên checkbox
+    const selectAll = document.getElementById('selectAll');
+    
+    // === CART TOTALS LOGIC ===
     function updateTotals() {
-        let total = 0;
-        let count = 0;
-        checkboxes.forEach(cb => {
-            if (cb.checked) {
-                const row = cb.closest('.cart-item-row');
-                const price = parseFloat(row.dataset.price);
-                const quantity = parseInt(row.dataset.quantity);
-                total += price * quantity;
-                count++;
-            }
-        });
-        
-        if (subtotalDisplay) subtotalDisplay.textContent = formatMoney(total);
-        if (selectedCountDisplay) selectedCountDisplay.textContent = count;
-        
-        let discount = 0;
-        if (appliedVoucherDetails) {
-            if (appliedVoucherDetails.minimum_order && total < appliedVoucherDetails.minimum_order) {
-                discount = 0; 
-            } else {
-                if (appliedVoucherDetails.discount_type === 'percent') {
-                    discount = (total * appliedVoucherDetails.discount_value) / 100;
-                    if (appliedVoucherDetails.maximum_discount && discount > appliedVoucherDetails.maximum_discount) {
-                        discount = appliedVoucherDetails.maximum_discount;
+        try {
+            let total = 0;
+            let count = 0;
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const row = cb.closest('.cart-item-row');
+                    if (row) {
+                        const price = parseFloat(row.getAttribute('data-price') || 0);
+                        let quantity = 1;
+                        
+                        // Always read from the input directly to avoid any state desync
+                        const qtyInput = row.querySelector('.quantity-input');
+                        if (qtyInput) {
+                            const val = parseInt(qtyInput.value);
+                            if (!isNaN(val) && val >= 1) {
+                                quantity = val;
+                            }
+                        } else {
+                            quantity = parseInt(row.getAttribute('data-quantity') || 1);
+                        }
+                        
+                        total += (price * quantity);
+                        count++;
                     }
-                } else {
-                    discount = appliedVoucherDetails.discount_value;
                 }
-                if (discount > total) discount = total;
+            });
+            
+            // Explicitly force update right side elements
+            const subtotalDisplay = document.querySelector('#subtotalDisplay');
+            if (subtotalDisplay) subtotalDisplay.innerText = formatMoney(total);
+            
+            const selectedCountDisplay = document.querySelector('#selectedCountDisplay');
+            if (selectedCountDisplay) selectedCountDisplay.innerText = count;
+            
+            let discount = 0;
+            if (typeof appliedVoucherDetails !== 'undefined' && appliedVoucherDetails) {
+                if (appliedVoucherDetails.minimum_order && total < appliedVoucherDetails.minimum_order) {
+                    discount = 0;
+                } else {
+                    if (appliedVoucherDetails.discount_type === 'percent') {
+                        discount = (total * appliedVoucherDetails.discount_value) / 100;
+                        if (appliedVoucherDetails.max_discount) {
+                            discount = Math.min(discount, appliedVoucherDetails.max_discount);
+                        }
+                    } else {
+                        discount = appliedVoucherDetails.discount_value;
+                    }
+                }
             }
-        }
-        
-        const finalTotalDisplay = document.getElementById('finalTotalDisplay');
-        if (finalTotalDisplay) {
-            finalTotalDisplay.textContent = formatMoney(Math.max(0, total - discount));
-        }
-
-        const discountDisplay = document.getElementById('discountDisplay');
-        const discountContainer = document.getElementById('discountContainer');
-        const finalTotalContainer = document.getElementById('finalTotalContainer');
-        
-        if (discountDisplay && discountContainer) {
-            if (discount > 0) {
-                discountDisplay.textContent = '-' + formatMoney(discount);
-                discountContainer.classList.remove('hidden');
-                finalTotalContainer.classList.remove('pb-md', 'border-b', 'border-outline-variant/20');
-            } else {
-                discountContainer.classList.add('hidden');
-                finalTotalContainer.classList.add('pb-md', 'border-b', 'border-outline-variant/20');
+            
+            const totalDisplay = document.querySelector('#totalDisplay');
+            if (totalDisplay) {
+                totalDisplay.innerText = formatMoney(Math.max(0, total - discount));
             }
-        }
 
-        if (selectAll) {
-            selectAll.checked = count > 0 && count === checkboxes.length;
-        }
-        
-        if (btnCheckout) {
-            btnCheckout.disabled = count === 0;
-            btnCheckout.classList.toggle('opacity-50', count === 0);
-            btnCheckout.classList.toggle('cursor-not-allowed', count === 0);
+            const discountDisplay = document.querySelector('#discountDisplay');
+            const discountContainer = document.querySelector('#discountContainer');
+            
+            if (discountDisplay && discountContainer) {
+                if (discount > 0) {
+                    discountDisplay.innerText = '-' + formatMoney(discount);
+                    discountContainer.classList.remove('hidden');
+                } else {
+                    discountContainer.classList.add('hidden');
+                }
+            }
+            
+            const selectAllCheckbox = document.querySelector('#selectAll');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = count > 0 && count === checkboxes.length;
+            }
+            
+            const btnCheckout = document.querySelector('#btnCheckout');
+            if (btnCheckout) {
+                btnCheckout.disabled = count === 0;
+            }
+        } catch (e) {
+            console.error('Update Totals Error:', e);
+            alert('Lỗi cập nhật tổng tiền: ' + e.message);
         }
     }
 
@@ -244,13 +537,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', updateTotals);
-    });
+    checkboxes.forEach(cb => cb.addEventListener('change', updateTotals));
 
-    // Xử lý tăng giảm số lượng
-    const updateCartQty = async (id, newQty, row) => {
-        if (newQty < 1) return;
+    // === QUANTITY UPDATE LOGIC ===
+    function updateRowUI(newQty, row) {
+        row.setAttribute('data-quantity', newQty);
+        row.dataset.quantity = newQty;
+        const qtyInput = row.querySelector('.quantity-input');
+        if (qtyInput && qtyInput.value != newQty) qtyInput.value = newQty;
+        
+        const price = parseFloat(row.getAttribute('data-price') || row.dataset.price || 0);
+        const totalDisplay = row.querySelector('.item-total-display');
+        if (totalDisplay) totalDisplay.textContent = formatMoney(price * newQty);
+        
+        updateTotals();
+    }
+
+    async function updateCartQty(id, newQty, row) {
+        if (newQty < 1 || !row) return;
+        
+        // Optimistic UI Update
+        updateRowUI(newQty, row);
+        
         try {
             const res = await fetch(`/cart/update/${id}`, {
                 method: 'POST',
@@ -262,31 +570,96 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await res.json();
             if (data.success) {
-                row.dataset.quantity = newQty;
-                row.querySelector('.quantity-display').textContent = newQty;
-                const price = parseFloat(row.dataset.price);
-                row.querySelector('.item-total-display').textContent = formatMoney(price * newQty);
-                
-                window.serverCartCount = data.cart_item_count;
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                
-                updateTotals();
+                // Update badge if exists
+                const badge = document.getElementById('cart-badge');
+                if(badge) {
+                    badge.textContent = data.cart_item_count;
+                    badge.classList.remove('hidden');
+                }
+            } else {
+                if (data.error) alert(data.error);
             }
-        } catch (e) {
-            console.error(e);
-            alert("Có lỗi xảy ra khi cập nhật số lượng.");
-        }
-    };
+        } catch (e) { console.error(e); }
+    }
 
     document.querySelectorAll('.btn-increase').forEach(btn => {
         btn.addEventListener('click', function() {
             const row = this.closest('.cart-item-row');
-            let currentQty = parseInt(row.dataset.quantity);
-            updateCartQty(this.dataset.id, currentQty + 1, row);
+            updateCartQty(this.dataset.id, parseInt(row.dataset.quantity) + 1, row);
         });
     });
 
-    const removeCartItem = async (id, row) => {
+    document.querySelectorAll('.btn-decrease').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.cart-item-row');
+            const qty = parseInt(row.dataset.quantity);
+            if (qty > 1) {
+                updateCartQty(this.dataset.id, qty - 1, row);
+            } else {
+                removeCartItem(this.dataset.id, row);
+            }
+        });
+    });
+
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        // Real-time UI update while typing
+        input.addEventListener('input', function() {
+            const row = this.closest('.cart-item-row');
+            let qty = parseInt(this.value);
+            if (!isNaN(qty) && qty >= 1) {
+                updateRowUI(qty, row);
+            }
+        });
+        
+        // Send request to server on blur/enter
+        input.addEventListener('change', function() {
+            const row = this.closest('.cart-item-row');
+            let qty = parseInt(this.value);
+            if (isNaN(qty) || qty < 1) {
+                removeCartItem(this.dataset.id, row);
+            } else {
+                updateCartQty(this.dataset.id, qty, row);
+            }
+        });
+    });
+
+    // === CUSTOM DELETE MODAL ===
+    let itemToDeleteId = null;
+    let itemToDeleteRow = null;
+    const deleteModal = document.getElementById('delete-modal');
+    
+    function showDeleteModal(id, row) {
+        itemToDeleteId = id;
+        itemToDeleteRow = row;
+        deleteModal.classList.remove('hidden');
+        setTimeout(() => {
+            deleteModal.classList.remove('opacity-0');
+            deleteModal.children[0].classList.remove('scale-95');
+        }, 10);
+    }
+    
+    function closeDeleteModal() {
+        deleteModal.classList.add('opacity-0');
+        deleteModal.children[0].classList.add('scale-95');
+        setTimeout(() => {
+            deleteModal.classList.add('hidden');
+        }, 300);
+        
+        if (itemToDeleteRow) {
+            const qtyInput = itemToDeleteRow.querySelector('.quantity-input');
+            if (qtyInput && parseInt(qtyInput.value) < 1) {
+                qtyInput.value = itemToDeleteRow.dataset.quantity || 1;
+            }
+        }
+    }
+    
+    document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
+        if (!itemToDeleteId || !itemToDeleteRow) return;
+        const id = itemToDeleteId;
+        const row = itemToDeleteRow;
+        this.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span>...';
+        this.disabled = true;
+        
         try {
             const res = await fetch(`/cart/remove/${id}`, {
                 method: 'POST',
@@ -295,101 +668,200 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json();
             if (data.success) {
                 row.remove();
-                
-                window.serverCartCount = data.cart_item_count;
-                if (typeof updateCartBadge === 'function') updateCartBadge();
-                
-                const remainingCheckboxes = document.querySelectorAll('.item-checkbox');
-                if (remainingCheckboxes.length === 0) {
+                if (document.querySelectorAll('.cart-item-row').length === 0) {
                     window.location.reload();
                 } else {
                     updateTotals();
+                    const badge = document.getElementById('cart-badge');
+                    if(badge) {
+                        const currentCount = parseInt(badge.textContent || 0);
+                        badge.textContent = Math.max(0, currentCount - 1);
+                        if (currentCount <= 1) badge.classList.add('hidden');
+                    }
                 }
             }
-        } catch (e) {
-            console.error(e);
+        } catch (e) { console.error(e); }
+        finally {
+            this.innerHTML = 'Xóa';
+            this.disabled = false;
+            closeDeleteModal();
         }
-    };
-
-    document.querySelectorAll('.btn-decrease').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const row = this.closest('.cart-item-row');
-            let currentQty = parseInt(row.dataset.quantity);
-            if (currentQty > 1) {
-                updateCartQty(this.dataset.id, currentQty - 1, row);
-            } else {
-                if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?')) {
-                    removeCartItem(this.dataset.id, row);
-                }
-            }
-        });
     });
 
-    // Xóa item
+    // === REMOVE LOGIC ===
+    function removeCartItem(id, row) {
+        showDeleteModal(id, row);
+    }
+
     document.querySelectorAll('.btn-remove').forEach(btn => {
         btn.addEventListener('click', function() {
-            if (!confirm('Bạn có chắc chắn muốn xóa món này khỏi giỏ hàng?')) return;
             removeCartItem(this.dataset.id, this.closest('.cart-item-row'));
         });
     });
 
-    // Xử lý nút Tiến hành thanh toán
+    // === CHECKOUT ===
     if (btnCheckout) {
         btnCheckout.addEventListener('click', async function() {
-            const selectedIds = [];
-            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
-                selectedIds.push(cb.value);
-            });
-
+            const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
             if (selectedIds.length === 0) return;
 
-            // Vô hiệu hóa nút để tránh double click
-            const originalText = this.innerHTML;
-            this.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Đang xử lý...';
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
             this.disabled = true;
 
             try {
                 const res = await fetch('/customer/checkout/init', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     body: JSON.stringify({ selected_items: selectedIds })
                 });
-                
                 const data = await res.json();
-                if (data.success && data.redirect) {
-                    if (data.is_table_order) {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = data.redirect;
-                        const csrf = document.createElement('input');
-                        csrf.type = 'hidden';
-                        csrf.name = '_token';
-                        csrf.value = csrfToken;
-                        form.appendChild(csrf);
-                        document.body.appendChild(form);
-                        form.submit();
-                    } else {
-                        window.location.href = data.redirect;
-                    }
+                if (data.success) {
+                    window.location.href = data.redirect;
                 } else {
-                    alert(data.error || 'Có lỗi xảy ra');
-                    this.innerHTML = originalText;
+                    alert(data.error);
+                    this.innerHTML = originalHtml;
                     this.disabled = false;
                 }
             } catch (e) {
-                console.error(e);
-                alert("Lỗi kết nối.");
-                this.innerHTML = originalText;
+                this.innerHTML = originalHtml;
                 this.disabled = false;
             }
         });
     }
 
-    // Init
-    updateTotals();
+    // === VARIANT MODAL LOGIC ===
+    const modal = document.getElementById('variant-modal');
+    let currentModalSizes = [];
+    let currentModalToppings = [];
+
+    function openVariantModal(row) {
+        const id = row.dataset.id;
+        const sizeId = parseInt(row.dataset.sizeId);
+        const toppingIds = JSON.parse(row.dataset.toppingIds || '[]');
+        currentModalSizes = JSON.parse(row.dataset.sizes || '[]');
+        currentModalToppings = JSON.parse(row.dataset.toppings || '[]');
+
+        document.getElementById('vm-cart-id').value = id;
+
+        // Render Sizes
+        const sizeContainer = document.getElementById('vm-sizes-container');
+        sizeContainer.innerHTML = currentModalSizes.map((s, idx) => `
+            <div>
+                <input type="radio" name="vm_size" id="vmsize_${s.id}" value="${s.id}" class="sr-only variant-radio" ${s.id === sizeId || (!sizeId && idx===0) ? 'checked' : ''} onchange="calcModalPrice()">
+                <label for="vmsize_${s.id}" class="block border border-outline-variant/40 rounded-xl p-3 cursor-pointer transition-colors text-center">
+                    <div class="text-[14px] font-bold text-on-surface">${s.name}</div>
+                    <div class="text-[12px] text-primary font-semibold mt-1">${formatMoney(s.price)}</div>
+                </label>
+            </div>
+        `).join('');
+
+        // Render Toppings
+        const toppingContainer = document.getElementById('vm-toppings-container');
+        if (currentModalToppings.length === 0) {
+            toppingContainer.innerHTML = `<p class="text-[13px] text-on-surface-variant italic">Không có topping cho sản phẩm này.</p>`;
+        } else {
+            toppingContainer.innerHTML = currentModalToppings.map(t => `
+                <div class="relative">
+                    <input type="checkbox" name="vm_topping" id="vmtop_${t.id}" value="${t.id}" class="sr-only topping-checkbox" ${toppingIds.includes(t.id) ? 'checked' : ''} onchange="calcModalPrice()">
+                    <label for="vmtop_${t.id}" class="flex items-center justify-between border border-outline-variant/40 rounded-xl p-3 cursor-pointer transition-colors">
+                        <span class="text-[14px] font-medium text-on-surface">${t.name}</span>
+                        <span class="text-[13px] text-primary">+${formatMoney(t.price)}</span>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        calcModalPrice();
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeVariantModal() {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    function calcModalPrice() {
+        let total = 0;
+        const checkedSize = document.querySelector('input[name="vm_size"]:checked');
+        if (checkedSize) {
+            const sizeObj = currentModalSizes.find(s => s.id == checkedSize.value);
+            if (sizeObj) total += parseFloat(sizeObj.price);
+        }
+        
+        document.querySelectorAll('input[name="vm_topping"]:checked').forEach(cb => {
+            const topObj = currentModalToppings.find(t => t.id == cb.value);
+            if (topObj) total += parseFloat(topObj.price);
+        });
+
+        document.getElementById('vm-price-display').textContent = formatMoney(total);
+    }
+
+    async function saveVariantChanges() {
+        const id = document.getElementById('vm-cart-id').value;
+        const sizeInput = document.querySelector('input[name="vm_size"]:checked');
+        const sizeId = sizeInput ? sizeInput.value : null;
+        
+        const toppingIds = Array.from(document.querySelectorAll('input[name="vm_topping"]:checked')).map(cb => cb.value);
+
+        const btn = document.getElementById('vm-save-btn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/cart/update-variant/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ product_size_id: sizeId, topping_ids: toppingIds })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload(); // Reload to cleanly refresh cart state and IDs
+            } else {
+                alert(data.error);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi kết nối.');
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+
+    // === QUICK REMOVE TOPPING LOGIC ===
+    async function removeTopping(cartItemId, toppingIdToRemove, rowElement) {
+        if (!confirm('Bạn muốn bỏ topping này?')) return;
+        
+        // Find the current size and toppings from the row's dataset
+        const sizeId = rowElement.dataset.sizeId;
+        let currentToppingIds = JSON.parse(rowElement.dataset.toppingIds || '[]');
+        
+        // Remove the specific topping
+        currentToppingIds = currentToppingIds.filter(id => id != toppingIdToRemove);
+
+        try {
+            const res = await fetch(`/cart/update-variant/${cartItemId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ product_size_id: sizeId, topping_ids: currentToppingIds })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload(); // Reload to reflect changes
+            } else {
+                alert(data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi kết nối.');
+        }
+    }
+
+    // Voucher Logic Handlers
     const btnApplyVoucher = document.getElementById('btnApplyVoucher');
     const btnRemoveVoucher = document.getElementById('btnRemoveVoucher');
     const inputVoucherCode = document.getElementById('voucherCode');
@@ -410,14 +882,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Get current subtotal of selected items
             let currentSubtotal = 0;
             checkboxes.forEach(cb => {
                 if (cb.checked) {
                     const row = cb.closest('.cart-item-row');
-                    const price = parseFloat(row.dataset.price);
-                    const quantity = parseInt(row.dataset.quantity);
-                    currentSubtotal += price * quantity;
+                    currentSubtotal += parseFloat(row.dataset.price) * parseInt(row.dataset.quantity);
                 }
             });
 
@@ -427,10 +896,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const res = await fetch('{{ route("vouchers.apply") }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     body: JSON.stringify({ voucher_code: code, subtotal: currentSubtotal })
                 });
                 const data = await res.json();
@@ -455,12 +921,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btnRemoveVoucher.disabled = true;
             btnRemoveVoucher.textContent = '...';
             try {
-                const res = await fetch('{{ route("vouchers.remove") }}', {
+                await fetch('{{ route("vouchers.remove") }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }
                 });
                 window.location.reload();
             } catch (err) {
@@ -469,36 +932,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Voucher Dropdown Logic
-    const voucherInput = document.getElementById('voucherCode');
     const voucherDropdown = document.getElementById('voucherDropdown');
     const voucherItems = document.querySelectorAll('.voucher-item');
 
-    if (voucherInput && voucherDropdown) {
-        voucherInput.addEventListener('focus', () => {
+    if (inputVoucherCode && voucherDropdown) {
+        inputVoucherCode.addEventListener('focus', () => {
             voucherDropdown.classList.remove('hidden');
         });
 
-        // Hide when clicking outside
         document.addEventListener('click', (e) => {
-            if (!voucherInput.contains(e.target) && !voucherDropdown.contains(e.target)) {
+            if (!inputVoucherCode.contains(e.target) && !voucherDropdown.contains(e.target)) {
                 voucherDropdown.classList.add('hidden');
             }
         });
 
         voucherItems.forEach(item => {
             item.addEventListener('click', () => {
-                const code = item.dataset.code;
-                voucherInput.value = code;
+                inputVoucherCode.value = item.dataset.code;
                 voucherDropdown.classList.add('hidden');
-                
-                // Automatically apply if Apply button exists
-                if (btnApplyVoucher) {
-                    btnApplyVoucher.click();
-                }
+                if (btnApplyVoucher) btnApplyVoucher.click();
             });
         });
     }
-});
+
+    updateTotals();
 </script>
-@endsection
+@endpush

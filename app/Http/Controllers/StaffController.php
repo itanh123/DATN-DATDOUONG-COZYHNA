@@ -14,7 +14,7 @@ class StaffController extends Controller
     public function dashboard()
     {
         if (!check_permission('view_dashboard')) {
-            return redirect('/login');
+            return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         }
 
         $pendingOrders = Order::where(function($q) {
@@ -31,10 +31,10 @@ class StaffController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $shippingOrders = Order::where(function($q) {
-                $q->where('order_status', 'DELIVERING')->orWhere('status', 'shipping');
+        $readyOrders = Order::where(function($q) {
+                $q->where('order_status', 'READY_FOR_DELIVERY')->orWhere('status', 'ready_for_delivery');
             })
-            ->with(['customer.user', 'shipper'])
+            ->with(['customer.user'])
             ->orderByDesc('updated_at')
             ->get();
 
@@ -44,7 +44,7 @@ class StaffController extends Controller
             ->whereDate('updated_at', today())
             ->count();
 
-        return view('staff.dashboard', compact('pendingOrders', 'preparingOrders', 'shippingOrders', 'todayCompleted'));
+        return view('staff.dashboard', compact('pendingOrders', 'preparingOrders', 'readyOrders', 'todayCompleted'));
     }
 
     public function confirm($id)
@@ -103,14 +103,14 @@ class StaffController extends Controller
             $code = $order->code ?? $order->order_code ?? $order->id;
             return response()->json(['success' => true, 'message' => "Đơn hàng #{$code} tại bàn đã hoàn thành!"]);
         } else {
-            $order->order_status = 'DELIVERING';
-            $order->status = 'shipping';
+            $order->order_status = 'READY_FOR_DELIVERY';
+            $order->status = 'ready_for_delivery';
             $order->save();
 
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'old_status' => 'PREPARING',
-                'new_status' => 'DELIVERING',
+                'new_status' => 'READY_FOR_DELIVERY',
                 'changed_by' => session('user_id'),
                 'note' => 'Đơn hàng đã hoàn thành pha chế, chờ shipper',
             ]);

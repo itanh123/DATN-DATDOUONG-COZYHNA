@@ -150,6 +150,88 @@ class CartController extends Controller
         ]);
     }
 
+    public function updateVariant(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'product_size_id' => ['nullable', 'integer', 'exists:product_sizes,id'],
+            'topping_ids'     => ['nullable', 'array'],
+            'topping_ids.*'   => ['integer', 'exists:toppings,id'],
+        ]);
+
+        $cartItems = $this->getCartItems();
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
+
+        $oldItem = $cartItems[$id];
+        $productId = $oldItem['product_id'];
+        $quantity = $oldItem['quantity'];
+
+        $productSizeId = $request->input('product_size_id');
+        
+        $unitPrice = 0;
+        if ($productSizeId) {
+            $ps = ProductSize::findOrFail($productSizeId);
+            $unitPrice = (float) $ps->selling_price;
+        } else {
+            // If no size id passed, attempt to find a default or fallback to 0
+            $ps = ProductSize::where('product_id', $productId)->first();
+            if ($ps) {
+                $productSizeId = $ps->id;
+                $unitPrice = (float) $ps->selling_price;
+            }
+        }
+
+        $toppingIds = $request->input('topping_ids', []);
+        $toppings = [];
+        if (!empty($toppingIds)) {
+            $dbToppings = \App\Models\Topping::whereIn('id', $toppingIds)->get();
+            foreach ($dbToppings as $top) {
+                $toppings[] = [
+                    'id' => $top->id,
+                    'name' => $top->name,
+                    'price' => (float) $top->price,
+                ];
+                $unitPrice += (float) $top->price;
+            }
+        }
+
+        sort($toppingIds);
+        $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
+
+        $newItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+
+        // Remove old item
+        unset($cartItems[$id]);
+
+        // Add new item (merge quantity if it exists)
+        if (isset($cartItems[$newItemId])) {
+            $cartItems[$newItemId]['quantity'] += $quantity;
+        } else {
+            $cartItems[$newItemId] = [
+                'id'              => $newItemId,
+                'product_id'      => $productId,
+                'product_size_id' => $productSizeId,
+                'quantity'        => $quantity,
+                'unit_price'      => $unitPrice,
+                'toppings'        => $toppings,
+            ];
+        }
+
+        $this->saveCartItems($cartItems);
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Đã cập nhật tùy chọn',
+            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'total_price'     => $this->calcTotals($cartItems),
+        ]);
+    }
+
     public function index()
     {
         if (!session('user_id')) {
@@ -161,7 +243,7 @@ class CartController extends Controller
         $subtotal = 0;
 
         foreach ($cartItemsRaw as $item) {
-            $product = Product::find($item['product_id']);
+            $product = Product::with(['productSizes.size', 'toppings'])->find($item['product_id']);
             $productSize = $item['product_size_id'] ? ProductSize::with('size')->find($item['product_size_id']) : null;
             
             if ($product) {

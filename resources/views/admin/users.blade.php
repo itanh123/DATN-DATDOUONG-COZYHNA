@@ -182,7 +182,7 @@
                                         @csrf
                                         <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
                                             @foreach($roles as $role)
-                                                @if($role->code !== 'admin')
+                                                @if(in_array($role->code, ['staff', 'shipper']))
                                                     <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
                                                         {{ $role->name }}
                                                     </option>
@@ -248,9 +248,7 @@
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Tên & Email</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Số điện thoại</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Quyền hiện tại</th>
-                            @if(check_permission('assign_roles'))
-                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Cập nhật quyền</th>
-                            @endif
+
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Đổi mật khẩu</th>
                             @if(in_array(session('role_code'), ['admin', 'staff']))
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Hạn chế</th>
@@ -291,29 +289,7 @@
                                     <span class="text-on-surface-variant text-sm italic">Không có</span>
                                 @endif
                             </td>
-                            @if(check_permission('assign_roles'))
-                            <td class="p-4">
-                                @if($user->role && $user->role->code === 'admin')
-                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
-                                @else
-                                    <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0">
-                                        @csrf
-                                        <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
-                                            @foreach($roles as $role)
-                                                @if($role->code !== 'admin')
-                                                    <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
-                                                        {{ $role->name }}
-                                                    </option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-                                        <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
-                                            Lưu
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
-                            @endif
+
                             <td class="p-4">
                                 @if($user->role && $user->role->code === 'admin')
                                     <span class="text-sm text-outline-variant italic">Không khả dụng</span>

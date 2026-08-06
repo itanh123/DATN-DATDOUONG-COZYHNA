@@ -98,6 +98,7 @@ Route::post('/customer/checkout/init', [\App\Http\Controllers\CartController::cl
 Route::get('/customer/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('customer.checkout');
 Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update/{id}', [\App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/update-variant/{id}', [\App\Http\Controllers\CartController::class, 'updateVariant'])->name('cart.updateVariant');
 Route::post('/cart/remove/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
 
 Route::post('/customer/vouchers/apply', [\App\Http\Controllers\CartController::class, 'applyVoucher'])->name('vouchers.apply');
@@ -116,21 +117,31 @@ Route::get('/ai/history/{sessionId}', [\App\Http\Controllers\AiChatController::c
 Route::get('/payment/qr/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'getVietQr'])->name('payment.qr');
 Route::post('/payment/confirm/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'confirmPayment'])->name('payment.confirm');
 
+// Fake Online Payment Gateway (For Momo)
+Route::get('/payment/fake-gateway/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'fakeGateway'])->name('payment.fake.gateway');
+Route::post('/payment/fake-gateway/process/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'processFakePayment'])->name('payment.fake.process');
+
+// VNPAY Payment Routes
+Route::get('/payment/vnpay-return', [\App\Http\Controllers\PaymentController::class, 'vnpayReturn'])->name('payment.vnpay.return');
+
 Route::get('/customer/favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('customer.favorites');
 Route::post('/favorites/toggle/{product}', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
 Route::get('/customer/account', function () {
     if (!session()->has('user_id')) return redirect('/login');
     if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    $user = \App\Models\User::find(session('user_id'));
-    return view('customer.account', compact('user'));
+    return app('App\Http\Controllers\ProfileController')->customerAccount();
 })->name('customer.account');
 
 Route::post('/customer/account/update', function (\Illuminate\Http\Request $request) {
     if (session('is_table_order')) return redirect('/')->with('error', 'Tài khoản bàn không được truy cập chức năng này.');
-    return app('App\Http\Controllers\AuthController')->updateProfile($request);
+    return app('App\Http\Controllers\ProfileController')->updateCustomer($request);
 })->name('customer.profile.update');
+
 Route::post('/customer/password/update', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+Route::post('/customer/address/store', [\App\Http\Controllers\ProfileController::class, 'storeAddress'])->name('customer.address.store');
+Route::delete('/customer/address/{id}', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete');
+Route::post('/customer/address/{id}/delete', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete.post');
 
 Route::get('/customer/contact', function () { return view('customer.contact'); });
 Route::get('/customer/notifications', function () { return view('customer.notifications'); });
@@ -194,7 +205,7 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/add_product', function () { return view('admin.add_product'); });
     Route::get('/admin/product', function (\Illuminate\Http\Request $request) {
         if (!check_permission('view_products')) {
-            return redirect('/login');
+            return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         }
         return app('App\Http\Controllers\ProductController')->index($request);
     });
@@ -205,19 +216,19 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
     Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
     Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_products')) return redirect('/login');
+        if (!check_permission('create_products')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->store($request);
     });
     Route::post('/admin/product/{product}/update', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('edit_products')) return redirect('/login');
+        if (!check_permission('edit_products')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->update($request, $product);
     });
     Route::post('/admin/product/{product}/delete', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('delete_products')) return redirect('/login');
+        if (!check_permission('delete_products')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->destroy($product);
     });
     Route::post('/admin/product/{product}/sizes', function (\Illuminate\Http\Request $request, \App\Models\Product $product) {
-        if (!check_permission('edit_products')) return redirect('/login');
+        if (!check_permission('edit_products')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->syncSizes($request, $product);
     });
 
@@ -249,43 +260,43 @@ Route::middleware(['admin'])->group(function () {
 
     // Sizes
     Route::post('/admin/size/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_sizes')) return redirect('/login');
+        if (!check_permission('create_sizes')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->storeSize($request);
     });
     Route::post('/admin/size/{size}/update', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-        if (!check_permission('edit_sizes')) return redirect('/login');
+        if (!check_permission('edit_sizes')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->updateSize($request, $size);
     });
     Route::post('/admin/size/{size}/delete', function (\Illuminate\Http\Request $request, \App\Models\Size $size) {
-        if (!check_permission('delete_sizes')) return redirect('/login');
+        if (!check_permission('delete_sizes')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->destroySize($size);
     });
 
     // Categories
     Route::post('/admin/category/store', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('create_categories')) return redirect('/login');
+        if (!check_permission('create_categories')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->storeCategory($request);
     });
     Route::post('/admin/category/{category}/update', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-        if (!check_permission('edit_categories')) return redirect('/login');
+        if (!check_permission('edit_categories')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->updateCategory($request, $category);
     });
     Route::post('/admin/category/{category}/delete', function (\Illuminate\Http\Request $request, \App\Models\Category $category) {
-        if (!check_permission('delete_categories')) return redirect('/login');
+        if (!check_permission('delete_categories')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\ProductController')->destroyCategory($category);
     });
 
     // User Management
     Route::get('/admin/users', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('view_users')) return redirect('/login');
+        if (!check_permission('view_users')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\UserController')->index($request);
     });
     Route::post('/admin/users', function (\Illuminate\Http\Request $request) {
-        if (session('role_code') !== 'admin') return redirect('/login');
+        if (session('role_code') !== 'admin') return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\UserController')->store($request);
     });
     Route::post('/admin/users/{user}/role', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
-        if (!check_permission('assign_roles')) return redirect('/login');
+        if (!check_permission('assign_roles')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\UserController')->updateRole($request, $user);
     });
     Route::post('/admin/users/{user}/password', function (\Illuminate\Http\Request $request, \App\Models\User $user) {
@@ -300,11 +311,11 @@ Route::middleware(['admin'])->group(function () {
 
     // Roles and Permissions
     Route::get('/admin/roles', function () {
-        if (!check_permission('view_roles')) return redirect('/login');
+        if (!check_permission('view_roles')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\RoleController')->index();
     });
     Route::post('/admin/roles/update', function (\Illuminate\Http\Request $request) {
-        if (!check_permission('manage_permissions')) return redirect('/login');
+        if (!check_permission('manage_permissions')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\RoleController')->updatePermissions($request);
     });
 

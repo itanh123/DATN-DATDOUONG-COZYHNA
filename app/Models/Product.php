@@ -74,4 +74,11 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class, 'product_id');
     }
+
+    public function toppings(): BelongsToMany
+    {
+        return $this->belongsToMany(Topping::class, 'product_toppings', 'product_id', 'topping_id')
+                    ->withPivot('extra_price', 'is_default')
+                    ->withTimestamps();
+    }
 }

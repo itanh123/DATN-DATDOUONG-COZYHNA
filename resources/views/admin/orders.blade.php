@@ -88,6 +88,7 @@
                     <option value="PREPARING" {{ request('status') === 'PREPARING' ? 'selected' : '' }}>Đang chuẩn bị</option>
                     @if(request('tab') !== 'table')
                     <option value="DELIVERING" {{ request('status') === 'DELIVERING' ? 'selected' : '' }}>Đang giao</option>
+                    <option value="READY_FOR_DELIVERY" {{ request('status') === 'READY_FOR_DELIVERY' ? 'selected' : '' }}>Chờ giao hàng</option>
                     @endif
                     <option value="COMPLETED" {{ request('status') === 'COMPLETED' ? 'selected' : '' }}>Hoàn thành</option>
                     <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Đã hủy</option>
@@ -251,6 +252,7 @@
                     <option value="PENDING">Chờ xác nhận</option>
                     <option value="PREPARING">Đang chuẩn bị</option>
                     @if(request('tab') !== 'table')
+                    <option value="READY_FOR_DELIVERY">Chờ giao hàng</option>
                     <option value="DELIVERING">Đang giao hàng</option>
                     @endif
                     <option value="COMPLETED">Hoàn thành</option>
@@ -378,7 +380,8 @@
         
         const allowedTransitions = {
             'PENDING': ['PREPARING', 'CANCELLED'],
-            'PREPARING': currentTab === 'table' ? ['COMPLETED', 'CANCELLED'] : ['DELIVERING', 'CANCELLED'],
+            'PREPARING': currentTab === 'table' ? ['COMPLETED', 'CANCELLED'] : ['READY_FOR_DELIVERY', 'DELIVERING', 'CANCELLED'],
+            'READY_FOR_DELIVERY': ['DELIVERING', 'CANCELLED'],
             'DELIVERING': ['COMPLETED', 'CANCELLED'],
             'COMPLETED': [],
             'CANCELLED': []
