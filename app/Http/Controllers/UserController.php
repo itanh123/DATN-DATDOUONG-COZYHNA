@@ -12,7 +12,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if (!check_permission('view_users')) {
-            return redirect('/login')->with('error', 'You do not have permission to access this page.');
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
         }
 
         $roles = DB::table('roles')->get();
@@ -47,7 +47,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         if (!check_permission('create_users')) {
-            return back()->withErrors(['error' => 'You do not have permission.']);
+            return back()->withErrors(['error' => 'Bạn không có quyền truy cập.']);
         }
 
         $request->validate([

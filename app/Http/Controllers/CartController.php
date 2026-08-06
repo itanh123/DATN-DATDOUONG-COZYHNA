@@ -90,14 +90,14 @@ class CartController extends Controller
         return response()->json([
             'success'         => true,
             'message'         => 'Đã thêm sản phẩm vào giỏ hàng!',
-            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'cart_item_count' => count($cartItems),
         ]);
     }
 
     public function update(Request $request, $id)
     {
         if (!session('user_id')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $request->validate(['quantity' => ['required', 'integer', 'min:0']]);
@@ -122,7 +122,7 @@ class CartController extends Controller
         return response()->json([
             'success'         => true,
             'message'         => $message,
-            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'cart_item_count' => count($cartItems),
             'total_price'     => $this->calcTotals($cartItems),
         ]);
     }
@@ -130,7 +130,7 @@ class CartController extends Controller
     public function remove($id)
     {
         if (!session('user_id')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $cartItems = $this->getCartItems();
@@ -145,7 +145,7 @@ class CartController extends Controller
         return response()->json([
             'success'         => true,
             'message'         => 'Đã xóa sản phẩm khỏi giỏ hàng',
-            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'cart_item_count' => count($cartItems),
             'total_price'     => $this->calcTotals($cartItems),
         ]);
     }
@@ -208,13 +208,24 @@ class CartController extends Controller
             }
         }
 
-        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount'));
+        $availableVouchers = \Illuminate\Support\Facades\DB::table('vouchers')
+            ->where('status', 1)
+            ->whereRaw('used < quantity')
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->get();
+
+        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount', 'availableVouchers'));
     }
 
     public function initCheckout(Request $request)
     {
         if (!session('user_id')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $request->validate([
@@ -276,7 +287,7 @@ class CartController extends Controller
         }
 
         $deliveryFee = $subtotal > 0 ? 15000 : 0;
-        $tax         = round($subtotal * 0.08);
+        $tax         = 0;
 
         $appliedVoucher = session('applied_voucher');
         $discountAmount = 0;
@@ -334,7 +345,7 @@ class CartController extends Controller
             $subtotal += $item['unit_price'] * $item['quantity'];
         }
         $fee      = $subtotal > 0 ? 15000 : 0;
-        $tax      = round($subtotal * 0.08);
+        $tax      = 0;
         $total    = $subtotal + $fee + $tax;
 
         return [

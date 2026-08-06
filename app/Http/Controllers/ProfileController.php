@@ -87,7 +87,7 @@ class ProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $userId = session('user_id');
-        if (!$userId) return back()->with('error', 'Unauthorized');
+        if (!$userId) return back()->with('error', 'Không có quyền truy cập.');
 
         $request->validate([
             'current_password' => 'required',

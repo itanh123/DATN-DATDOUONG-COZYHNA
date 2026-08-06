@@ -15,7 +15,7 @@ class Order extends Model
         2 => 'reservation_id',
         3 => 'shipper_id',
         4 => 'voucher_id',
-        5 => 'code',
+        5 => 'order_code',
         6 => 'order_source',
         7 => 'order_type',
         8 => 'order_status',

@@ -149,10 +149,14 @@
 </div>
 <a href="/customer/cart" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Giỏ hàng">
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+    <span id="cart-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
 </a>
 @if(!session('is_table_order'))
 @if(session()->has('user_id'))
-    <a href="/customer/favorites" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="favorite" title="Yêu thích">favorite</a>
+    <a href="/customer/favorites" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Yêu thích">
+        <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+        <span id="favorite-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
+    </a>
     <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
     <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
 
@@ -164,6 +168,36 @@
 @endif
 </div>
 </header>
+
+<!-- Global Flash Messages -->
+@if(session('error') || session('success'))
+    <div id="global-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] min-w-[320px] shadow-2xl rounded-xl overflow-hidden transition-all duration-500 transform translate-y-0 opacity-100">
+        @if(session('error'))
+            <div class="bg-error text-on-error px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">error</span>
+                <span class="font-body-md flex-1">{{ session('error') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="bg-primary text-on-primary px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="font-body-md flex-1">{{ session('success') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+    </div>
+    <script>
+        setTimeout(() => {
+            const toast = document.getElementById('global-toast');
+            if (toast) {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 8000);
+    </script>
+@endif
 
 @yield('content')
 
@@ -267,6 +301,19 @@
         window.favoriteProductIds = [];
         @endif
 
+        function updateFavoriteBadge() {
+            const fbadge = document.getElementById('favorite-badge');
+            if (fbadge) {
+                if (window.favoriteProductIds.length > 0) {
+                    fbadge.innerText = window.favoriteProductIds.length;
+                    fbadge.style.display = 'flex';
+                } else {
+                    fbadge.style.display = 'none';
+                }
+            }
+        }
+        updateFavoriteBadge();
+
         // Initialize favorite icons
         window.favoriteProductIds.forEach(id => {
             document.querySelectorAll('.favorite-icon-' + id).forEach(icon => {
@@ -285,6 +332,7 @@
                 @endif
 
                 const productId = this.getAttribute('data-product-id');
+                const pIdInt = parseInt(productId);
                 const icons = document.querySelectorAll('.favorite-icon-' + productId);
 
                 fetch(`/favorites/toggle/${productId}`, {
@@ -298,16 +346,21 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'added') {
+                        if (!window.favoriteProductIds.includes(pIdInt)) {
+                            window.favoriteProductIds.push(pIdInt);
+                        }
                         icons.forEach(icon => {
                             icon.style.fontVariationSettings = "'FILL' 1";
                             icon.classList.add('text-error');
                         });
                     } else if (data.status === 'removed') {
+                        window.favoriteProductIds = window.favoriteProductIds.filter(id => id !== pIdInt);
                         icons.forEach(icon => {
                             icon.style.fontVariationSettings = "'FILL' 0";
                             icon.classList.remove('text-error');
                         });
                     }
+                    updateFavoriteBadge();
                 })
                 .catch(error => console.error('Error toggling favorite:', error));
             });
@@ -340,5 +393,25 @@ function callStaff() {
 
 @include('components.ai-chat-widget')
 
+@if(session('is_table_order') && session('table_login_time'))
+<script>
+    (function() {
+        const loginTime = {{ session('table_login_time') }};
+        const serverCurrentTime = {{ now()->timestamp }};
+        const timeoutSeconds = 7200; // 120 minutes
+        
+        const elapsed = serverCurrentTime - loginTime;
+        let remainingSeconds = timeoutSeconds - elapsed;
+        
+        if (remainingSeconds <= 0) {
+            window.location.reload();
+        } else {
+            setTimeout(() => {
+                window.location.reload();
+            }, remainingSeconds * 1000);
+        }
+    })();
+</script>
+@endif
 </body>
 </html>

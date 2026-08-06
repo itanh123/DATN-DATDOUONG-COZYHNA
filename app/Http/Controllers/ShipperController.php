@@ -79,7 +79,7 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         DB::transaction(function () use ($orderId, $shipper) {
@@ -117,7 +117,7 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $request->validate([

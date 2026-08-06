@@ -100,35 +100,54 @@
                         <span class="font-title-md font-bold text-on-surface" id="subtotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
                     </div>
 
-                    @if(isset($discountAmount) && $discountAmount > 0)
-                    <div class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20">
+                    <div id="discountContainer" class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20 {{ (!isset($discountAmount) || $discountAmount <= 0) ? 'hidden' : '' }}">
                         <span class="font-body-md text-error">Giảm giá (Voucher)</span>
-                        <span class="font-title-md font-bold text-error">-{{ number_format($discountAmount, 0, ',', '.') }} đ</span>
+                        <span class="font-title-md font-bold text-error" id="discountDisplay">-{{ number_format($discountAmount ?? 0, 0, ',', '.') }} đ</span>
                     </div>
-                    <div class="flex justify-between items-center mb-md">
+                    <div class="flex justify-between items-center mb-md {{ (!isset($discountAmount) || $discountAmount <= 0) ? 'pb-md border-b border-outline-variant/20' : '' }}" id="finalTotalContainer">
                         <span class="font-body-md font-bold text-on-surface-variant">Tạm tính</span>
-                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format(max(0, $subtotal - $discountAmount), 0, ',', '.') }} đ</span>
+                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format(max(0, $subtotal - ($discountAmount ?? 0)), 0, ',', '.') }} đ</span>
                     </div>
-                    @else
-                    <div class="flex justify-between items-center mb-md pb-md border-b border-outline-variant/20">
-                        <span class="font-body-md font-bold text-on-surface-variant">Tạm tính</span>
-                        <span class="font-title-lg font-bold text-primary" id="finalTotalDisplay">{{ number_format($subtotal, 0, ',', '.') }} đ</span>
-                    </div>
-                    @endif
 
-                    <div class="mb-md">
+                    <div class="mb-md relative">
                         <div class="flex gap-2 mb-2">
-                            <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-4 py-2 font-body-sm text-on-surface" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
+                            <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-4 py-2 font-body-sm text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
                             @if($appliedVoucher)
-                                <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg font-label-md hover:bg-error/90 transition-all">Gỡ mã</button>
+                                <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg font-label-md hover:bg-error/90 transition-all shrink-0">Gỡ mã</button>
                             @else
-                                <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg font-label-md hover:bg-primary/90 transition-all">Áp dụng</button>
+                                <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg font-label-md hover:bg-primary/90 transition-all shrink-0">Áp dụng</button>
                             @endif
                         </div>
-                        <p id="voucherMessage" class="text-sm hidden"></p>
+                        
+                        <!-- Voucher Dropdown -->
+                        @if(isset($availableVouchers) && $availableVouchers->count() > 0 && !$appliedVoucher)
+                        <div id="voucherDropdown" class="absolute z-[100] w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl hidden max-h-[250px] overflow-y-auto mt-1 left-0">
+                            <div class="p-2 text-xs font-bold text-on-surface-variant bg-surface-container-lowest sticky top-0 border-b border-outline-variant/30">Mã giảm giá khả dụng</div>
+                            @foreach($availableVouchers as $voucher)
+                                @php
+                                    $isEligible = $subtotal >= ($voucher->minimum_order ?? 0);
+                                @endphp
+                                <div class="p-3 border-b border-outline-variant/10 hover:bg-primary/5 transition-colors flex justify-between items-center {{ $isEligible ? 'voucher-item cursor-pointer' : 'opacity-60 cursor-not-allowed' }}" data-code="{{ $voucher->code }}">
+                                    <div class="flex-1">
+                                        <div class="font-bold text-[13px] text-primary mb-0.5">{{ $voucher->code }}</div>
+                                        <div class="text-[11px] text-on-surface-variant leading-tight">Giảm {{ $voucher->discount_type == 'percent' ? $voucher->discount_value.'%' : number_format($voucher->discount_value, 0, ',', '.').'đ' }} 
+                                        @if($voucher->minimum_order) <br>Đơn tối thiểu {{ number_format($voucher->minimum_order, 0, ',', '.') }}đ @endif
+                                        </div>
+                                    </div>
+                                    @if(!$isEligible)
+                                        <span class="text-[10px] bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded font-medium ml-2 shrink-0">Chưa đạt ĐK</span>
+                                    @else
+                                        <span class="text-[10px] bg-primary-container text-primary px-1.5 py-0.5 rounded font-bold ml-2 shrink-0 border border-primary/20">Dùng ngay</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <p id="voucherMessage" class="text-sm hidden mt-1"></p>
                     </div>
                     
-                    <p class="font-label-sm text-on-surface-variant mb-md text-center">Phí vận chuyển và thuế sẽ được tính ở bước thanh toán.</p>
+                    <p class="font-label-sm text-on-surface-variant mb-md text-center">Phí vận chuyển sẽ được tính ở bước thanh toán.</p>
                     
                     <button type="button" id="btnCheckout" class="w-full bg-primary text-white py-md rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-xs">
                         Tiến hành thanh toán
@@ -150,6 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const subtotalDisplay = document.getElementById('subtotalDisplay');
     const selectedCountDisplay = document.getElementById('selectedCountDisplay');
     const btnCheckout = document.getElementById('btnCheckout');
+    
+    const appliedVoucherDetails = @json(isset($appliedVoucher) ? \App\Models\Voucher::find($appliedVoucher['id']) : null);
 
     // Cập nhật tổng tiền dựa trên checkbox
     function updateTotals() {
@@ -168,6 +189,43 @@ document.addEventListener('DOMContentLoaded', function() {
         if (subtotalDisplay) subtotalDisplay.textContent = formatMoney(total);
         if (selectedCountDisplay) selectedCountDisplay.textContent = count;
         
+        let discount = 0;
+        if (appliedVoucherDetails) {
+            if (appliedVoucherDetails.minimum_order && total < appliedVoucherDetails.minimum_order) {
+                discount = 0; 
+            } else {
+                if (appliedVoucherDetails.discount_type === 'percent') {
+                    discount = (total * appliedVoucherDetails.discount_value) / 100;
+                    if (appliedVoucherDetails.maximum_discount && discount > appliedVoucherDetails.maximum_discount) {
+                        discount = appliedVoucherDetails.maximum_discount;
+                    }
+                } else {
+                    discount = appliedVoucherDetails.discount_value;
+                }
+                if (discount > total) discount = total;
+            }
+        }
+        
+        const finalTotalDisplay = document.getElementById('finalTotalDisplay');
+        if (finalTotalDisplay) {
+            finalTotalDisplay.textContent = formatMoney(Math.max(0, total - discount));
+        }
+
+        const discountDisplay = document.getElementById('discountDisplay');
+        const discountContainer = document.getElementById('discountContainer');
+        const finalTotalContainer = document.getElementById('finalTotalContainer');
+        
+        if (discountDisplay && discountContainer) {
+            if (discount > 0) {
+                discountDisplay.textContent = '-' + formatMoney(discount);
+                discountContainer.classList.remove('hidden');
+                finalTotalContainer.classList.remove('pb-md', 'border-b', 'border-outline-variant/20');
+            } else {
+                discountContainer.classList.add('hidden');
+                finalTotalContainer.classList.add('pb-md', 'border-b', 'border-outline-variant/20');
+            }
+        }
+
         if (selectAll) {
             selectAll.checked = count > 0 && count === checkboxes.length;
         }
@@ -209,11 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const price = parseFloat(row.dataset.price);
                 row.querySelector('.item-total-display').textContent = formatMoney(price * newQty);
                 
-                const cartBadge = document.getElementById('cart-badge');
-                if(cartBadge) {
-                    cartBadge.textContent = data.cart_item_count;
-                    cartBadge.classList.remove('hidden');
-                }
+                window.serverCartCount = data.cart_item_count;
+                if (typeof updateCartBadge === 'function') updateCartBadge();
                 
                 updateTotals();
             }
@@ -231,51 +286,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    const removeCartItem = async (id, row) => {
+        try {
+            const res = await fetch(`/cart/remove/${id}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken }
+            });
+            const data = await res.json();
+            if (data.success) {
+                row.remove();
+                
+                window.serverCartCount = data.cart_item_count;
+                if (typeof updateCartBadge === 'function') updateCartBadge();
+                
+                const remainingCheckboxes = document.querySelectorAll('.item-checkbox');
+                if (remainingCheckboxes.length === 0) {
+                    window.location.reload();
+                } else {
+                    updateTotals();
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     document.querySelectorAll('.btn-decrease').forEach(btn => {
         btn.addEventListener('click', function() {
             const row = this.closest('.cart-item-row');
             let currentQty = parseInt(row.dataset.quantity);
             if (currentQty > 1) {
                 updateCartQty(this.dataset.id, currentQty - 1, row);
+            } else {
+                if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?')) {
+                    removeCartItem(this.dataset.id, row);
+                }
             }
         });
     });
 
     // Xóa item
     document.querySelectorAll('.btn-remove').forEach(btn => {
-        btn.addEventListener('click', async function() {
+        btn.addEventListener('click', function() {
             if (!confirm('Bạn có chắc chắn muốn xóa món này khỏi giỏ hàng?')) return;
-            const id = this.dataset.id;
-            try {
-                const res = await fetch(`/cart/remove/${id}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const row = this.closest('.cart-item-row');
-                    row.remove();
-                    
-                    const cartBadge = document.getElementById('cart-badge');
-                    if(cartBadge) {
-                        if (data.cart_item_count > 0) {
-                            cartBadge.textContent = data.cart_item_count;
-                        } else {
-                            cartBadge.classList.add('hidden');
-                        }
-                    }
-                    
-                    // Xóa checkbox khỏi danh sách để không tính lỗi
-                    const remainingCheckboxes = document.querySelectorAll('.item-checkbox');
-                    if (remainingCheckboxes.length === 0) {
-                        window.location.reload(); // reload để hiện giỏ hàng trống
-                    } else {
-                        updateTotals();
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            removeCartItem(this.dataset.id, this.closest('.cart-item-row'));
         });
     });
 
@@ -412,6 +466,37 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (err) {
                 window.location.reload();
             }
+        });
+    }
+
+    // Voucher Dropdown Logic
+    const voucherInput = document.getElementById('voucherCode');
+    const voucherDropdown = document.getElementById('voucherDropdown');
+    const voucherItems = document.querySelectorAll('.voucher-item');
+
+    if (voucherInput && voucherDropdown) {
+        voucherInput.addEventListener('focus', () => {
+            voucherDropdown.classList.remove('hidden');
+        });
+
+        // Hide when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!voucherInput.contains(e.target) && !voucherDropdown.contains(e.target)) {
+                voucherDropdown.classList.add('hidden');
+            }
+        });
+
+        voucherItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const code = item.dataset.code;
+                voucherInput.value = code;
+                voucherDropdown.classList.add('hidden');
+                
+                // Automatically apply if Apply button exists
+                if (btnApplyVoucher) {
+                    btnApplyVoucher.click();
+                }
+            });
         });
     }
 });

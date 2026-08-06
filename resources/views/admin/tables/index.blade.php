@@ -1002,6 +1002,99 @@ function openAddTableModalWithCoords(areaId, x, y) {
 
     openModal('addTableModal');
 }
+
+// Real-time table polling
+setInterval(() => {
+    fetch('/admin/tables/status-data')
+        .then(res => res.json())
+        .then(tables => {
+            tables.forEach(table => {
+                // Regular table card
+                const card = document.querySelector(`[data-table-id="${table.id}"]`);
+                if (card) {
+                    const statusLabel = card.querySelector('p:nth-of-type(2)');
+                    const iconWrapper = card.querySelector('.flex.justify-center > div');
+                    const icon = card.querySelector('.material-symbols-outlined');
+
+                    if (statusLabel && iconWrapper && icon) {
+                        let labelText = '';
+                        let wrapperClasses = [];
+                        let iconClasses = [];
+                        let labelClasses = [];
+
+                        if (table.status === 'available') {
+                            labelText = 'Trống';
+                            wrapperClasses = ['border-green-400', 'bg-green-100'];
+                            iconClasses = ['text-green-600'];
+                            labelClasses = ['text-green-600'];
+                        } else if (table.status === 'occupied') {
+                            labelText = 'Có khách';
+                            wrapperClasses = ['border-red-400', 'bg-red-100'];
+                            iconClasses = ['text-red-600'];
+                            labelClasses = ['text-red-600'];
+                        } else if (table.status === 'reserved') {
+                            labelText = 'Đặt trước';
+                            wrapperClasses = ['border-amber-400', 'bg-amber-100'];
+                            iconClasses = ['text-amber-600'];
+                            labelClasses = ['text-amber-600'];
+                        } else if (table.status === 'disabled') {
+                            labelText = 'Không dùng';
+                            wrapperClasses = ['border-gray-400', 'bg-gray-100'];
+                            iconClasses = ['text-gray-600'];
+                            labelClasses = ['text-gray-500'];
+                        }
+
+                        if (labelText && statusLabel.innerText !== labelText) {
+                            statusLabel.innerText = labelText;
+                            
+                            iconWrapper.classList.remove('border-green-400', 'bg-green-100', 'border-red-400', 'bg-red-100', 'border-amber-400', 'bg-amber-100', 'border-gray-400', 'bg-gray-100');
+                            icon.classList.remove('text-green-600', 'text-red-600', 'text-amber-600', 'text-gray-600');
+                            statusLabel.classList.remove('text-green-600', 'text-red-600', 'text-amber-600', 'text-gray-500');
+                            
+                            iconWrapper.classList.add(...wrapperClasses);
+                            icon.classList.add(...iconClasses);
+                            statusLabel.classList.add(...labelClasses);
+                        }
+                    }
+                }
+
+                // Merged group card
+                const detailCards = document.querySelectorAll(`[onclick="openTableDetail(${table.id})"]`);
+                detailCards.forEach(mergedCard => {
+                    if (!mergedCard.hasAttribute('data-table-id')) {
+                        const statusLabel = mergedCard.querySelector('p:nth-of-type(2)');
+                        const icon = mergedCard.querySelector('.material-symbols-outlined');
+                        
+                        if (statusLabel && icon) {
+                            let labelText = '';
+                            let colorClass = '';
+                            
+                            if (table.status === 'available') {
+                                labelText = 'Trống'; colorClass = 'text-green-600';
+                            } else if (table.status === 'occupied') {
+                                labelText = 'Có khách'; colorClass = 'text-red-600';
+                            } else if (table.status === 'reserved') {
+                                labelText = 'Đặt trước'; colorClass = 'text-amber-600';
+                            } else {
+                                labelText = 'Đã ghép'; colorClass = 'text-slate-600';
+                            }
+                            
+                            if (statusLabel.innerText !== labelText) {
+                                statusLabel.innerText = labelText;
+                                
+                                icon.classList.remove('text-green-600', 'text-red-600', 'text-amber-600', 'text-slate-600');
+                                statusLabel.classList.remove('text-green-600', 'text-red-600', 'text-amber-600', 'text-slate-600');
+                                
+                                icon.classList.add(colorClass);
+                                statusLabel.classList.add(colorClass);
+                            }
+                        }
+                    }
+                });
+            });
+        })
+        .catch(console.error);
+}, 3000);
 </script>
 @endpush
 @endsection

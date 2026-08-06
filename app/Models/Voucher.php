@@ -14,15 +14,19 @@ class Voucher extends Model
     protected $fillable = [
         'code',
         'name',
+        'description',
         'discount_type',
         'discount_value',
-        'min_order_amount',
-        'max_discount_amount',
+        'minimum_order',
+        'maximum_discount',
         'usage_limit',
         'used_count',
+        'quantity',
+        'used',
         'start_date',
         'end_date',
         'status',
+        'created_by',
     ];
 
     protected $casts = [

@@ -12,6 +12,7 @@
         </div>
         <div class="flex items-center gap-md">
             <form action="{{ route('admin.orders.index') }}" method="GET" class="relative">
+                <input type="hidden" name="tab" value="{{ request('tab', 'online') }}">
                 <span class="absolute inset-y-0 left-0 pl-md flex items-center text-on-surface-variant">
                     <span class="material-symbols-outlined">search</span>
                 </span>
@@ -66,9 +67,16 @@
         </div>
     </section>
 
+    <!-- Tabs -->
+    <div class="flex border-b border-outline-variant/30 mb-lg">
+        <a href="{{ route('admin.orders.index', ['tab' => 'online']) }}" class="px-lg py-sm font-semibold {{ request('tab', 'online') === 'online' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Khách Đặt Online</a>
+        <a href="{{ route('admin.orders.index', ['tab' => 'table']) }}" class="px-lg py-sm font-semibold {{ request('tab') === 'table' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Khách Tại Bàn</a>
+    </div>
+
     <!-- Filters & Tools -->
     <section class="flex flex-col lg:flex-row items-center justify-between gap-md mb-lg">
         <form action="{{ route('admin.orders.index') }}" method="GET" class="flex flex-wrap items-center gap-sm">
+            <input type="hidden" name="tab" value="{{ request('tab', 'online') }}">
             @if(request('search'))
                 <input type="hidden" name="search" value="{{ request('search') }}">
             @endif
@@ -78,7 +86,9 @@
                     <option value="ALL">Tất cả Trạng thái</option>
                     <option value="PENDING" {{ request('status') === 'PENDING' ? 'selected' : '' }}>Chờ xác nhận</option>
                     <option value="PREPARING" {{ request('status') === 'PREPARING' ? 'selected' : '' }}>Đang chuẩn bị</option>
+                    @if(request('tab') !== 'table')
                     <option value="DELIVERING" {{ request('status') === 'DELIVERING' ? 'selected' : '' }}>Đang giao</option>
+                    @endif
                     <option value="COMPLETED" {{ request('status') === 'COMPLETED' ? 'selected' : '' }}>Hoàn thành</option>
                     <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Đã hủy</option>
                 </select>
@@ -160,7 +170,7 @@
         <!-- Pagination -->
         @if($orders->hasPages())
         <div class="bg-surface-container-low px-lg py-md flex items-center justify-between border-t border-outline-variant/30">
-            {{ $orders->links() }}
+            {{ $orders->appends(request()->query())->links() }}
         </div>
         @endif
     </section>
@@ -240,7 +250,9 @@
                 <select id="newStatusSelect" class="w-full px-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary outline-none font-body-lg">
                     <option value="PENDING">Chờ xác nhận</option>
                     <option value="PREPARING">Đang chuẩn bị</option>
+                    @if(request('tab') !== 'table')
                     <option value="DELIVERING">Đang giao hàng</option>
+                    @endif
                     <option value="COMPLETED">Hoàn thành</option>
                     <option value="CANCELLED">Hủy đơn</option>
                 </select>
@@ -354,7 +366,34 @@
     // Status Update
     function openStatusModal(id, currentStatus) {
         document.getElementById('statusOrderId').value = id;
-        document.getElementById('newStatusSelect').value = currentStatus;
+        
+        const select = document.getElementById('newStatusSelect');
+        const options = select.options;
+        
+        for (let i = 0; i < options.length; i++) {
+            options[i].disabled = false;
+        }
+
+        const currentTab = '{{ request('tab', 'online') }}';
+        
+        const allowedTransitions = {
+            'PENDING': ['PREPARING', 'CANCELLED'],
+            'PREPARING': currentTab === 'table' ? ['COMPLETED', 'CANCELLED'] : ['DELIVERING', 'CANCELLED'],
+            'DELIVERING': ['COMPLETED', 'CANCELLED'],
+            'COMPLETED': [],
+            'CANCELLED': []
+        };
+
+        const allowedNext = allowedTransitions[currentStatus] || [];
+        
+        for (let i = 0; i < options.length; i++) {
+            const val = options[i].value;
+            if (val !== currentStatus && !allowedNext.includes(val)) {
+                options[i].disabled = true;
+            }
+        }
+
+        select.value = currentStatus;
         openModal('statusModal');
     }
 
@@ -366,6 +405,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN
             },
             body: JSON.stringify({ status })

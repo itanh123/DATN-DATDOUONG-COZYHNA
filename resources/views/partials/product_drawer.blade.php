@@ -214,7 +214,7 @@
                 
                 const data = await response.json();
                 if (data.success) {
-                    window.serverCartCount = data.cartCount;
+                    window.serverCartCount = data.cart_item_count;
                     if (typeof updateCartBadge === 'function') {
                         updateCartBadge();
                     }

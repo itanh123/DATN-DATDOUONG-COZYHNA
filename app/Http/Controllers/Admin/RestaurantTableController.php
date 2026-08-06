@@ -66,6 +66,12 @@ class RestaurantTableController extends Controller
 
     // ─── Floor CRUD ─────────────────────────────────────────────────
 
+    public function statusData()
+    {
+        $tables = RestaurantTable::select('id', 'status')->get();
+        return response()->json($tables);
+    }
+
     public function storeFloor(Request $request)
     {
         $request->validate([

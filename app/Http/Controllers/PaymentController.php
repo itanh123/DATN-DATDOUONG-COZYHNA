@@ -26,7 +26,7 @@ class PaymentController extends Controller
      */
     public function getVietQr($orderCode)
     {
-        $order = Order::where('code', $orderCode)
+        $order = Order::where('order_code', $orderCode)
             ->with(['items.productSize.product', 'payment'])
             ->first();
 
@@ -35,14 +35,14 @@ class PaymentController extends Controller
         }
 
         $amount      = (int) $order->total_amount;
-        $addInfo     = $order->code;
+        $addInfo     = $order->order_code;
         $accountName = rawurlencode($this->bankConfig['account_name']);
         
         $qrImageUrl = "https://img.vietqr.io/image/{$this->bankConfig['bank_id']}-{$this->bankConfig['account_no']}-{$this->bankConfig['template']}.png?amount={$amount}&addInfo={$addInfo}&accountName={$accountName}";
 
         return response()->json([
             'success'      => true,
-            'order_code'   => $order->code,
+            'order_code'   => $order->order_code,
             'amount'       => $amount,
             'formatted_amount' => number_format($amount, 0, ',', '.') . ' VNĐ',
             'qr_image'     => $qrImageUrl,
@@ -59,7 +59,7 @@ class PaymentController extends Controller
      */
     public function confirmPayment(Request $request, $orderCode)
     {
-        $order = Order::where('code', $orderCode)->first();
+        $order = Order::where('order_code', $orderCode)->first();
 
         if (!$order) {
             return response()->json(['error' => 'Đơn hàng không tồn tại'], 404);

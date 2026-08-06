@@ -445,8 +445,10 @@ Route::middleware(['admin'])->group(function () {
         if (!session('user_id')) return response()->json([]);
         $calls = \Illuminate\Support\Facades\DB::table('table_calls')
             ->join('restaurant_tables', 'table_calls.table_id', '=', 'restaurant_tables.id')
+            ->leftJoin('table_areas', 'restaurant_tables.area_id', '=', 'table_areas.id')
+            ->leftJoin('floors', 'table_areas.floor_id', '=', 'floors.id')
             ->where('table_calls.status', 'pending')
-            ->select('table_calls.*', 'restaurant_tables.name as table_name')
+            ->select('table_calls.*', 'restaurant_tables.table_name as table_name', 'table_areas.name as area_name', 'floors.name as floor_name')
             ->get();
         return response()->json($calls);
     });
@@ -469,6 +471,7 @@ Route::middleware(['admin'])->group(function () {
 
     // Restaurant Tables Management
     Route::get('/admin/tables', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'index']);
+    Route::get('/admin/tables/status-data', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'statusData']);
     Route::post('/admin/tables/floors', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeFloor']);
     Route::delete('/admin/tables/floors/{floor}', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'destroyFloor']);
     Route::post('/admin/tables/areas', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'storeArea']);

@@ -50,7 +50,7 @@ class StaffController extends Controller
     public function confirm($id)
     {
         if (!check_permission('update_orders')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $order = Order::findOrFail($id);
@@ -76,25 +76,47 @@ class StaffController extends Controller
     public function complete($id)
     {
         if (!check_permission('update_orders')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $order = Order::findOrFail($id);
 
-        $order->order_status = 'DELIVERING';
-        $order->status = 'shipping';
-        $order->save();
+        if ($order->order_type === 'AT_TABLE') {
+            $order->order_status = 'COMPLETED';
+            $order->status = 'completed';
+            $order->completed_at = now();
+            $order->save();
 
-        OrderStatusHistory::create([
-            'order_id' => $order->id,
-            'old_status' => 'PREPARING',
-            'new_status' => 'DELIVERING',
-            'changed_by' => session('user_id'),
-            'note' => 'Đơn hàng đã hoàn thành pha chế, chờ shipper',
-        ]);
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'old_status' => 'PREPARING',
+                'new_status' => 'COMPLETED',
+                'changed_by' => session('user_id'),
+                'note' => 'Đơn tại bàn đã pha chế xong và hoàn thành',
+            ]);
+            
+            \Illuminate\Support\Facades\DB::table('payments')
+                ->where('order_id', $order->id)
+                ->where('payment_status', 'PENDING')
+                ->update(['payment_status' => 'COMPLETED']);
 
-        $code = $order->code ?? $order->order_code ?? $order->id;
+            $code = $order->code ?? $order->order_code ?? $order->id;
+            return response()->json(['success' => true, 'message' => "Đơn hàng #{$code} tại bàn đã hoàn thành!"]);
+        } else {
+            $order->order_status = 'DELIVERING';
+            $order->status = 'shipping';
+            $order->save();
 
-        return response()->json(['success' => true, 'message' => "Đơn hàng #{$code} đã sẵn sàng giao!"]);
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'old_status' => 'PREPARING',
+                'new_status' => 'DELIVERING',
+                'changed_by' => session('user_id'),
+                'note' => 'Đơn hàng đã hoàn thành pha chế, chờ shipper',
+            ]);
+
+            $code = $order->code ?? $order->order_code ?? $order->id;
+            return response()->json(['success' => true, 'message' => "Đơn hàng #{$code} đã sẵn sàng giao!"]);
+        }
     }
 }

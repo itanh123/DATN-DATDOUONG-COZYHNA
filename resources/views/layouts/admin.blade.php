@@ -149,7 +149,7 @@
 @endphp
 
 @if($hasPermission('view_dashboard'))
-<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="/admin/dashboard">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="{{ session('role_code') === 'admin' ? '/admin/dashboard' : '/staff/dashboard' }}">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-label-md text-label-md">Bảng điều khiển</span>
 </a>
@@ -265,7 +265,7 @@
                             <span class="material-symbols-outlined text-3xl">notifications_active</span>
                             <div>
                                 <h4 class="font-bold">Khách gọi nhân viên!</h4>
-                                <p>${call.table_name}</p>
+                                <p>${call.table_name} ${call.area_name ? ' - ' + call.area_name : ''} ${call.floor_name ? '(' + call.floor_name + ')' : ''}</p>
                             </div>
                             <button onclick="resolveTableCall(${call.id})" class="ml-4 bg-white text-error px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">OK</button>
                         `;

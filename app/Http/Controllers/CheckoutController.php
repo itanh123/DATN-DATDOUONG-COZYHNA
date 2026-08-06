@@ -479,7 +479,7 @@ class CheckoutController extends Controller
                 if ($user && $user->email) {
                     $order = DB::table('orders')->where('id', $orderId)->first();
                     \Illuminate\Support\Facades\Mail::to($user->email)
-                        ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
+                        ->queue(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());

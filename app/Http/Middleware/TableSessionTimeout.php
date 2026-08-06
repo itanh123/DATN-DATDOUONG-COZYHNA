@@ -21,6 +21,15 @@ class TableSessionTimeout
             
             // 120 minutes = 7200 seconds
             if ($currentTime - $loginTime > 7200) {
+                $tableId = session('table_id');
+                if ($tableId) {
+                    $table = \App\Models\RestaurantTable::find($tableId);
+                    if ($table && $table->status === 'occupied') {
+                        $table->status = 'available';
+                        $table->save();
+                    }
+                }
+
                 // Clear session
                 session()->forget('user_id');
                 session()->forget('role_code');
@@ -30,7 +39,7 @@ class TableSessionTimeout
                 session()->forget('table_name');
                 session()->forget('table_login_time');
                 
-                return redirect('/')->with('error', 'Phiên đăng nhập tại bàn đã hết hạn (quá 120 phút). Vui lòng quét lại mã QR.');
+                return redirect('/')->with('error', 'Bạn đã hết phiên đăng nhập, vui lòng quét mã để đăng nhập.');
             }
         }
 

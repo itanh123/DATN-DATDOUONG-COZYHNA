@@ -30,7 +30,6 @@
                         <th class="p-4 font-semibold text-gray-600 text-sm">Sản phẩm</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Đánh giá</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Bình luận</th>
-                        <th class="p-4 font-semibold text-gray-600 text-sm">Trạng thái</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Ngày tạo</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm text-right">Thao tác</th>
                     </tr>
@@ -49,14 +48,6 @@
                                     <strong class="text-blue-600">Phản hồi:</strong> {{ $review->admin_reply }}
                                 </div>
                             @endif
-                        </td>
-                        <td class="p-4">
-                            <select onchange="updateStatus({{ $review->id }}, this.value)" class="text-sm rounded border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50
-                                {{ $review->status == 'approved' ? 'bg-green-50 text-green-700' : ($review->status == 'pending' ? 'bg-yellow-50 text-yellow-700' : 'bg-red-50 text-red-700') }}">
-                                <option value="pending" {{ $review->status == 'pending' ? 'selected' : '' }}>Chờ duyệt</option>
-                                <option value="approved" {{ $review->status == 'approved' ? 'selected' : '' }}>Đã duyệt</option>
-                                <option value="rejected" {{ $review->status == 'rejected' ? 'selected' : '' }}>Đã ẩn</option>
-                            </select>
                         </td>
                         <td class="p-4 text-sm text-gray-500">{{ $review->created_at->format('d/m/Y H:i') }}</td>
                         <td class="p-4 text-right">
@@ -86,29 +77,6 @@
 
 @push('scripts')
 <script>
-    async function updateStatus(reviewId, status) {
-        try {
-            const response = await fetch(`/admin/reviews/${reviewId}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ status: status })
-            });
-            const data = await response.json();
-            if (data.success) {
-                // Optionally show a toast notification here
-                window.location.reload();
-            } else {
-                alert(data.message || 'Có lỗi xảy ra');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Lỗi kết nối mạng');
-        }
-    }
-
     function replyReview(id, currentReply) {
         const reply = prompt("Nhập câu trả lời cho đánh giá này:", currentReply);
         if (reply !== null) {

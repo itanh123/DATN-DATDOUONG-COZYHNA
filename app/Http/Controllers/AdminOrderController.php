@@ -16,7 +16,7 @@ class AdminOrderController extends Controller
     public function index(Request $request)
     {
         if (!check_permission('view_orders')) {
-            return redirect('/login')->with('error', 'You do not have permission to access this page.');
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
         }
 
         $query = Order::with(['customer.user', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment']);
@@ -34,6 +34,15 @@ class AdminOrderController extends Controller
                 $q->where('code', 'like', "%{$search}%")
                   ->orWhere('receiver_name', 'like', "%{$search}%")
                   ->orWhere('receiver_phone', 'like', "%{$search}%");
+            });
+        }
+
+        $tab = $request->get('tab', 'online');
+        if ($tab === 'table') {
+            $query->where('order_type', 'AT_TABLE');
+        } else {
+            $query->where(function($q) {
+                $q->where('order_type', 'DELIVERY')->orWhereNull('order_type');
             });
         }
 
@@ -73,7 +82,7 @@ class AdminOrderController extends Controller
     public function show($id)
     {
         if (!check_permission('view_orders')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $order = Order::with(['customer.user', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment'])->findOrFail($id);
@@ -93,9 +102,9 @@ class AdminOrderController extends Controller
     {
         if (!check_permission('edit_orders') && !check_permission('update_orders')) {
             if ($request->wantsJson()) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json(['error' => 'Không có quyền truy cập.'], 401);
             }
-            return redirect('/login')->with('error', 'You do not have permission.');
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập.');
         }
 
         $request->validate([
@@ -105,10 +114,27 @@ class AdminOrderController extends Controller
         $order = Order::findOrFail($id);
         $newStatusStr = strtoupper($request->status);
         $newStatusLower = strtolower($request->status);
+        
+        $oldStatus = $order->order_status ?? strtoupper($order->status);
 
-        DB::transaction(function () use ($request, $order, $newStatusStr, $newStatusLower) {
-            $oldStatus = $order->order_status ?? strtoupper($order->status);
-            
+        if ($newStatusStr !== $oldStatus && $newStatusStr !== 'CANCELLED') {
+            $valid = false;
+            if ($oldStatus === 'PENDING' && $newStatusStr === 'PREPARING') $valid = true;
+            if ($oldStatus === 'PREPARING') {
+                if ($order->order_type === 'AT_TABLE' && $newStatusStr === 'COMPLETED') $valid = true;
+                if ($order->order_type !== 'AT_TABLE' && $newStatusStr === 'DELIVERING') $valid = true;
+            }
+            if ($oldStatus === 'DELIVERING' && $newStatusStr === 'COMPLETED') $valid = true;
+
+            if (!$valid) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'Trạng thái chuyển tiếp không hợp lệ.'], 400);
+                }
+                return redirect()->back()->with('error', 'Trạng thái chuyển tiếp không hợp lệ.');
+            }
+        }
+
+        DB::transaction(function () use ($request, $order, $newStatusStr, $newStatusLower, $oldStatus) {
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'old_status' => $oldStatus,
@@ -158,11 +184,11 @@ class AdminOrderController extends Controller
                 ->first();
 
             if ($customerUser && $customerUser->email) {
-                Mail::to($customerUser->email)
-                    ->send(new \App\Mail\OrderStatusChanged($order, $customerUser->username, $newStatusStr));
+                \Illuminate\Support\Facades\Mail::to($customerUser->email)
+                    ->queue(new \App\Mail\OrderStatusChanged($order, $customerUser->username, $newStatusStr));
             }
         } catch (\Exception $e) {
-            Log::error('Mail Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -175,7 +201,7 @@ class AdminOrderController extends Controller
     public function assignShipper(Request $request, $id)
     {
         if (!check_permission('edit_orders')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
         $request->validate([

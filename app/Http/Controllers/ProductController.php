@@ -56,7 +56,7 @@ class ProductController extends Controller
         ]);
 
 
-        return redirect('/admin/product')->with('success', 'Product created successfully');
+        return redirect('/admin/product')->with('success', 'Tạo sản phẩm thành công.');
     }
 
     public function update(Request $request, Product $product)
@@ -92,13 +92,13 @@ class ProductController extends Controller
 
         $product->save();
 
-        return redirect('/admin/product')->with('success', 'Product updated successfully');
+        return redirect('/admin/product')->with('success', 'Cập nhật sản phẩm thành công.');
     }
 
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect('/admin/product')->with('success', 'Product deleted successfully');
+        return redirect('/admin/product')->with('success', 'Xóa sản phẩm thành công.');
     }
 
     public function storeSize(Request $request)
@@ -111,7 +111,7 @@ class ProductController extends Controller
 
         Size::create($validated);
 
-        return redirect('/admin/product')->with('success', 'Size created successfully');
+        return redirect('/admin/product')->with('success', 'Tạo kích thước thành công.');
     }
 
     public function updateSize(Request $request, Size $size)
@@ -124,13 +124,13 @@ class ProductController extends Controller
 
         $size->update($validated);
 
-        return redirect('/admin/product')->with('success', 'Size updated successfully');
+        return redirect('/admin/product')->with('success', 'Cập nhật kích thước thành công.');
     }
 
     public function destroySize(Size $size)
     {
         $size->delete();
-        return redirect('/admin/product')->with('success', 'Size deleted successfully');
+        return redirect('/admin/product')->with('success', 'Xóa kích thước thành công.');
     }
 
     public function syncSizes(Request $request, Product $product)
@@ -152,7 +152,7 @@ class ProductController extends Controller
             }
         }
 
-        return redirect('/admin/product')->with('success', 'Product sizes updated successfully');
+        return redirect('/admin/product')->with('success', 'Cập nhật kích thước sản phẩm thành công.');
     }
 
     // --- Category Management ---
@@ -170,7 +170,7 @@ class ProductController extends Controller
 
         Category::create($validated);
 
-        return redirect('/admin/product')->with('success', 'Category created successfully');
+        return redirect('/admin/product')->with('success', 'Tạo danh mục thành công.');
     }
 
     public function updateCategory(Request $request, Category $category)
@@ -186,13 +186,13 @@ class ProductController extends Controller
 
         $category->update($validated);
 
-        return redirect('/admin/product')->with('success', 'Category updated successfully');
+        return redirect('/admin/product')->with('success', 'Cập nhật danh mục thành công.');
     }
 
     public function destroyCategory(Category $category)
     {
         $category->delete();
-        return redirect('/admin/product')->with('success', 'Category deleted successfully');
+        return redirect('/admin/product')->with('success', 'Xóa danh mục thành công.');
     }
 
     // --- Recipe Management ---

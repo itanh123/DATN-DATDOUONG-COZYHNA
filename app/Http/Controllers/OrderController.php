@@ -294,11 +294,11 @@ class OrderController extends Controller
         try {
             $user = DB::table('users')->where('id', $userId)->first();
             if ($user && $user->email) {
-                Mail::to($user->email)
-                    ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đã bị hủy bởi khách hàng'));
+                \Illuminate\Support\Facades\Mail::to($user->email)
+                    ->queue(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đã bị hủy bởi khách hàng'));
             }
         } catch (\Exception $e) {
-            Log::error('Mail Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
         }
 
         return back()->with('cancel_success', 'Đã hủy đơn hàng! Cảm ơn bạn đã góp ý kiến.');

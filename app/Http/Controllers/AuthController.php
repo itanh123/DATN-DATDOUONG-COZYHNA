@@ -172,6 +172,10 @@ class AuthController extends Controller
 
             $roleCode = DB::table('roles')->where('id', $user->role_id)->value('code');
 
+            if ($roleCode === 'customer') {
+                CustomerProfile::firstOrCreate(['user_id' => $user->id]);
+            }
+
             $request->session()->put('user_id', $user->id);
             $request->session()->put('role_code', $roleCode);
 

@@ -43,7 +43,7 @@ class VoucherController extends Controller
             ],
             'minimum_order' => 'required|numeric|min:0|max:99999999',
             'quantity' => 'required|integer|min:1',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
@@ -52,7 +52,7 @@ class VoucherController extends Controller
 
         Voucher::create($data);
 
-        return redirect('/admin/voucher')->with('success', 'Voucher created successfully.');
+        return redirect('/admin/voucher')->with('success', 'Tạo voucher thành công.');
     }
 
     public function edit(Voucher $voucher)
@@ -88,12 +88,12 @@ class VoucherController extends Controller
 
         $voucher->update($data);
 
-        return redirect('/admin/voucher')->with('success', 'Voucher updated successfully.');
+        return redirect('/admin/voucher')->with('success', 'Cập nhật voucher thành công.');
     }
 
     public function destroy(Voucher $voucher)
     {
         $voucher->delete();
-        return redirect('/admin/voucher')->with('success', 'Voucher deleted successfully.');
+        return redirect('/admin/voucher')->with('success', 'Xóa voucher thành công.');
     }
 }

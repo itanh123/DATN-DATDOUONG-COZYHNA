@@ -17,6 +17,12 @@ class TableOrderController extends Controller
             return redirect('/')->with('error', 'Mã QR không hợp lệ hoặc bàn đã bị vô hiệu hóa.');
         }
 
+        // Cập nhật trạng thái bàn thành "Có khách" nếu đang trống
+        if ($table->status === 'available') {
+            $table->status = 'occupied';
+            $table->save();
+        }
+
         // Tự động tạo "tài khoản bàn" nếu chưa có
         $username = 'table_' . $table->id;
         $user = \App\Models\User::where('username', $username)->first();
@@ -111,14 +117,14 @@ class TableOrderController extends Controller
                 // Cập nhật số lượng voucher
                 $voucher = \App\Models\Voucher::find($voucherId);
                 if ($voucher && $voucher->quantity > 0) {
-                    $voucher->increment('used_count');
+                    $voucher->increment('used');
                 }
             }
 
             // Create Order using Eloquent for consistency
             $order = \App\Models\Order::create([
                 'customer_id'     => $customerProfile->id,
-                'code'            => $orderCode,
+                'order_code'      => $orderCode,
                 'order_source'    => 'WEBSITE',
                 'order_type'      => 'AT_TABLE',
                 'order_status'    => 'PENDING',
@@ -130,8 +136,8 @@ class TableOrderController extends Controller
                 'discount_amount' => $discountAmount,
                 'voucher_id'      => $voucherId,
                 'shipping_fee'    => 0,
-                'tax_amount'      => round($subtotal * 0.08),
-                'total_amount'    => max(0, $subtotal + round($subtotal * 0.08) - $discountAmount),
+                'tax_amount'      => 0,
+                'total_amount'    => max(0, $subtotal - $discountAmount),
                 'created_by'      => $userId
             ]);
 
@@ -209,7 +215,7 @@ class TableOrderController extends Controller
     public function callStaff()
     {
         if (!session('is_table_order') || !session('table_id')) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return response()->json(['success' => false, 'message' => 'Không có quyền truy cập.'], 403);
         }
 
         // Avoid multiple pending calls from the same table to prevent spam

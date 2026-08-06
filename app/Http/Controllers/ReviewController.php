@@ -88,7 +88,7 @@ class ReviewController extends Controller
     public function index()
     {
         if (!check_permission('view_products')) {
-            return redirect('/login')->with('error', 'Unauthorized');
+            return redirect('/login')->with('error', 'Không có quyền truy cập.');
         }
 
         $reviews = ProductReview::with(['user', 'product'])
@@ -104,7 +104,7 @@ class ReviewController extends Controller
     public function updateStatus(Request $request, ProductReview $review)
     {
         if (!check_permission('view_products')) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return response()->json(['success' => false, 'message' => 'Không có quyền truy cập.'], 403);
         }
 
         $request->validate([
@@ -123,7 +123,7 @@ class ReviewController extends Controller
     public function reply(Request $request, ProductReview $review)
     {
         if (!check_permission('view_products')) {
-            return back()->with('error', 'Unauthorized');
+            return back()->with('error', 'Không có quyền truy cập.');
         }
 
         $request->validate([
