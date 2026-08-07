@@ -124,14 +124,25 @@
                     {{-- Danh sách sản phẩm --}}
                     <div class="bg-surface-container-low rounded-lg p-sm space-y-xs">
                         @foreach($order->items->take(3) as $item)
-                            <div class="flex justify-between text-body-sm text-on-surface-variant">
-                                <span>
-                                    {{ $item->product->name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
-                                    @if($item->productSize?->size)
-                                        ({{ $item->productSize->size->name }})
+                            <div class="flex justify-between text-body-sm text-on-surface-variant border-b border-outline-variant/10 pb-xs last:border-0 last:pb-0">
+                                <div>
+                                    <span class="text-on-surface">
+                                        {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
+                                        @if($item->size_name || $item->productSize?->size)
+                                            ({{ $item->size_name ?? $item->productSize->size->name }})
+                                        @endif
+                                    </span>
+                                    <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
+                                    @if($item->toppings && $item->toppings->count() > 0)
+                                        <div class="text-[11px] text-on-surface-variant mt-1">
+                                            + Topping: 
+                                            @foreach($item->toppings as $index => $t)
+                                                {{ $t->topping?->name ?? 'Topping' }} x{{ $t->quantity }}@if(!$loop->last), @endif
+                                            @endforeach
+                                        </div>
                                     @endif
-                                </span>
-                                <span class="font-bold">x{{ $item->quantity }}</span>
+                                </div>
+                                <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
                             </div>
                         @endforeach
                         @if($order->items->count() > 3)
@@ -198,16 +209,27 @@
                         {{-- Danh sách sản phẩm --}}
                         <div class="glass-card rounded-xl p-md min-w-[220px]">
                             <h4 class="font-title-md text-title-md mb-sm">Sản phẩm</h4>
-                            <ul class="space-y-xs">
+                            <ul class="space-y-sm">
                                 @foreach($order->items as $item)
-                                    <li class="flex justify-between items-center py-xs border-b border-outline-variant/10 text-body-sm">
-                                        <span class="text-on-surface-variant">
-                                            {{ $item->product->name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
-                                            @if($item->productSize?->size)
-                                                ({{ $item->productSize->size->name }})
+                                    <li class="flex justify-between items-start py-xs border-b border-outline-variant/10 text-body-sm last:border-0">
+                                        <div>
+                                            <span class="text-on-surface">
+                                                {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
+                                                @if($item->size_name || $item->productSize?->size)
+                                                    ({{ $item->size_name ?? $item->productSize->size->name }})
+                                                @endif
+                                            </span>
+                                            <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
+                                            @if($item->toppings && $item->toppings->count() > 0)
+                                                <div class="text-[11px] text-on-surface-variant mt-1">
+                                                    + Topping: 
+                                                    @foreach($item->toppings as $index => $t)
+                                                        {{ $t->topping?->name ?? 'Topping' }} x{{ $t->quantity }}@if(!$loop->last), @endif
+                                                    @endforeach
+                                                </div>
                                             @endif
-                                        </span>
-                                        <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
+                                        </div>
+                                        <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -364,6 +386,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN,
             },
         })
@@ -398,6 +421,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN,
             },
             body: JSON.stringify({ status, note }),

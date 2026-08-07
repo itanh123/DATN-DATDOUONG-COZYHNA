@@ -73,16 +73,13 @@ class PaymentController extends Controller
 
             $oldStatus = $order->order_status;
             if ($oldStatus === 'PENDING') {
-                $order->order_status = 'CONFIRMED';
-                $order->status       = 'confirmed';
-                $order->save();
-
+                // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
                     'old_status' => $oldStatus,
-                    'new_status' => 'CONFIRMED',
+                    'new_status' => $oldStatus,
                     'changed_by' => session('user_id'),
-                    'note'       => 'Xác nhận thanh toán VietQR thành công',
+                    'note'       => 'Khách hàng đã thanh toán VietQR thành công',
                 ]);
             }
         });
@@ -134,16 +131,13 @@ class PaymentController extends Controller
 
                 $oldStatus = $order->order_status;
                 if ($oldStatus === 'PENDING') {
-                    $order->order_status = 'CONFIRMED';
-                    $order->status       = 'confirmed';
-                    $order->save();
-
+                    // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
                     OrderStatusHistory::create([
                         'order_id'   => $order->id,
                         'old_status' => $oldStatus,
-                        'new_status' => 'CONFIRMED',
+                        'new_status' => $oldStatus,
                         'changed_by' => session('user_id'),
-                        'note'       => 'Xác nhận thanh toán online ảo thành công',
+                        'note'       => 'Khách hàng đã thanh toán online thành công (giả lập)',
                     ]);
                 }
             });
@@ -285,16 +279,13 @@ class PaymentController extends Controller
 
                     $oldStatus = $order->order_status;
                     if ($oldStatus === 'PENDING') {
-                        $order->order_status = 'CONFIRMED';
-                        $order->status       = 'confirmed';
-                        $order->save();
-
+                        // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
                         OrderStatusHistory::create([
                             'order_id'   => $order->id,
                             'old_status' => $oldStatus,
-                            'new_status' => 'CONFIRMED',
+                            'new_status' => $oldStatus,
                             'changed_by' => session('user_id'),
-                            'note'       => 'Thanh toán VNPAY thành công',
+                            'note'       => 'Khách hàng đã thanh toán VNPAY thành công',
                         ]);
                     }
                 });

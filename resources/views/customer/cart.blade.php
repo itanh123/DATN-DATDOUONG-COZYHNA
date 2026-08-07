@@ -211,6 +211,7 @@
                                  data-product-id="{{ $product->id ?? '' }}"
                                  data-price="{{ $price }}" 
                                  data-quantity="{{ $item->quantity }}"
+                                 data-server-quantity="{{ $item->quantity }}"
                                  data-size-id="{{ $item->product_size_id }}"
                                  data-topping-ids="{{ json_encode(array_column($item->toppings, 'id')) }}"
                                  data-sizes="{{ json_encode($productSizes->map(fn($s) => ['id'=>$s->id, 'name'=>$s->size->name, 'price'=>$s->selling_price])) }}"
@@ -222,7 +223,7 @@
 
                                 <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-outline-variant/20 hover:opacity-90 transition-opacity bg-white">
                                     @if($product && $product->image)
-                                        <img class="w-full h-full object-cover" src="{{ str_starts_with($product->image, 'http') ? $product->image : asset('storage/'.$product->image) }}" alt=""/>
+                                        <img class="w-full h-full object-cover" src="{{ str_starts_with($product->image, 'http') ? $product->image : asset($product->image) }}" alt=""/>
                                     @else
                                         <div class="w-full h-full flex items-center justify-center bg-surface">
                                             <span class="material-symbols-outlined text-outline-variant/50 text-[32px]">local_cafe</span>
@@ -439,6 +440,37 @@
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     const formatMoney = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
     
+    function showToast(message, type = 'error') {
+        const existingToast = document.getElementById('global-toast');
+        if (existingToast) existingToast.remove();
+        
+        const isError = type === 'error';
+        const bgClass = isError ? 'bg-error' : 'bg-primary';
+        const textClass = isError ? 'text-on-error' : 'text-on-primary';
+        const icon = isError ? 'error' : 'check_circle';
+        
+        const toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.className = 'fixed top-24 left-1/2 -translate-x-1/2 z-[100] min-w-[320px] shadow-2xl rounded-xl overflow-hidden transition-all duration-500 transform translate-y-0 opacity-100';
+        toast.innerHTML = `
+            <div class="${bgClass} ${textClass} px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">${icon}</span>
+                <span class="font-body-md flex-1">${message}</span>
+                <button onclick="this.closest('#global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            const el = document.getElementById('global-toast');
+            if (el) {
+                el.classList.remove('translate-y-0', 'opacity-100');
+                el.classList.add('-translate-y-4', 'opacity-0');
+                setTimeout(() => el.remove(), 500);
+            }
+        }, 8000);
+    }
+    
     // UI Elements
     const checkboxes = document.querySelectorAll('.item-checkbox');
     const appliedVoucherDetails = @json(isset($appliedVoucher) ? \App\Models\Voucher::find($appliedVoucher['id']) : null);
@@ -470,7 +502,7 @@
                         }
                         
                         total += (price * quantity);
-                        count++;
+                        count += quantity;
                     }
                 }
             });
@@ -526,7 +558,7 @@
             }
         } catch (e) {
             console.error('Update Totals Error:', e);
-            alert('Lỗi cập nhật tổng tiền: ' + e.message);
+            showToast('Lỗi cập nhật tổng tiền: ' + e.message, 'error');
         }
     }
 
@@ -556,6 +588,8 @@
     async function updateCartQty(id, newQty, row) {
         if (newQty < 1 || !row) return;
         
+        const originalQty = parseInt(row.getAttribute('data-server-quantity') || row.dataset.quantity);
+        
         // Optimistic UI Update
         updateRowUI(newQty, row);
         
@@ -570,6 +604,7 @@
             });
             const data = await res.json();
             if (data.success) {
+                row.setAttribute('data-server-quantity', newQty);
                 // Update badge if exists
                 const badge = document.getElementById('cart-badge');
                 if(badge) {
@@ -577,50 +612,59 @@
                     badge.classList.remove('hidden');
                 }
             } else {
-                if (data.error) alert(data.error);
+                if (data.error) showToast(data.error, 'error');
+                // Revert on error
+                updateRowUI(originalQty, row);
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            updateRowUI(originalQty, row);
+        }
     }
 
-    document.querySelectorAll('.btn-increase').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const row = this.closest('.cart-item-row');
-            updateCartQty(this.dataset.id, parseInt(row.dataset.quantity) + 1, row);
-        });
-    });
-
-    document.querySelectorAll('.btn-decrease').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const row = this.closest('.cart-item-row');
+    document.addEventListener('click', function(e) {
+        // btn-increase
+        const btnInc = e.target.closest('.btn-increase');
+        if (btnInc) {
+            const row = btnInc.closest('.cart-item-row');
+            updateCartQty(btnInc.dataset.id, parseInt(row.dataset.quantity) + 1, row);
+            return;
+        }
+        
+        // btn-decrease
+        const btnDec = e.target.closest('.btn-decrease');
+        if (btnDec) {
+            const row = btnDec.closest('.cart-item-row');
             const qty = parseInt(row.dataset.quantity);
             if (qty > 1) {
-                updateCartQty(this.dataset.id, qty - 1, row);
+                updateCartQty(btnDec.dataset.id, qty - 1, row);
             } else {
-                removeCartItem(this.dataset.id, row);
+                removeCartItem(btnDec.dataset.id, row);
             }
-        });
+            return;
+        }
     });
 
-    document.querySelectorAll('.quantity-input').forEach(input => {
-        // Real-time UI update while typing
-        input.addEventListener('input', function() {
-            const row = this.closest('.cart-item-row');
-            let qty = parseInt(this.value);
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            const row = e.target.closest('.cart-item-row');
+            let qty = parseInt(e.target.value);
             if (!isNaN(qty) && qty >= 1) {
                 updateRowUI(qty, row);
             }
-        });
-        
-        // Send request to server on blur/enter
-        input.addEventListener('change', function() {
-            const row = this.closest('.cart-item-row');
-            let qty = parseInt(this.value);
+        }
+    });
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('quantity-input')) {
+            const row = e.target.closest('.cart-item-row');
+            let qty = parseInt(e.target.value);
             if (isNaN(qty) || qty < 1) {
-                removeCartItem(this.dataset.id, row);
+                removeCartItem(row.dataset.id, row);
             } else {
-                updateCartQty(this.dataset.id, qty, row);
+                updateCartQty(row.dataset.id, qty, row);
             }
-        });
+        }
     });
 
     // === CUSTOM DELETE MODAL ===
@@ -719,7 +763,7 @@
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
-                    alert(data.error);
+                    showToast(data.error || 'Lỗi thanh toán', 'error');
                     this.innerHTML = originalHtml;
                     this.disabled = false;
                 }
@@ -820,13 +864,13 @@
             if (data.success) {
                 window.location.reload(); // Reload to cleanly refresh cart state and IDs
             } else {
-                alert(data.error);
+                showToast(data.error, 'error');
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             }
         } catch (e) {
             console.error(e);
-            alert('Lỗi kết nối.');
+            showToast('Lỗi kết nối.', 'error');
             btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
@@ -853,11 +897,11 @@
             if (data.success) {
                 window.location.reload(); // Reload to reflect changes
             } else {
-                alert(data.error);
+                showToast(data.error, 'error');
             }
         } catch (e) {
             console.error(e);
-            alert('Lỗi kết nối.');
+            showToast('Lỗi kết nối.', 'error');
         }
     }
 

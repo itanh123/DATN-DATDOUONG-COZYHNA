@@ -37,13 +37,20 @@ class AdminOrderController extends Controller
             });
         }
 
-        $tab = $request->get('tab', 'online');
-        if ($tab === 'table') {
-            $query->where('order_type', 'AT_TABLE');
-        } else {
+        if (session('role_code') === 'shipper') {
+            $query->whereIn('order_status', ['READY_FOR_DELIVERY', 'DELIVERING', 'COMPLETED', 'CANCELLED']);
             $query->where(function($q) {
                 $q->where('order_type', 'DELIVERY')->orWhereNull('order_type');
             });
+        } else {
+            $tab = $request->get('tab', 'online');
+            if ($tab === 'table') {
+                $query->where('order_type', 'AT_TABLE');
+            } else {
+                $query->where(function($q) {
+                    $q->where('order_type', 'DELIVERY')->orWhereNull('order_type');
+                });
+            }
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
@@ -85,7 +92,7 @@ class AdminOrderController extends Controller
             return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
-        $order = Order::with(['customer.user', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment'])->findOrFail($id);
+        $order = Order::with(['customer.user', 'address', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment'])->findOrFail($id);
         
         $histories = OrderStatusHistory::with('changedBy')
             ->where('order_id', $id)
@@ -100,7 +107,7 @@ class AdminOrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        if (!check_permission('edit_orders') && !check_permission('update_orders')) {
+        if (!check_permission('edit_orders') && !check_permission('update_orders') && session('role_code') !== 'shipper') {
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Không có quyền truy cập.'], 401);
             }
@@ -117,24 +124,48 @@ class AdminOrderController extends Controller
         
         $oldStatus = $order->order_status ?? strtoupper($order->status);
 
-        if ($newStatusStr !== $oldStatus && $newStatusStr !== 'CANCELLED') {
+        $role = session('role_code');
+
+        if ($newStatusStr !== $oldStatus) {
             $valid = false;
-            if ($oldStatus === 'PENDING' && $newStatusStr === 'PREPARING') $valid = true;
-            if ($oldStatus === 'PREPARING') {
-                if ($order->order_type === 'AT_TABLE' && $newStatusStr === 'COMPLETED') $valid = true;
-                if ($order->order_type !== 'AT_TABLE' && $newStatusStr === 'DELIVERING') $valid = true;
+            
+            if ($newStatusStr === 'CANCELLED') {
+                if ($role === 'admin') $valid = true;
+                if ($role === 'staff' && in_array($oldStatus, ['PENDING', 'CONFIRMED', 'PREPARING'])) $valid = true;
+                if ($role === 'shipper' && in_array($oldStatus, ['READY_FOR_DELIVERY', 'DELIVERING'])) $valid = true;
+            } else {
+                if (in_array($oldStatus, ['PENDING', 'CONFIRMED']) && $newStatusStr === 'PREPARING') {
+                    if (in_array($role, ['admin', 'staff'])) $valid = true;
+                }
+                if ($oldStatus === 'PREPARING') {
+                    if ($order->order_type === 'AT_TABLE' && $newStatusStr === 'COMPLETED') {
+                        if (in_array($role, ['admin', 'staff'])) $valid = true;
+                    }
+                    if ($order->order_type !== 'AT_TABLE' && $newStatusStr === 'READY_FOR_DELIVERY') {
+                        if (in_array($role, ['admin', 'staff'])) $valid = true;
+                    }
+                }
+                if ($oldStatus === 'READY_FOR_DELIVERY' && $newStatusStr === 'DELIVERING') {
+                    if (in_array($role, ['admin', 'shipper'])) $valid = true;
+                }
+                if ($oldStatus === 'DELIVERING' && $newStatusStr === 'COMPLETED') {
+                    if (in_array($role, ['admin', 'shipper'])) $valid = true;
+                }
             }
-            if ($oldStatus === 'DELIVERING' && $newStatusStr === 'COMPLETED') $valid = true;
 
             if (!$valid) {
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['error' => 'Trạng thái chuyển tiếp không hợp lệ.'], 400);
+                    return response()->json(['error' => 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.'], 400);
                 }
-                return redirect()->back()->with('error', 'Trạng thái chuyển tiếp không hợp lệ.');
+                return redirect()->back()->with('error', 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.');
             }
         }
 
         DB::transaction(function () use ($request, $order, $newStatusStr, $newStatusLower, $oldStatus) {
+            if ($request->filled('shipper_id')) {
+                $order->shipper_id = $request->shipper_id;
+            }
+
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'old_status' => $oldStatus,

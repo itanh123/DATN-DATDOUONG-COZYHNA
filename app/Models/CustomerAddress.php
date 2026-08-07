@@ -19,6 +19,12 @@ class CustomerAddress extends Model
   6 => 'longitude',
   7 => 'is_default',
   8 => 'note',
+  9 => 'receiver_name',
+  10 => 'receiver_phone',
+  11 => 'province_code',
+  12 => 'district_code',
+  13 => 'ward_code',
+  14 => 'is_saved',
 );
 
     public function customer() {

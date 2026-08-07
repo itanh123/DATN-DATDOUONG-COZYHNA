@@ -36,14 +36,14 @@ class ShipperController extends Controller
         // Tab "Available": đơn hàng đã sẵn sàng giao, chưa có shipper nhận
         $availableOrders = Order::where('order_status', 'READY_FOR_DELIVERY')
             ->whereNull('shipper_id')
-            ->with(['customer.user', 'items'])
+            ->with(['customer.user', 'items.toppings.topping', 'address'])
             ->orderByDesc('updated_at')
             ->get();
 
         // Tab "Active": đơn hàng shipper này đang giao
         $activeOrders = Order::where('order_status', 'DELIVERING')
             ->where('shipper_id', $shipper->id)
-            ->with(['customer.user', 'items'])
+            ->with(['customer.user', 'items.toppings.topping', 'address'])
             ->orderByDesc('updated_at')
             ->get();
 
@@ -122,8 +122,10 @@ class ShipperController extends Controller
             return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
+        $request->merge(['status' => strtoupper($request->status)]);
+
         $request->validate([
-            'status' => ['required', 'in:COMPLETED,FAILED'],
+            'status' => ['required', 'in:PICKED_UP,DELIVERING,COMPLETED,FAILED'],
             'note'   => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -132,7 +134,6 @@ class ShipperController extends Controller
             ->firstOrFail();
 
         DB::transaction(function () use ($request, $order, $shipper) {
-            // Nếu hoàn thành → cập nhật đơn hàng & thống kê shipper
             if ($request->status === 'COMPLETED') {
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
@@ -146,16 +147,13 @@ class ShipperController extends Controller
                 $order->completed_at = now();
                 $order->save();
 
-                // Cập nhật trạng thái thanh toán nếu là tiền mặt
                 \App\Models\Payment::where('order_id', $order->id)
                     ->where('payment_status', 'PENDING')
                     ->update(['payment_status' => 'COMPLETED']);
 
                 $shipper->increment('total_deliveries');
             }
-
-            // Nếu giao thất bại → trả đơn về available (xóa shipper_id)
-            if ($request->status === 'FAILED') {
+            elseif ($request->status === 'FAILED') {
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
                     'old_status' => $order->order_status,
@@ -167,16 +165,75 @@ class ShipperController extends Controller
                 $order->shipper_id = null;
                 $order->save();
             }
+            elseif ($request->status === 'PICKED_UP') {
+                OrderStatusHistory::create([
+                    'order_id'   => $order->id,
+                    'old_status' => $order->order_status,
+                    'new_status' => $order->order_status,
+                    'changed_by' => session('user_id'),
+                    'note'       => $request->note ?? 'Đã lấy hàng và bắt đầu đi giao',
+                ]);
+            }
+            elseif ($request->status === 'DELIVERING') {
+                OrderStatusHistory::create([
+                    'order_id'   => $order->id,
+                    'old_status' => $order->order_status,
+                    'new_status' => $order->order_status,
+                    'changed_by' => session('user_id'),
+                    'note'       => $request->note ?? 'Đang trên đường giao đến khách hàng',
+                ]);
+            }
         });
 
         $statusLabels = [
             'COMPLETED'  => 'Giao hàng thành công',
             'FAILED'     => 'Giao hàng thất bại, đơn đã được chuyển về kho',
+            'PICKED_UP'  => 'Đã cập nhật trạng thái lấy hàng',
+            'DELIVERING' => 'Đã cập nhật trạng thái đang giao',
         ];
 
         return response()->json([
             'success' => true,
             'message' => $statusLabels[$request->status] ?? 'Đã cập nhật trạng thái.',
         ]);
+    }
+
+    /**
+     * Trang lịch sử giao hàng và doanh thu
+     */
+    public function history()
+    {
+        $shipper = $this->getShipperProfile();
+        if (!$shipper) {
+            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+        }
+
+        $orders = Order::where('shipper_id', $shipper->id)
+            ->where('order_status', 'COMPLETED')
+            ->with(['customer.user', 'address'])
+            ->orderByDesc('completed_at')
+            ->paginate(20);
+
+        $totalRevenue = Order::where('shipper_id', $shipper->id)
+            ->where('order_status', 'COMPLETED')
+            ->sum('shipping_fee');
+
+        return view('shipper.history', compact('shipper', 'orders', 'totalRevenue'));
+    }
+
+    public function reviews()
+    {
+        $shipper = $this->getShipperProfile();
+        if (!$shipper) {
+            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+        }
+
+        $ordersWithReviews = Order::where('shipper_id', $shipper->id)
+            ->whereNotNull('shipper_rating')
+            ->with(['customer.user'])
+            ->orderByDesc('completed_at')
+            ->paginate(20);
+
+        return view('shipper.reviews', compact('shipper', 'ordersWithReviews'));
     }
 }

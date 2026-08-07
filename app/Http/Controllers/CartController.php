@@ -20,6 +20,43 @@ class CartController extends Controller
         session(['cart' => $cartItems]);
     }
 
+    private function checkCartStock(array $simulatedCartItems)
+    {
+        $requiredIngredients = [];
+
+        foreach ($simulatedCartItems as $item) {
+            if (empty($item['product_size_id']) || empty($item['quantity'])) continue;
+            
+            $recipe = \App\Models\Recipe::where('product_size_id', $item['product_size_id'])
+                ->with('ingredients.ingredient')
+                ->first();
+
+            if (!$recipe) continue;
+
+            foreach ($recipe->ingredients as $ri) {
+                if (!$ri->ingredient) continue;
+                
+                $ingredientId = $ri->ingredient_id;
+                if (!isset($requiredIngredients[$ingredientId])) {
+                    $requiredIngredients[$ingredientId] = [
+                        'name' => $ri->ingredient->name,
+                        'required' => 0,
+                        'stock' => $ri->ingredient->current_stock,
+                    ];
+                }
+                $requiredIngredients[$ingredientId]['required'] += ($ri->quantity * $item['quantity']);
+            }
+        }
+
+        foreach ($requiredIngredients as $ing) {
+            if ($ing['required'] > $ing['stock']) {
+                return "Không đủ nguyên liệu: {$ing['name']} (Cần: " . round($ing['required'], 2) . ", Tồn: " . round($ing['stock'], 2) . ")";
+            }
+        }
+
+        return true;
+    }
+
     public function add(Request $request)
     {
         if (!session('user_id')) {
@@ -85,6 +122,11 @@ class CartController extends Controller
             ];
         }
 
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            return response()->json(['error' => $stockCheck], 400);
+        }
+
         $this->saveCartItems($cartItems);
 
         return response()->json([
@@ -115,6 +157,11 @@ class CartController extends Controller
         } else {
             $cartItems[$id]['quantity'] = $quantity;
             $message = 'Đã cập nhật số lượng';
+        }
+
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            return response()->json(['error' => $stockCheck], 400);
         }
 
         $this->saveCartItems($cartItems);
@@ -220,6 +267,11 @@ class CartController extends Controller
                 'unit_price'      => $unitPrice,
                 'toppings'        => $toppings,
             ];
+        }
+
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            return response()->json(['error' => $stockCheck], 400);
         }
 
         $this->saveCartItems($cartItems);
@@ -422,12 +474,15 @@ class CartController extends Controller
         }
         $feePerKm = (float) \App\Models\Setting::get('fee_per_km', 0);
         $maxRadius = (float) \App\Models\Setting::get('max_delivery_radius', 0);
+        $baseFee = (float) \App\Models\Setting::get('base_shipping_fee', 15000);
         $storeProvince = \App\Models\Setting::get('store_province', 'Hà Nội');
         $storeDistrict = \App\Models\Setting::get('store_district', '');
         $storeWard = \App\Models\Setting::get('store_ward', '');
         $storeSpecificAddress = \App\Models\Setting::get('store_specific_address', '');
+        $storeLat = \App\Models\Setting::get('store_lat', '');
+        $storeLon = \App\Models\Setting::get('store_lon', '');
 
-        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress'));
+        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'baseFee', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress', 'storeLat', 'storeLon'));
     }
 
     private function calcTotals($cartItems): array

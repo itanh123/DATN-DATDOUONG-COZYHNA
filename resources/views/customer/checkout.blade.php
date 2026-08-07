@@ -268,7 +268,39 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
+
+    // === Toast Notification ===
+    function showToast(message, type = 'success') {
+        const existingToast = document.getElementById('checkout-toast');
+        if (existingToast) existingToast.remove();
+
+        const colors = {
+            success: { bg: 'bg-primary', text: 'text-on-primary', icon: 'check_circle' },
+            error:   { bg: 'bg-error',   text: 'text-on-error',   icon: 'error' },
+            warning: { bg: 'bg-[#7d5800]', text: 'text-white',    icon: 'warning' },
+            info:    { bg: 'bg-secondary', text: 'text-on-secondary', icon: 'info' },
+        };
+        const c = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.id = 'checkout-toast';
+        toast.className = 'fixed top-24 left-1/2 -translate-x-1/2 z-[200] min-w-[320px] max-w-sm shadow-2xl rounded-xl overflow-hidden transition-all duration-500';
+        toast.innerHTML = `
+            <div class="${c.bg} ${c.text} px-4 py-3 flex items-start gap-3">
+                <span class="material-symbols-outlined mt-0.5 flex-shrink-0">${c.icon}</span>
+                <span class="text-sm flex-1 leading-snug">${message}</span>
+                <button onclick="this.closest('#checkout-toast').remove()" class="hover:opacity-70 flex-shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            const el = document.getElementById('checkout-toast');
+            if (el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }
+        }, 8000);
+    }
+
     // Initialize TomSelect for all dropdowns
     const tsOptions = {
         create: false,
@@ -355,15 +387,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // OSRM Distance Calculation
     let storeCoords = null;
 
+    function cleanAddress(addr) {
+        if (!addr) return '';
+        return addr.replace(/^(Tỉnh|Thành phố|Huyện|Quận|Thị xã|Xã|Phường|Thị trấn)\s+/i, '').trim();
+    }
+
     async function geocode(address) {
         try {
             console.log("Geocoding:", address);
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&email=contact@cozyhna.com`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&email=contact@cozyhna.com&countrycodes=vn`;
             const response = await fetch(url, { headers: { 'Accept-Language': 'vi' } });
             const data = await response.json();
             console.log("Nominatim response for", address, ":", data);
             if (data && data.length > 0) {
-                return { lat: data[0].lat, lon: data[0].lon };
+                return { lat: data[0].lat, lon: data[0].lon, address: address };
             }
             return null;
         } catch (e) {
@@ -373,18 +410,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function getCoordinatesWithFallback(specific, ward, district, province) {
+        const cWard = cleanAddress(ward);
+        const cDist = cleanAddress(district);
+        const cProv = cleanAddress(province);
+
         if (specific) {
-            let coords = await geocode(`${specific}, ${ward}, ${district}, ${province}`);
+            let coords = await geocode(`${specific}, ${cWard}, ${cDist}, ${cProv}`);
             if (coords) return coords;
         }
         
-        let coords = await geocode(`${ward}, ${district}, ${province}`);
+        let coords = await geocode(`${cWard}, ${cDist}, ${cProv}`);
         if (coords) return coords;
         
-        coords = await geocode(`${district}, ${province}`);
+        coords = await geocode(`${cDist}, ${cProv}`);
         if (coords) return coords;
 
-        coords = await geocode(`${province}`);
+        coords = await geocode(`${cProv}`);
         return coords;
     }
 
@@ -422,60 +463,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 const storeDistrict = "{{ $storeDistrict ?? '' }}";
                 const storeWard = "{{ $storeWard ?? '' }}";
                 const storeSpecific = "{{ $storeSpecificAddress ?? '' }}";
-                storeCoords = await getCoordinatesWithFallback(storeSpecific, storeWard, storeDistrict, storeProvince);
+                const storeLat = "{{ $storeLat ?? '' }}";
+                const storeLon = "{{ $storeLon ?? '' }}";
+                
+                if (storeLat && storeLon) {
+                    storeCoords = { lat: parseFloat(storeLat), lon: parseFloat(storeLon), address: 'Cửa hàng' };
+                } else {
+                    storeCoords = await getCoordinatesWithFallback(storeSpecific, storeWard, storeDistrict, storeProvince);
+                }
             }
 
             const customerCoords = await getCoordinatesWithFallback(specific, w, d, p);
             let distanceKm = null;
 
             if (storeCoords && customerCoords) {
-                const distance = await getDistanceOSRM(storeCoords.lon, storeCoords.lat, customerCoords.lon, customerCoords.lat);
-                if (distance !== null) {
-                    distanceKm = parseFloat(distance.toFixed(1));
+                if (storeCoords.lat === customerCoords.lat && storeCoords.lon === customerCoords.lon) {
+                    distanceKm = 0.1;
+                } else {
+                    const distance = await getDistanceOSRM(storeCoords.lon, storeCoords.lat, customerCoords.lon, customerCoords.lat);
+                    if (distance !== null) {
+                        distanceKm = parseFloat(distance.toFixed(1));
+                    }
                 }
             }
             
             isCalculating = false;
             
-            // If failed to calculate, distanceKm remains null
-            if (distanceKm === null) {
-                console.log({storeCoords, customerCoords, p, d, w});
-                if (!storeCoords) {
-                    alert("Không thể tính được khoảng cách: Lỗi xác định tọa độ cửa hàng.");
-                } else if (!customerCoords) {
-                    alert("Không thể tính được khoảng cách: Lỗi xác định tọa độ địa chỉ giao hàng của bạn.");
-                } else {
-                    alert("Không thể tìm thấy tuyến đường giao thông phù hợp giữa cửa hàng và địa chỉ của bạn.");
-                }
-                distanceKm = 0; // fallback to 0 after alerting
-            }
-
             const feePerKm = {{ $feePerKm ?? 0 }};
             const maxRadius = {{ $maxRadius ?? 0 }};
-            
-            let shippingFee = distanceKm * feePerKm;
-            
-            // Check max radius
-            if (maxRadius > 0 && distanceKm > maxRadius) {
-                alert(`Khoảng cách giao hàng (${distanceKm}km) vượt quá bán kính cho phép (${maxRadius}km). Vui lòng chọn địa chỉ khác.`);
-                shippingFee = 0;
+            const baseFee = {{ $baseFee ?? 15000 }}; // Phí ship tối thiểu khi không tính được khoảng cách
+
+            if (distanceKm === null) {
+                // Không tính được khoảng cách → dùng phí ship tối thiểu
+                showShippingWarning('Không thể tính khoảng cách tự động. Phí ship tạm tính là ' + new Intl.NumberFormat('vi-VN').format(baseFee) + 'đ. Cửa hàng sẽ xác nhận lại sau.');
                 distanceKm = 0;
+                const fallbackFee = baseFee;
+                document.getElementById('input_distance_km').value = 0;
+                document.getElementById('input_shipping_fee').value = fallbackFee;
+                document.getElementById('display_distance').innerText = 'Không xác định';
+                document.getElementById('display_shipping_fee').innerText = new Intl.NumberFormat('vi-VN').format(fallbackFee) + ' đ *';
+                updateTotal(fallbackFee);
+                return;
             }
+
+            // Kiểm tra bán kính tối đa
+            if (maxRadius > 0 && distanceKm > maxRadius) {
+                showShippingError(`Khoảng cách giao hàng (${distanceKm} km) vượt quá bán kính cho phép (${maxRadius} km). Vui lòng chọn địa chỉ khác.`);
+                document.getElementById('input_distance_km').value = 0;
+                document.getElementById('input_shipping_fee').value = 0;
+                document.getElementById('display_distance').innerText = distanceKm + ' km ❌';
+                document.getElementById('display_shipping_fee').innerText = 'Ngoài vùng giao hàng';
+                updateTotal(0);
+                return;
+            }
+
+            let shippingFee = Math.max(feePerKm > 0 ? distanceKm * feePerKm : baseFee, baseFee);
+            shippingFee = Math.round(shippingFee / 1000) * 1000; // Làm tròn đến 1000đ
 
             document.getElementById('input_distance_km').value = distanceKm;
             document.getElementById('input_shipping_fee').value = shippingFee;
-            
-            document.getElementById('display_distance').innerText = distanceKm > 0 ? distanceKm + ' km' : '0 km';
+            document.getElementById('display_distance').innerText = distanceKm + ' km';
             document.getElementById('display_shipping_fee').innerText = new Intl.NumberFormat('vi-VN').format(shippingFee) + ' đ';
-            
             updateTotal(shippingFee);
         } else {
             document.getElementById('input_distance_km').value = 0;
             document.getElementById('input_shipping_fee').value = 0;
-            document.getElementById('display_distance').innerText = '0 km';
-            document.getElementById('display_shipping_fee').innerText = '0 đ';
+            document.getElementById('display_distance').innerText = '— km';
+            document.getElementById('display_shipping_fee').innerText = 'Chọn địa chỉ để tính';
             updateTotal(0);
         }
+    }
+
+    function showShippingWarning(msg) {
+        showToast(msg, 'warning');
+    }
+
+    function showShippingError(msg) {
+        showToast(msg, 'error');
     }
 
     function updateTotal(shippingFee) {

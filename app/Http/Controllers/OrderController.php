@@ -138,20 +138,75 @@ class OrderController extends Controller
         $createdOrderCode = null;
 
         DB::transaction(function () use ($request, $profile, $cartItems, $userId, $checkoutItemIds, &$createdOrderCode) {
-            // Save address
-            CustomerAddress::firstOrCreate([
-                'customer_id'    => $profile->id,
-                'address'        => $request->address,
-            ], [
-                'is_default'     => false,
-            ]);
+            // Format full address
+            $fullAddress = trim("{$request->address}, {$request->ward}, {$request->district}, {$request->province}", ", ");
+
+            $isSaved = $request->has('save_address') ? 1 : 0;
+            
+            // Check if exact address already exists for this user
+            $existingAddress = CustomerAddress::where('customer_id', $profile->id)
+                ->where('address', $request->address)
+                ->where('ward', $request->ward)
+                ->where('district', $request->district)
+                ->where('province', $request->province)
+                ->where('receiver_phone', $request->receiver_phone)
+                ->first();
+
+            if ($existingAddress) {
+                $customerAddress = $existingAddress;
+                $updateData = [];
+                if ($isSaved && !$existingAddress->is_saved) {
+                    $updateData['is_saved'] = 1;
+                }
+                if ($existingAddress->receiver_name !== $request->receiver_name) {
+                    $updateData['receiver_name'] = $request->receiver_name;
+                }
+                if (!empty($updateData)) {
+                    $existingAddress->update($updateData);
+                }
+            } else {
+                $customerAddress = CustomerAddress::create([
+                    'customer_id'    => $profile->id,
+                    'receiver_name'  => $request->receiver_name,
+                    'receiver_phone' => $request->receiver_phone,
+                    'address'        => $request->address,
+                    'ward'           => $request->ward,
+                    'district'       => $request->district,
+                    'province'       => $request->province,
+                    'is_default'     => false,
+                    'is_saved'       => $isSaved,
+                ]);
+            }
 
             $subtotal = 0;
             foreach ($cartItems as $item) {
                 $subtotal += $item['unit_price'] * $item['quantity'];
             }
-            $shippingFee = $subtotal > 0 ? 15000 : 0;
-            $tax = round($subtotal * 0.08);
+
+            // ---- Tính phí ship theo khoảng cách thực tế ----
+            $distanceKm   = (float) $request->input('distance_km', 0);
+            $clientFee    = (float) $request->input('shipping_fee', 0);
+            $feePerKm     = (float) \App\Models\Setting::get('fee_per_km', 0);
+            $maxRadius    = (float) \App\Models\Setting::get('max_delivery_radius', 0);
+
+            if ($distanceKm > 0 && $feePerKm > 0) {
+                // Tính lại server-side để chống gian lận
+                $calculatedFee = round($distanceKm * $feePerKm);
+                // Cho phép sai lệch tối đa 500đ (làm tròn) so với client
+                if (abs($calculatedFee - $clientFee) <= 500) {
+                    $shippingFee = $clientFee;
+                } else {
+                    $shippingFee = $calculatedFee;
+                }
+            } elseif ($clientFee > 0) {
+                // Nếu không có feePerKm config, tin tưởng client
+                $shippingFee = $clientFee;
+            } else {
+                $shippingFee = $subtotal > 0 ? 15000 : 0;
+            }
+            // ------------------------------------------------
+
+            $tax = 0; // Không tính thuế trong tổng
             
             $appliedVoucher = session('applied_voucher');
             $discount = 0;
@@ -172,7 +227,7 @@ class OrderController extends Controller
                 }
             }
             
-            $total       = $subtotal + $shippingFee + $tax - $discount;
+            $total = $subtotal + $shippingFee + $tax - $discount;
 
             $orderCode = 'ORD-' . strtoupper(uniqid());
             $createdOrderCode = $orderCode;
@@ -185,12 +240,14 @@ class OrderController extends Controller
                 'order_status'    => 'PENDING',
                 'receiver_name'   => $request->receiver_name,
                 'receiver_phone'  => $request->receiver_phone,
-                'delivery_address'=> $request->address,
+                'address_id'      => $customerAddress->id,
+                'delivery_address'=> $fullAddress,
                 'customer_note'   => $request->note,
                 'subtotal'        => $subtotal,
                 'discount_amount' => $discount,
                 'shipping_fee'    => $shippingFee,
                 'tax_amount'      => $tax,
+                'distance_km'     => $distanceKm,
                 'total_amount'    => $total,
                 'voucher_id'      => $voucherId,
                 'created_by'      => $userId
@@ -338,7 +395,7 @@ class OrderController extends Controller
             ->values();
 
         // Check if status is completed
-        $status = strtolower($order->status ?? $order->order_status ?? '');
+        $status = strtolower($order->order_status ?? $order->status ?? '');
         if ($status !== 'completed' && $status !== 'hoàn thành') {
             return redirect()->route('customer.orders')->with('error', 'Chỉ có thể đánh giá đơn hàng đã hoàn thành.');
         }
@@ -357,7 +414,7 @@ class OrderController extends Controller
             ->where('customer_id', $customerProfile->id)
             ->firstOrFail();
 
-        $status = strtolower($order->status ?? $order->order_status ?? '');
+        $status = strtolower($order->order_status ?? $order->status ?? '');
         if ($status !== 'completed' && $status !== 'hoàn thành') {
             return redirect()->route('customer.orders')->with('error', 'Đơn hàng chưa hoàn thành.');
         }
@@ -366,7 +423,8 @@ class OrderController extends Controller
             'reviews' => 'required|array',
             'reviews.*.product_id' => 'required|exists:products,id',
             'reviews.*.rating' => 'required|integer|min:1|max:5',
-            'reviews.*.comment' => 'nullable|string|max:500'
+            'reviews.*.comment' => 'nullable|string|max:500',
+            'shipper_rating' => 'nullable|integer|min:1|max:5'
         ]);
 
         foreach ($request->reviews as $reviewData) {
@@ -381,6 +439,22 @@ class OrderController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+        }
+
+        if ($request->has('shipper_rating') && $request->shipper_rating) {
+            $order->update(['shipper_rating' => $request->shipper_rating]);
+            
+            // Update ShipperProfile average rating
+            if ($order->shipper_id) {
+                $shipper = \App\Models\ShipperProfile::find($order->shipper_id);
+                if ($shipper) {
+                    $avgRating = \App\Models\Order::where('shipper_id', $shipper->id)
+                        ->whereNotNull('shipper_rating')
+                        ->avg('shipper_rating');
+                    $shipper->rating = round($avgRating, 1);
+                    $shipper->save();
+                }
+            }
         }
 
         return redirect()->route('customer.orders')->with('success', 'Cảm ơn bạn đã gửi đánh giá!');

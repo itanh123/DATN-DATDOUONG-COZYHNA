@@ -52,6 +52,30 @@
         </div>
         @endforeach
 
+        @if($order->shipper_id)
+        <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-sm p-lg mt-4">
+            <div class="flex items-center gap-md mb-md pb-md border-b border-outline-variant/10">
+                <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-3xl">two_wheeler</span>
+                </div>
+                <div>
+                    <h3 class="font-title-lg text-title-lg font-bold">Đánh giá Shipper</h3>
+                    <p class="text-sm text-on-surface-variant">Shipper đã giao đơn hàng cho bạn</p>
+                </div>
+            </div>
+
+            <div class="mb-md">
+                <label class="block font-label-lg text-label-lg mb-2 font-bold text-on-surface">Thái độ & Tốc độ giao hàng</label>
+                <div class="flex items-center gap-2 star-rating-container">
+                    @for($i = 1; $i <= 5; $i++)
+                        <span class="material-symbols-outlined cursor-pointer text-outline-variant hover:text-amber-400 text-3xl transition-colors star-icon" data-value="{{ $i }}">star</span>
+                    @endfor
+                </div>
+                <input type="hidden" name="shipper_rating" class="rating-input" value="5">
+            </div>
+        </div>
+        @endif
+
         <div class="flex justify-end gap-md">
             <a href="{{ route('customer.orders') }}" class="px-xl py-md rounded-xl font-label-md text-label-md border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">Hủy</a>
             <button type="submit" class="px-xl py-md rounded-xl font-label-md text-label-md font-bold bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-md">Gửi Đánh Giá</button>

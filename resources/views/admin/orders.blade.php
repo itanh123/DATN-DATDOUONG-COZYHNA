@@ -68,10 +68,12 @@
     </section>
 
     <!-- Tabs -->
+    @if(session('role_code') !== 'shipper')
     <div class="flex border-b border-outline-variant/30 mb-lg">
         <a href="{{ route('admin.orders.index', ['tab' => 'online']) }}" class="px-lg py-sm font-semibold {{ request('tab', 'online') === 'online' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Khách Đặt Online</a>
         <a href="{{ route('admin.orders.index', ['tab' => 'table']) }}" class="px-lg py-sm font-semibold {{ request('tab') === 'table' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Khách Tại Bàn</a>
     </div>
+    @endif
 
     <!-- Filters & Tools -->
     <section class="flex flex-col lg:flex-row items-center justify-between gap-md mb-lg">
@@ -84,9 +86,12 @@
                 <span class="material-symbols-outlined text-on-surface-variant mr-xs">filter_list</span>
                 <select name="status" onchange="this.form.submit()" class="bg-transparent border-none focus:ring-0 font-body-md text-on-surface p-0 cursor-pointer">
                     <option value="ALL">Tất cả Trạng thái</option>
+                    @if(session('role_code') !== 'shipper')
                     <option value="PENDING" {{ request('status') === 'PENDING' ? 'selected' : '' }}>Chờ xác nhận</option>
+                    <option value="CONFIRMED" {{ request('status') === 'CONFIRMED' ? 'selected' : '' }}>Đã thanh toán online</option>
                     <option value="PREPARING" {{ request('status') === 'PREPARING' ? 'selected' : '' }}>Đang chuẩn bị</option>
-                    @if(request('tab') !== 'table')
+                    @endif
+                    @if(request('tab') !== 'table' || session('role_code') === 'shipper')
                     <option value="DELIVERING" {{ request('status') === 'DELIVERING' ? 'selected' : '' }}>Đang giao</option>
                     <option value="READY_FOR_DELIVERY" {{ request('status') === 'READY_FOR_DELIVERY' ? 'selected' : '' }}>Chờ giao hàng</option>
                     @endif
@@ -122,7 +127,7 @@
                 </thead>
                 <tbody class="divide-y divide-outline-variant/20">
                     @forelse($orders as $order)
-                    <tr class="order-row transition-colors hover:bg-surface-container-lowest">
+                    <tr id="order-row-{{ $order->id }}" class="order-row transition-colors hover:bg-surface-container-lowest">
                         <td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->code }}</td>
                         <td class="px-lg py-lg">
                             <div class="flex items-center gap-sm">
@@ -142,19 +147,42 @@
                             </span>
                         </td>
                         <td class="px-lg py-lg font-body-md font-semibold">{{ number_format($order->total_amount, 0, ',', '.') }}đ</td>
-                        <td class="px-lg py-lg">
-                            <span class="inline-flex items-center gap-xs px-md py-1 rounded-full font-semibold text-xs border {{ str_replace('text-', 'border-', $order->status_color) }} {{ $order->status_color }}">
-                                {{ $order->status_label }}
-                            </span>
+                        <td class="px-lg py-lg" id="status-cell-{{ $order->id }}">
+                            <div class="flex flex-col gap-1">
+                                <span class="inline-flex items-center gap-xs px-md py-1 rounded-full font-semibold text-xs border {{ str_replace('text-', 'border-', $order->status_color) }} {{ $order->status_color }}">
+                                    {{ $order->status_label }}
+                                </span>
+                                @if($order->payment && $order->payment->payment_status === 'COMPLETED' && $order->payment_method !== 'cash')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-200 w-fit">
+                                        <span class="material-symbols-outlined" style="font-size:11px;">payments</span>
+                                        Đã thanh toán
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-lg py-lg font-body-md text-on-surface-variant">{{ $order->created_at->format('H:i d/m/Y') }}</td>
                         <td class="px-lg py-lg text-right space-x-2">
                             <button onclick="viewOrderDetails({{ $order->id }})" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-primary" title="Xem chi tiết">
                                 <span class="material-symbols-outlined">visibility</span>
                             </button>
-                            <button onclick="openStatusModal({{ $order->id }}, '{{ $order->order_status }}')" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-secondary" title="Đổi trạng thái">
+                            @php
+                                $canEdit = false;
+                                $role = session('role_code');
+                                $status = $order->order_status;
+                                if ($role === 'admin') {
+                                    $canEdit = true;
+                                } elseif ($role === 'shipper') {
+                                    if (in_array($status, ['READY_FOR_DELIVERY', 'DELIVERING'])) $canEdit = true;
+                                } elseif ($role === 'staff' || check_permission('update_orders') || check_permission('edit_orders')) {
+                                    // Including staff or anyone with update_orders
+                                    if (in_array($status, ['PENDING', 'PREPARING'])) $canEdit = true;
+                                }
+                            @endphp
+                            @if($canEdit)
+                            <button id="edit-btn-{{ $order->id }}" onclick="openStatusModal({{ $order->id }}, '{{ $order->order_status }}')" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-secondary" title="Đổi trạng thái">
                                 <span class="material-symbols-outlined">edit_square</span>
                             </button>
+                            @endif
                         </td>
                     </tr>
                     @empty
@@ -191,7 +219,7 @@
         </div>
         <div class="p-lg md:p-xl overflow-y-auto bg-surface">
             <!-- Thông tin khách hàng & Giao hàng -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-lg mb-xl">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
                 <div>
                     <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Khách hàng</h4>
                     <p class="font-body-lg text-on-surface font-semibold" id="modalCustomerName"></p>
@@ -200,6 +228,11 @@
                 <div>
                     <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Giao tới</h4>
                     <p class="font-body-md text-on-surface flex items-start gap-xs"><span class="material-symbols-outlined text-[18px] mt-[2px]">location_on</span> <span id="modalCustomerAddress"></span></p>
+                </div>
+                <div id="modalShipperContainer" class="hidden">
+                    <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Người giao hàng</h4>
+                    <p class="font-body-lg text-on-surface font-semibold" id="modalShipperName"></p>
+                    <p class="font-body-md text-on-surface-variant flex items-center gap-xs mt-xs"><span class="material-symbols-outlined text-[18px]">call</span> <span id="modalShipperPhone"></span></p>
                 </div>
             </div>
 
@@ -210,10 +243,22 @@
                     <tbody id="modalItemsList" class="divide-y divide-outline-variant/20">
                         <!-- Items injected by JS -->
                     </tbody>
-                    <tfoot class="bg-surface-container-low border-t-2 border-outline-variant/30 font-bold">
+                    <tfoot class="bg-surface-container-low border-t-2 border-outline-variant/30 text-body-md text-on-surface">
                         <tr>
+                            <td class="px-md py-sm text-right" colspan="2">Tạm tính:</td>
+                            <td class="px-md py-sm text-right font-semibold" id="modalSubtotalAmount"></td>
+                        </tr>
+                        <tr id="modalShippingFeeRow">
+                            <td class="px-md py-sm text-right text-on-surface-variant" colspan="2">Phí giao hàng:</td>
+                            <td class="px-md py-sm text-right font-semibold text-on-surface-variant" id="modalShippingFee"></td>
+                        </tr>
+                        <tr id="modalDiscountRow" class="hidden">
+                            <td class="px-md py-sm text-right text-error" colspan="2">Giảm giá:</td>
+                            <td class="px-md py-sm text-right font-semibold text-error" id="modalDiscountAmount"></td>
+                        </tr>
+                        <tr class="font-bold border-t border-outline-variant/20">
                             <td class="px-md py-sm text-right" colspan="2">Tổng cộng:</td>
-                            <td class="px-md py-sm text-primary" id="modalTotalAmount"></td>
+                            <td class="px-md py-sm text-right text-primary text-title-md" id="modalTotalAmount"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -248,8 +293,9 @@
             <input type="hidden" id="statusOrderId">
             <div class="mb-lg">
                 <label class="block font-label-md text-on-surface-variant mb-sm">Trạng thái mới</label>
-                <select id="newStatusSelect" class="w-full px-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary outline-none font-body-lg">
+                <select id="newStatusSelect" onchange="toggleShipperSelect()" class="w-full px-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary outline-none font-body-lg">
                     <option value="PENDING">Chờ xác nhận</option>
+                    <option value="CONFIRMED">Đã thanh toán online</option>
                     <option value="PREPARING">Đang chuẩn bị</option>
                     @if(request('tab') !== 'table')
                     <option value="READY_FOR_DELIVERY">Chờ giao hàng</option>
@@ -257,6 +303,20 @@
                     @endif
                     <option value="COMPLETED">Hoàn thành</option>
                     <option value="CANCELLED">Hủy đơn</option>
+                </select>
+            </div>
+            
+            <div id="shipperSelectContainer" class="mb-lg hidden">
+                <label class="block font-label-md text-on-surface-variant mb-sm">Gán Shipper (Bắt buộc khi Đang giao)</label>
+                <select id="shipperSelect" class="w-full px-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary outline-none font-body-lg">
+                    <option value="">-- Chọn Shipper --</option>
+                    @if(isset($shippers) && count($shippers) > 0)
+                        @foreach($shippers as $sh)
+                            <option value="{{ $sh->id }}">{{ $sh->user->full_name ?? $sh->user->username ?? 'Shipper ' . $sh->id }}</option>
+                        @endforeach
+                    @else
+                        <option value="" disabled>Không có Shipper nào đang Available</option>
+                    @endif
                 </select>
             </div>
             <div class="flex justify-end gap-md">
@@ -307,7 +367,20 @@
                 document.getElementById('modalOrderCode').textContent = order.code;
                 document.getElementById('modalCustomerName').textContent = order.receiver_name || (order.customer ? (order.customer.user.username || order.customer.full_name) : 'Khách vãng lai');
                 document.getElementById('modalCustomerPhone').textContent = order.receiver_phone || 'Không cung cấp';
-                document.getElementById('modalCustomerAddress').textContent = order.address ? order.address.address : (order.delivery_address || 'Tại quán');
+                let fullAddress = order.delivery_address || 'Tại quán';
+                if (order.address) {
+                    const parts = [order.address.address, order.address.ward, order.address.district, order.address.province];
+                    fullAddress = parts.filter(Boolean).join(' - ');
+                }
+                document.getElementById('modalCustomerAddress').textContent = fullAddress;
+
+                if (order.shipper) {
+                    document.getElementById('modalShipperContainer').classList.remove('hidden');
+                    document.getElementById('modalShipperName').textContent = order.shipper.user ? (order.shipper.user.full_name || order.shipper.user.username) : 'Shipper';
+                    document.getElementById('modalShipperPhone').textContent = order.shipper.user ? order.shipper.user.phone : 'Không có SĐT';
+                } else {
+                    document.getElementById('modalShipperContainer').classList.add('hidden');
+                }
 
                 if (order.customer_note || order.kitchen_note) {
                     document.getElementById('modalNotes').classList.remove('hidden');
@@ -322,13 +395,22 @@
                 // Render Items
                 let itemsHtml = '';
                 order.items.forEach(item => {
-                    const price = Number(item.price);
+                    const price = Number(item.unit_price || item.price || item.final_price || 0);
+                    
+                    let toppingsHtml = '';
+                    if (item.toppings && item.toppings.length > 0) {
+                        toppingsHtml = `<div class="text-on-surface-variant font-body-sm mt-xs pl-md border-l-2 border-outline-variant/30">
+                            + Topping: ${item.toppings.map(t => `${t.topping ? t.topping.name : 'Topping'} x${t.quantity}`).join(', ')}
+                        </div>`;
+                    }
+                    
                     itemsHtml += `
                         <tr>
                             <td class="px-md py-sm font-body-md text-on-surface">
                                 <span class="font-bold">${item.quantity}x</span> 
-                                ${item.product ? item.product.name : 'Sản phẩm'}
-                                ${item.product_size && item.product_size.size ? `(${item.product_size.size.name})` : ''}
+                                ${item.product_name || (item.product_size && item.product_size.product ? item.product_size.product.name : 'Sản phẩm')}
+                                ${item.size_name || (item.product_size && item.product_size.size ? `(${item.product_size.size.name})` : '')}
+                                ${toppingsHtml}
                             </td>
                             <td class="px-md py-sm text-right text-on-surface-variant font-body-sm">${new Intl.NumberFormat('vi-VN').format(price)}đ</td>
                             <td class="px-md py-sm text-right font-semibold text-on-surface">${new Intl.NumberFormat('vi-VN').format(price * item.quantity)}đ</td>
@@ -336,7 +418,24 @@
                     `;
                 });
                 document.getElementById('modalItemsList').innerHTML = itemsHtml;
-                document.getElementById('modalTotalAmount').textContent = new Intl.NumberFormat('vi-VN').format(order.total_amount) + 'đ';
+
+                document.getElementById('modalSubtotalAmount').textContent = new Intl.NumberFormat('vi-VN').format(order.subtotal || 0) + 'đ';
+                
+                if (order.shipping_fee > 0 || order.order_type === 'DELIVERY') {
+                    document.getElementById('modalShippingFeeRow').classList.remove('hidden');
+                    document.getElementById('modalShippingFee').textContent = new Intl.NumberFormat('vi-VN').format(order.shipping_fee || 0) + 'đ';
+                } else {
+                    document.getElementById('modalShippingFeeRow').classList.add('hidden');
+                }
+
+                if (order.discount_amount > 0) {
+                    document.getElementById('modalDiscountRow').classList.remove('hidden');
+                    document.getElementById('modalDiscountAmount').textContent = '-' + new Intl.NumberFormat('vi-VN').format(order.discount_amount) + 'đ';
+                } else {
+                    document.getElementById('modalDiscountRow').classList.add('hidden');
+                }
+
+                document.getElementById('modalTotalAmount').textContent = new Intl.NumberFormat('vi-VN').format(order.total_amount || 0) + 'đ';
 
                 // Render History
                 let historyHtml = '';
@@ -379,12 +478,13 @@
         const currentTab = '{{ request('tab', 'online') }}';
         
         const allowedTransitions = {
-            'PENDING': ['PREPARING', 'CANCELLED'],
-            'PREPARING': currentTab === 'table' ? ['COMPLETED', 'CANCELLED'] : ['READY_FOR_DELIVERY', 'DELIVERING', 'CANCELLED'],
+            'PENDING':            ['PREPARING', 'CANCELLED'],
+            'CONFIRMED':          ['PREPARING', 'CANCELLED'],
+            'PREPARING':          currentTab === 'table' ? ['COMPLETED', 'CANCELLED'] : ['READY_FOR_DELIVERY', 'CANCELLED'],
             'READY_FOR_DELIVERY': ['DELIVERING', 'CANCELLED'],
-            'DELIVERING': ['COMPLETED', 'CANCELLED'],
-            'COMPLETED': [],
-            'CANCELLED': []
+            'DELIVERING':         ['COMPLETED', 'CANCELLED'],
+            'COMPLETED':          [],
+            'CANCELLED':          []
         };
 
         const allowedNext = allowedTransitions[currentStatus] || [];
@@ -397,12 +497,48 @@
         }
 
         select.value = currentStatus;
+        toggleShipperSelect();
         openModal('statusModal');
+    }
+
+    function toggleShipperSelect() {
+        const status = document.getElementById('newStatusSelect').value;
+        const container = document.getElementById('shipperSelectContainer');
+        if (container) {
+            if (status === 'DELIVERING') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
     }
 
     function submitStatusUpdate() {
         const id = document.getElementById('statusOrderId').value;
         const status = document.getElementById('newStatusSelect').value;
+        const selectElement = document.getElementById('newStatusSelect');
+        const statusLabel = selectElement.options[selectElement.selectedIndex].text.split(' (')[0]; 
+        
+        let shipperId = null;
+        if (status === 'DELIVERING') {
+            const shipperSelect = document.getElementById('shipperSelect');
+            if (shipperSelect && shipperSelect.value) {
+                shipperId = shipperSelect.value;
+            } else if (shipperSelect && !shipperSelect.value) {
+                showToast('Vui lòng chọn Shipper khi chuyển sang trạng thái Đang giao hàng', 'error');
+                return;
+            }
+        }
+
+        // Mapping status to colors
+        const statusColors = {
+            'PENDING': 'bg-yellow-100 text-yellow-700 border-yellow-700',
+            'PREPARING': 'bg-blue-100 text-blue-700 border-blue-700',
+            'READY_FOR_DELIVERY': 'bg-purple-100 text-purple-700 border-purple-700',
+            'DELIVERING': 'bg-indigo-100 text-indigo-700 border-indigo-700',
+            'COMPLETED': 'bg-green-100 text-green-700 border-green-700',
+            'CANCELLED': 'bg-red-100 text-red-700 border-red-700'
+        };
 
         fetch(`/admin/orders/${id}/status`, {
             method: 'POST',
@@ -411,13 +547,31 @@
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN
             },
-            body: JSON.stringify({ status })
+            body: JSON.stringify({ status: status, shipper_id: shipperId })
         })
         .then(res => res.json())
         .then(data => {
             if(data.success) {
                 showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
+                closeModal('statusModal');
+                
+                // Realtime DOM update
+                const cell = document.getElementById(`status-cell-${id}`);
+                if (cell) {
+                    cell.innerHTML = `<span class="inline-flex items-center gap-xs px-md py-1 rounded-full font-semibold text-xs border ${statusColors[status]}">${statusLabel}</span>`;
+                }
+                
+                const editBtn = document.getElementById(`edit-btn-${id}`);
+                if (editBtn) {
+                    // Update onclick to pass the NEW status
+                    editBtn.setAttribute('onclick', `openStatusModal(${id}, '${status}')`);
+                    
+                    // Hide the edit button for staff if it's now READY_FOR_DELIVERY
+                    const role = '{{ session('role_code') }}';
+                    if (role === 'staff' && (status === 'READY_FOR_DELIVERY' || status === 'DELIVERING' || status === 'COMPLETED' || status === 'CANCELLED')) {
+                        editBtn.style.display = 'none';
+                    }
+                }
             } else {
                 showToast(data.error || 'Có lỗi xảy ra', 'error');
             }

@@ -42,7 +42,31 @@
                 <input type="text" name="store_specific_address" value="{{ old('store_specific_address', $settings['store_specific_address'] ?? '') }}" required
                        class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md mt-sm"
                        placeholder="Ví dụ: Số 123, Đường XYZ">
-                <p class="text-xs text-on-surface-variant mt-1">Được dùng làm điểm xuất phát để tính khoảng cách giao hàng.</p>
+                <p class="text-xs text-on-surface-variant mt-1">Được dùng làm điểm xuất phát để tính khoảng cách giao hàng nếu không có tọa độ cụ thể.</p>
+            </div>
+
+            <div class="space-y-md">
+                <div class="flex items-center justify-between mb-xs">
+                    <label class="block font-label-md text-label-md text-on-surface-variant">Tọa độ cửa hàng (Tùy chọn nhưng khuyên dùng)</label>
+                    <button type="button" onclick="getCurrentLocation()" class="text-primary hover:text-primary/80 font-label-sm text-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">my_location</span>
+                        Lấy tọa độ hiện tại
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                    <div>
+                        <input type="text" id="store_lat" name="store_lat" value="{{ old('store_lat', $settings['store_lat'] ?? '') }}" 
+                               class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md"
+                               placeholder="Vĩ độ (Latitude) - VD: 20.5592">
+                    </div>
+                    <div>
+                        <input type="text" id="store_lon" name="store_lon" value="{{ old('store_lon', $settings['store_lon'] ?? '') }}" 
+                               class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md"
+                               placeholder="Kinh độ (Longitude) - VD: 105.8824">
+                    </div>
+                </div>
+                <p class="text-xs text-on-surface-variant mt-1">Hệ thống bản đồ miễn phí có thể không tìm chính xác địa chỉ xã/huyện của bạn, dẫn đến sai số lớn khi tính phí ship. Việc cung cấp tọa độ này sẽ giúp tính phí ship chính xác tuyệt đối.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
@@ -191,6 +215,21 @@ document.addEventListener('DOMContentLoaded', function() {
             tsWard.disable();
         }
     });
+
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                document.getElementById('store_lat').value = lat;
+                document.getElementById('store_lon').value = lon;
+            }, function() {
+                alert("Không thể lấy vị trí của bạn.");
+            });
+        } else {
+            alert("Trình duyệt của bạn không hỗ trợ lấy vị trí.");
+        }
+    }
 });
 </script>
 @endpush

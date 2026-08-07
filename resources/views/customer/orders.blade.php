@@ -80,6 +80,11 @@
                                     Đánh giá
                                 </a>
                             @endif
+                            
+                            <button onclick="openComplaintModal({{ $order->id }})" class="px-md py-xs rounded-full bg-red-600 text-white font-label-md text-label-md hover:bg-red-700 transition-colors flex items-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-sm">report_problem</span>
+                                Khiếu nại
+                            </button>
                         @endif
                     </div>
                 </div>
@@ -213,6 +218,53 @@
     </div>
 </div>
 
+<!-- Complaint Modal -->
+<div id="complaint-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 overflow-y-auto pt-20 pb-10">
+    <div class="bg-surface-container-lowest rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-outline-variant/20 relative my-auto">
+        <button onclick="closeComplaintModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 text-red-600 rounded-full mb-3">
+                <span class="material-symbols-outlined text-3xl">report_problem</span>
+            </div>
+            <h3 class="font-bold text-xl text-on-surface">Gửi Khiếu Nại</h3>
+            <p class="text-sm text-on-surface-variant mt-1">Khiếu nại sẽ được gửi trực tiếp đến Quản lý cửa hàng</p>
+        </div>
+
+        <form id="complaint-form" method="POST" enctype="multipart/form-data" class="space-y-4">
+            @csrf
+            
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Thời gian xảy ra sự việc *</label>
+                <input type="datetime-local" name="incident_time" required class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Đối tượng liên quan (Shipper, Nhân viên...)</label>
+                <input type="text" name="target_person" placeholder="Ví dụ: Shipper Nguyễn Văn A" class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Chi tiết sự việc *</label>
+                <textarea name="description" required rows="4" placeholder="Vui lòng mô tả chi tiết sự việc..." class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Hình ảnh minh chứng (Nhiều ảnh)</label>
+                <input type="file" name="images[]" multiple accept="image/*" class="w-full p-2 border border-outline-variant rounded-xl bg-surface-container-low file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                <p class="text-xs text-on-surface-variant mt-1">Hỗ trợ JPG, PNG. Tối đa 5MB mỗi ảnh.</p>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-98 transition-all flex items-center justify-center gap-2 mt-2">
+                <span class="material-symbols-outlined">send</span>
+                Gửi Khiếu Nại Ngay
+            </button>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -328,5 +380,16 @@ function cancelOrder(orderId, btn) {
         openVietQrModal('{{ session('show_vietqr') }}');
     });
 @endif
+
+function openComplaintModal(orderId) {
+    const form = document.getElementById('complaint-form');
+    form.action = `/customer/orders/${orderId}/complaint`;
+    document.getElementById('complaint-modal').classList.remove('hidden');
+}
+
+function closeComplaintModal() {
+    document.getElementById('complaint-modal').classList.add('hidden');
+}
+
 </script>
 @endpush

@@ -108,6 +108,7 @@ Route::get('/customer/orders', [\App\Http\Controllers\OrderController::class, 'c
 Route::get('/customer/orders/{order}/review', [\App\Http\Controllers\OrderController::class, 'showReviewForm'])->name('orders.review');
 Route::post('/customer/orders/{order}/review', [\App\Http\Controllers\OrderController::class, 'submitReview'])->name('orders.submitReview');
 Route::post('/customer/orders/{order}/cancel', [\App\Http\Controllers\OrderController::class, 'cancelOrder'])->name('orders.cancel');
+Route::post('/customer/orders/{order}/complaint', [\App\Http\Controllers\OrderComplaintController::class, 'store'])->name('orders.complain');
 
 // AI Chat Assistant Routes
 Route::post('/ai/chat', [\App\Http\Controllers\AiChatController::class, 'chat'])->name('ai.chat');
@@ -178,6 +179,8 @@ Route::get('/shipper/delivery_portal', [\App\Http\Controllers\ShipperController:
 Route::post('/shipper/orders/{id}/accept', [\App\Http\Controllers\ShipperController::class, 'acceptOrder'])->name('shipper.orders.accept');
 Route::post('/shipper/orders/{id}/status', [\App\Http\Controllers\ShipperController::class, 'updateStatus'])->name('shipper.orders.status');
 Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });
+Route::get('/shipper/history', [\App\Http\Controllers\ShipperController::class, 'history'])->name('shipper.history');
+Route::get('/shipper/reviews', [\App\Http\Controllers\ShipperController::class, 'reviews'])->name('shipper.reviews');
 Route::get('/shipper/profile', [\App\Http\Controllers\ProfileController::class, 'shipperProfile'])->name('shipper.profile');
 Route::post('/shipper/profile/update', [\App\Http\Controllers\ProfileController::class, 'updateShipper'])->name('shipper.profile.update');
 
@@ -193,6 +196,11 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/orders/{id}', [\App\Http\Controllers\AdminOrderController::class, 'show'])->name('admin.orders.show');
     Route::post('/admin/orders/{id}/status', [\App\Http\Controllers\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
     Route::post('/admin/orders/{id}/assign', [\App\Http\Controllers\AdminOrderController::class, 'assignShipper'])->name('admin.orders.assign');
+
+    // Admin Complaints
+    Route::get('/admin/complaints/check-new', [\App\Http\Controllers\OrderComplaintController::class, 'checkNew'])->name('admin.complaints.check');
+    Route::post('/admin/complaints/{id}/viewed', [\App\Http\Controllers\OrderComplaintController::class, 'markViewed'])->name('admin.complaints.viewed');
+    Route::post('/admin/complaints/{id}/reply', [\App\Http\Controllers\OrderComplaintController::class, 'reply'])->name('admin.complaints.reply');
 
     // Ingredients
     Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);

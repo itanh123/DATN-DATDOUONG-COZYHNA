@@ -149,16 +149,27 @@
 @endphp
 
 @if($hasPermission('view_dashboard'))
-<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="{{ session('role_code') === 'admin' ? '/admin/dashboard' : '/staff/dashboard' }}">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg hover:bg-surface-container-high transition-all" href="{{ session('role_code') === 'admin' ? '/admin/dashboard' : (session('role_code') === 'shipper' ? '/shipper/delivery_portal' : '/staff/dashboard') }}">
 <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
 <span class="font-label-md text-label-md">Bảng điều khiển</span>
 </a>
 @endif
 
 @if($hasPermission('view_orders'))
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/orders">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all {{ request()->is('admin/orders') ? 'bg-primary/10 text-primary font-bold' : '' }}" href="/admin/orders">
 <span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
 <span class="font-label-md text-label-md">Đơn hàng</span>
+</a>
+@endif
+
+@if(session('role_code') === 'shipper')
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all {{ request()->is('shipper/history') ? 'bg-primary/10 text-primary font-bold' : '' }}" href="/shipper/history">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Lịch sử giao hàng</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all {{ request()->is('shipper/reviews') ? 'bg-primary/10 text-primary font-bold' : '' }}" href="/shipper/reviews">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+<span class="font-label-md text-label-md">Đánh giá</span>
 </a>
 @endif
 
@@ -234,7 +245,7 @@
 
 <!-- BottomNavBar (Shared Component for Mobile) -->
 <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl md:hidden">
-<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90" href="/{{ $roleCode ?? 'admin' }}/dashboard">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90" href="{{ session('role_code') === 'admin' ? '/admin/dashboard' : (session('role_code') === 'shipper' ? '/shipper/delivery_portal' : '/staff/dashboard') }}">
 <span class="material-symbols-outlined" data-icon="home">home</span>
 <span class="font-label-sm text-label-sm">Trang chủ</span>
 </a>
@@ -293,6 +304,156 @@
 
     setInterval(fetchTableCalls, 5000);
     fetchTableCalls();
+
+    // COMPLAINTS POLLING
+    let currentComplaintId = null;
+
+    function fetchNewComplaints() {
+        fetch('/admin/complaints/check-new')
+            .then(r => r.json())
+            .then(data => {
+                if(data.success && data.complaint) {
+                    showComplaintAlert(data.complaint);
+                }
+            }).catch(e => console.log('Error fetching complaints'));
+    }
+
+    function showComplaintAlert(complaint) {
+        // Prevent multiple modals if one is already open
+        if (!document.getElementById('complaint-alert-modal').classList.contains('hidden')) return;
+
+        currentComplaintId = complaint.id;
+        document.getElementById('ca-order-code').innerText = complaint.order ? complaint.order.code : 'N/A';
+        document.getElementById('ca-customer-name').innerText = complaint.customer && complaint.customer.user ? complaint.customer.user.name : 'N/A';
+        document.getElementById('ca-target').innerText = complaint.target_person || 'Không có';
+        document.getElementById('ca-time').innerText = new Date(complaint.incident_time).toLocaleString('vi-VN');
+        document.getElementById('ca-desc').innerText = complaint.description;
+
+        const imgContainer = document.getElementById('ca-images');
+        imgContainer.innerHTML = '';
+        if (complaint.images && complaint.images.length > 0) {
+            complaint.images.forEach(img => {
+                imgContainer.innerHTML += `<a href="/storage/${img}" target="_blank"><img src="/storage/${img}" class="w-24 h-24 object-cover rounded-xl border border-gray-300"></a>`;
+            });
+        }
+
+        document.getElementById('complaint-alert-modal').classList.remove('hidden');
+    }
+
+    function acknowledgeComplaint() {
+        if(!currentComplaintId) return;
+
+        fetch(`/admin/complaints/${currentComplaintId}/viewed`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        }).then(r => r.json()).then(res => {
+            if(res.success) {
+                document.getElementById('complaint-alert-modal').classList.add('hidden');
+                openReplyModal();
+            }
+        });
+    }
+
+    function openReplyModal() {
+        document.getElementById('reply-form').action = `/admin/complaints/${currentComplaintId}/reply`;
+        document.getElementById('complaint-reply-modal').classList.remove('hidden');
+    }
+
+    function closeReplyModal() {
+        document.getElementById('complaint-reply-modal').classList.add('hidden');
+        currentComplaintId = null;
+    }
+
+    async function submitReplyForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('btn-submit-reply');
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Đang gửi email...';
+        btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(data.message);
+                closeReplyModal();
+                form.reset();
+            } else {
+                alert(data.message || 'Có lỗi xảy ra');
+            }
+        } catch (error) {
+            alert('Lỗi mạng khi gửi email.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    setInterval(fetchNewComplaints, 2000); // 2 seconds for near real-time
+    fetchNewComplaints();
 </script>
+
+<!-- Complaint Alert Modal -->
+<div id="complaint-alert-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative border-4 border-red-500 animate-bounce-slight">
+        <div class="text-center mb-6">
+            <span class="material-symbols-outlined text-6xl text-red-600 mb-2">warning</span>
+            <h2 class="text-3xl font-bold text-red-600 uppercase">Có khiếu nại mới!</h2>
+            <p class="text-gray-600 mt-2">Vui lòng xử lý ngay lập tức</p>
+        </div>
+
+        <div class="space-y-4 bg-red-50 p-6 rounded-2xl border border-red-200 text-lg">
+            <p><strong>Mã đơn hàng:</strong> <span id="ca-order-code" class="text-red-700 font-bold"></span></p>
+            <p><strong>Khách hàng:</strong> <span id="ca-customer-name"></span></p>
+            <p><strong>Đối tượng liên quan:</strong> <span id="ca-target"></span></p>
+            <p><strong>Thời gian:</strong> <span id="ca-time"></span></p>
+            <div>
+                <strong>Chi tiết sự việc:</strong>
+                <p id="ca-desc" class="mt-2 p-4 bg-white rounded-xl border border-red-100"></p>
+            </div>
+            <div id="ca-images" class="flex flex-wrap gap-2 mt-4"></div>
+        </div>
+
+        <button onclick="acknowledgeComplaint()" class="w-full mt-6 py-4 bg-red-600 text-white font-bold text-xl rounded-2xl hover:bg-red-700 transition-colors shadow-lg">
+            ĐÃ HIỂU - CHUYỂN ĐẾN TRẢ LỜI
+        </button>
+    </div>
+</div>
+
+<!-- Complaint Reply Modal -->
+<div id="complaint-reply-modal" class="hidden fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+        <button onclick="closeReplyModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Gửi Email Phản Hồi</h3>
+        
+        <form id="reply-form" method="POST" class="space-y-4" onsubmit="submitReplyForm(event)">
+            @csrf
+            <div>
+                <label class="block font-bold text-gray-700 mb-2">Nội dung phản hồi (sẽ gửi qua Email khách hàng):</label>
+                <textarea name="reply_content" required rows="6" class="w-full p-3 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Kính gửi quý khách..."></textarea>
+            </div>
+            <button type="submit" id="btn-submit-reply" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                <span>Gửi Phản Hồi Email</span>
+            </button>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>
