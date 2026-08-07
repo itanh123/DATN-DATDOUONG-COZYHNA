@@ -56,7 +56,7 @@ class ProcessAiReview implements ShouldQueue
 
             $apiRes = Http::withHeaders(['Content-Type' => 'application/json'])
                 ->withoutVerifying()
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={$geminiApiKey}", [
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={$geminiApiKey}", [
                     'contents' => [
                         ['parts' => [['text' => $prompt]]]
                     ]
