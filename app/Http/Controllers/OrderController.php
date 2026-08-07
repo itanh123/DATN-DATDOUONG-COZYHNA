@@ -428,7 +428,7 @@ class OrderController extends Controller
         ]);
 
         foreach ($request->reviews as $reviewData) {
-            DB::table('product_reviews')->insert([
+            $review = \App\Models\ProductReview::create([
                 'user_id' => $userId,
                 'product_id' => $reviewData['product_id'],
                 'customer_id' => $customerProfile->id,
@@ -436,9 +436,9 @@ class OrderController extends Controller
                 'rating' => $reviewData['rating'],
                 'comment' => $reviewData['comment'],
                 'status' => 'pending',
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
+            
+            \App\Jobs\ProcessAiReview::dispatch($review);
         }
 
         if ($request->has('shipper_rating') && $request->shipper_rating) {
