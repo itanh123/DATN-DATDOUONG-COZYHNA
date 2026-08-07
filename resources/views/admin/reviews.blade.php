@@ -30,6 +30,7 @@
                         <th class="p-4 font-semibold text-gray-600 text-sm">Sản phẩm</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Đánh giá</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Bình luận</th>
+                        <th class="p-4 font-semibold text-gray-600 text-sm">Trạng thái</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Ngày tạo</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm text-right">Thao tác</th>
                     </tr>
@@ -49,11 +50,38 @@
                                 </div>
                             @endif
                         </td>
+                        <td class="p-4 text-sm">
+                            @if($review->status === 'approved')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Đã duyệt</span>
+                            @elseif($review->status === 'pending')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Chờ duyệt</span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Đã ẩn</span>
+                            @endif
+                        </td>
                         <td class="p-4 text-sm text-gray-500">{{ $review->created_at->format('d/m/Y H:i') }}</td>
                         <td class="p-4 text-right">
-                            <button type="button" onclick="replyReview({{ $review->id }}, '{{ addslashes($review->admin_reply) }}')" class="text-blue-500 hover:text-blue-700 p-2" title="Trả lời">
-                                <span class="material-symbols-outlined text-xl">reply</span>
-                            </button>
+                            <div class="flex justify-end items-center">
+                                @if($review->status === 'pending')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'approved')" class="text-green-500 hover:text-green-700 p-2" title="Duyệt">
+                                    <span class="material-symbols-outlined text-xl">check_circle</span>
+                                </button>
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'rejected')" class="text-red-500 hover:text-red-700 p-2" title="Từ chối">
+                                    <span class="material-symbols-outlined text-xl">cancel</span>
+                                </button>
+                                @elseif($review->status === 'approved')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'rejected')" class="text-red-500 hover:text-red-700 p-2" title="Ẩn đánh giá">
+                                    <span class="material-symbols-outlined text-xl">visibility_off</span>
+                                </button>
+                                @elseif($review->status === 'rejected')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'approved')" class="text-green-500 hover:text-green-700 p-2" title="Hiện đánh giá">
+                                    <span class="material-symbols-outlined text-xl">visibility</span>
+                                </button>
+                                @endif
+                                <button type="button" onclick="replyReview({{ $review->id }}, '{{ addslashes($review->admin_reply) }}')" class="text-blue-500 hover:text-blue-700 p-2" title="Trả lời">
+                                    <span class="material-symbols-outlined text-xl">reply</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -103,6 +131,28 @@
             document.body.appendChild(form);
             form.submit();
         }
+    }
+
+    function updateReviewStatus(id, status) {
+        if (!confirm('Bạn có chắc chắn muốn ' + (status === 'approved' ? 'duyệt/hiển thị' : 'từ chối/ẩn') + ' đánh giá này?')) return;
+        
+        fetch(`/admin/reviews/${id}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Có lỗi xảy ra');
+            }
+        })
+        .catch(err => alert('Lỗi kết nối'));
     }
 </script>
 @endpush
