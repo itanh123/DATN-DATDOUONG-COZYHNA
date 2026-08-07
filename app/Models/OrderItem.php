@@ -31,4 +31,15 @@ class OrderItem extends Model
     public function toppings() {
         return $this->hasMany(OrderItemTopping::class, 'order_item_id');
     }
+
+    public function getTotalPriceAttribute($value) {
+        if ($value && $value > 0) {
+            return $value;
+        }
+        
+        $basePrice = $this->final_price * $this->quantity;
+        $toppingsPrice = $this->toppings->sum('total_price');
+        
+        return $basePrice + $toppingsPrice;
+    }
 }
