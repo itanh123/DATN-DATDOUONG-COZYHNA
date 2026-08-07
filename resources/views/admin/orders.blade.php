@@ -233,6 +233,10 @@
                     <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Người giao hàng</h4>
                     <p class="font-body-lg text-on-surface font-semibold" id="modalShipperName"></p>
                     <p class="font-body-md text-on-surface-variant flex items-center gap-xs mt-xs"><span class="material-symbols-outlined text-[18px]">call</span> <span id="modalShipperPhone"></span></p>
+                    <div id="modalShipperRatingContainer" class="hidden mt-xs flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-[18px] text-yellow-500" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span id="modalShipperRating" class="font-body-md font-bold text-on-surface"></span>
+                    </div>
                 </div>
             </div>
 
@@ -376,10 +380,18 @@
 
                 if (order.shipper) {
                     document.getElementById('modalShipperContainer').classList.remove('hidden');
-                    document.getElementById('modalShipperName').textContent = order.shipper.user ? (order.shipper.user.full_name || order.shipper.user.username) : 'Shipper';
+                    document.getElementById('modalShipperName').textContent = order.shipper.full_name;
                     document.getElementById('modalShipperPhone').textContent = order.shipper.user ? order.shipper.user.phone : 'Không có SĐT';
+                    
+                    if (order.shipper_rating) {
+                        document.getElementById('modalShipperRatingContainer').classList.remove('hidden');
+                        document.getElementById('modalShipperRating').innerHTML = `${order.shipper_rating}/5 <span class="text-on-surface-variant text-sm font-normal italic">(Khách hàng đánh giá)</span>`;
+                    } else {
+                        document.getElementById('modalShipperRatingContainer').classList.add('hidden');
+                    }
                 } else {
                     document.getElementById('modalShipperContainer').classList.add('hidden');
+                    document.getElementById('modalShipperRatingContainer').classList.add('hidden');
                 }
 
                 if (order.customer_note || order.kitchen_note) {
