@@ -35,11 +35,11 @@ class PermissionSeeder extends Seeder
             ['code' => 'update_orders', 'name' => 'Cập nhật Đơn hàng', 'group' => 'Đơn hàng'],
             ['code' => 'cancel_orders', 'name' => 'Hủy Đơn hàng', 'group' => 'Đơn hàng'],
             ['code' => 'deliver_orders', 'name' => 'Giao Đơn hàng', 'group' => 'Đơn hàng'],
-            // Người dùng & Phân quyền
-            ['code' => 'view_users', 'name' => 'Xem Người dùng', 'group' => 'Nhân sự & Phân quyền'],
-            ['code' => 'assign_roles', 'name' => 'Gán chức vụ (Role)', 'group' => 'Nhân sự & Phân quyền'],
-            ['code' => 'view_roles', 'name' => 'Xem Phân quyền', 'group' => 'Nhân sự & Phân quyền'],
-            ['code' => 'manage_permissions', 'name' => 'Sửa Phân quyền', 'group' => 'Nhân sự & Phân quyền'],
+            // Người dùng & Chức vụ
+            ['code' => 'view_users', 'name' => 'Xem Người dùng', 'group' => 'Nhân sự & Chức vụ'],
+            ['code' => 'assign_roles', 'name' => 'Gán chức vụ (Role)', 'group' => 'Nhân sự & Chức vụ'],
+            ['code' => 'view_roles', 'name' => 'Xem Chức vụ', 'group' => 'Nhân sự & Chức vụ'],
+            ['code' => 'manage_permissions', 'name' => 'Sửa Chức vụ', 'group' => 'Nhân sự & Chức vụ'],
         ];
 
         // Ensure group column exists if not we can just store it in description for now to avoid migration

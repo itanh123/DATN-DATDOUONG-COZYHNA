@@ -182,7 +182,7 @@
                                         @csrf
                                         <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
                                             @foreach($roles as $role)
-                                                @if(in_array($role->code, ['staff', 'shipper']))
+                                                @if(!in_array($role->code, ['admin', 'customer']))
                                                     <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
                                                         {{ $role->name }}
                                                     </option>
