@@ -173,19 +173,25 @@
 </a>
 @endif
 
-@if($hasPermission('view_products'))
+@if($hasPermission('view_products') || $hasPermission('view_ingredients') || $hasPermission('view_reviews'))
+@if($hasPermission('view_ingredients'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/ingredients">
 <span class="material-symbols-outlined" data-icon="science">science</span>
 <span class="font-label-md text-label-md">Nguyên liệu</span>
 </a>
+@endif
+@if($hasPermission('view_products'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/product">
 <span class="material-symbols-outlined" data-icon="category">category</span>
 <span class="font-label-md text-label-md">Sản phẩm</span>
 </a>
+@endif
+@if($hasPermission('view_reviews'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/reviews">
 <span class="material-symbols-outlined" data-icon="reviews">reviews</span>
 <span class="font-label-md text-label-md">Đánh giá</span>
 </a>
+@endif
 @endif
 
 @if($hasPermission('view_users'))
@@ -195,34 +201,42 @@
 </a>
 @endif
 
-@if($roleCode === 'admin')
+@if($hasPermission('manage_tables'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/tables">
 <span class="material-symbols-outlined" data-icon="table_restaurant">table_restaurant</span>
 <span class="font-label-md text-label-md">Quản lý Bàn</span>
 </a>
 @endif
 
-@if($hasPermission('view_roles'))
+@if($roleCode === 'admin')
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/roles">
 <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
 <span class="font-label-md text-label-md">Quản lý chức vụ</span>
 </a>
 @endif
 
-@if($roleCode === 'admin')
-
+@if($hasPermission('manage_vouchers'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/voucher">
 <span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
 <span class="font-label-md text-label-md">Voucher</span>
 </a>
+@endif
+
+@if($hasPermission('view_reports'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/reports">
 <span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
 <span class="font-label-md text-label-md">Báo cáo</span>
 </a>
+@endif
+
+@if($hasPermission('manage_backup'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/backup">
 <span class="material-symbols-outlined" data-icon="backup">backup</span>
 <span class="font-label-md text-label-md">Sao lưu</span>
 </a>
+@endif
+
+@if($hasPermission('manage_delivery_settings'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/delivery-settings">
 <span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
 <span class="font-label-md text-label-md">Giao hàng</span>

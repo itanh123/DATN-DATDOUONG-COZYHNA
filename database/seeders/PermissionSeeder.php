@@ -15,8 +15,15 @@ class PermissionSeeder extends Seeder
         $permissions = [
             // Hệ thống
             ['code' => 'view_dashboard', 'name' => 'Xem Bảng điều khiển', 'group' => 'Hệ thống'],
+            ['code' => 'manage_tables', 'name' => 'Quản lý Bàn', 'group' => 'Hệ thống'],
+            ['code' => 'manage_vouchers', 'name' => 'Quản lý Voucher', 'group' => 'Hệ thống'],
+            ['code' => 'view_reports', 'name' => 'Xem Báo cáo', 'group' => 'Hệ thống'],
+            ['code' => 'manage_backup', 'name' => 'Sao lưu Hệ thống', 'group' => 'Hệ thống'],
+            ['code' => 'manage_delivery_settings', 'name' => 'Cấu hình Giao hàng', 'group' => 'Hệ thống'],
             // Sản phẩm
             ['code' => 'view_products', 'name' => 'Xem Sản phẩm', 'group' => 'Sản phẩm'],
+            ['code' => 'view_ingredients', 'name' => 'Xem Nguyên liệu', 'group' => 'Sản phẩm'],
+            ['code' => 'view_reviews', 'name' => 'Xem Đánh giá', 'group' => 'Sản phẩm'],
             ['code' => 'create_products', 'name' => 'Thêm Sản phẩm', 'group' => 'Sản phẩm'],
             ['code' => 'edit_products', 'name' => 'Sửa Sản phẩm', 'group' => 'Sản phẩm'],
             ['code' => 'delete_products', 'name' => 'Xóa Sản phẩm', 'group' => 'Sản phẩm'],
