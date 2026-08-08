@@ -13,10 +13,12 @@ class RoleController extends Controller
     {
         $roles = Role::with(['users' => function($q) {
             $q->orderBy('id', 'desc');
-        }])->where('code', '!=', 'customer')->get();
+        }])->whereNotIn('code', ['customer', 'admin'])->get();
 
-        // Lấy danh sách permissions và gom nhóm theo cột 'description' (chứa tên nhóm)
-        $permissions = DB::table('permissions')->orderBy('description')->orderBy('id')->get();
+        // Lấy danh sách permissions và gom nhóm, loại trừ các quyền quản lý chức vụ vì chỉ Admin mới được cấp quyền này
+        $permissions = DB::table('permissions')
+            ->whereNotIn('code', ['view_roles', 'manage_permissions', 'assign_roles'])
+            ->orderBy('description')->orderBy('id')->get();
         
         $groupedPermissions = [];
         foreach ($permissions as $p) {
