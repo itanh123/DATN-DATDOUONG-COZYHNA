@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Quản lý phân quyền')
+@section('title', 'Quản lý chức vụ')
 
 @section('content')
 <main class="ml-0 md:ml-[280px] pt-16 min-h-screen p-8 bg-surface-container-lowest">
@@ -8,9 +8,15 @@
         
         <!-- Header -->
         <div class="flex justify-between items-center border-b border-outline-variant/30 pb-4">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
-                <h2 class="font-headline-md text-headline-md text-on-surface">Quản lý phân quyền</h2>
+            <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
+                    <h2 class="font-headline-md text-headline-md text-on-surface">Quản lý chức vụ</h2>
+                </div>
+                <button type="button" onclick="openModal('modal-add-role')" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    Thêm chức vụ
+                </button>
             </div>
             @if(session('success'))
                 <div class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg text-label-md shadow-sm">
@@ -179,6 +185,50 @@
             </div>
         @endforeach
 
+    </div>
+
+    <!-- Modal for adding new role -->
+    <div id="modal-add-role" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('modal-add-role')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b flex justify-between items-center bg-surface-container-lowest">
+                <h3 class="text-xl font-bold text-on-surface">Thêm chức vụ mới</h3>
+                <button type="button" onclick="closeModal('modal-add-role')" class="text-on-surface-variant hover:text-error transition-colors p-1 rounded-md hover:bg-surface-container-low">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="p-6 bg-surface-container-lowest">
+                <form action="/admin/roles/store" method="POST">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-1">Tên chức vụ <span class="text-error">*</span></label>
+                            <input type="text" name="name" required placeholder="Ví dụ: Kế toán" class="w-full px-4 py-2 border border-outline-variant/50 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-1">Mã chức vụ (code) <span class="text-error">*</span></label>
+                            <input type="text" name="code" required placeholder="Ví dụ: ketoan" class="w-full px-4 py-2 border border-outline-variant/50 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors bg-white">
+                            <p class="text-xs text-on-surface-variant mt-1">Dùng để phân biệt trong hệ thống (viết liền không dấu).</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-1">Mô tả</label>
+                            <textarea name="description" rows="3" placeholder="Mô tả công việc của chức vụ này..." class="w-full px-4 py-2 border border-outline-variant/50 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors bg-white"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('modal-add-role')" class="px-4 py-2 text-on-surface-variant font-medium hover:bg-surface-container-low rounded-lg transition-colors">
+                            Hủy bỏ
+                        </button>
+                        <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                            Tạo chức vụ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </main>
 

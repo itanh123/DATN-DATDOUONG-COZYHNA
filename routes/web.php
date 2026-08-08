@@ -326,6 +326,10 @@ Route::middleware(['admin'])->group(function () {
         if (!check_permission('manage_permissions')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\RoleController')->updatePermissions($request);
     });
+    Route::post('/admin/roles/store', function (\Illuminate\Http\Request $request) {
+        if (!check_permission('manage_permissions')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
+        return app('App\Http\Controllers\RoleController')->store($request);
+    });
 
     // Promotions, Reports, Reviews
     Route::get('/admin/promotions', function () { return view('admin.promotions'); });

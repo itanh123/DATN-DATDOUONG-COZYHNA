@@ -75,4 +75,30 @@ class RoleController extends Controller
             return back()->with('error', 'Lỗi khi cập nhật phân quyền: ' . $e->getMessage());
         }
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'code' => 'required|string|max:50|unique:roles,code',
+            'description' => 'nullable|string'
+        ], [
+            'name.required' => 'Vui lòng nhập tên chức vụ.',
+            'code.required' => 'Vui lòng nhập mã chức vụ.',
+            'code.unique' => 'Mã chức vụ này đã tồn tại.'
+        ]);
+
+        try {
+            Role::create([
+                'name' => $request->name,
+                'code' => strtolower($request->code),
+                'description' => $request->description,
+                'status' => 1
+            ]);
+            
+            return back()->with('success', 'Đã thêm chức vụ mới thành công!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Lỗi khi thêm chức vụ: ' . $e->getMessage());
+        }
+    }
 }

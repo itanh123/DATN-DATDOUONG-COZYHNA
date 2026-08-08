@@ -205,7 +205,7 @@
 @if($hasPermission('view_roles'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/roles">
 <span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
-<span class="font-label-md text-label-md">Phân quyền</span>
+<span class="font-label-md text-label-md">Quản lý chức vụ</span>
 </a>
 @endif
 
