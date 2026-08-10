@@ -160,7 +160,7 @@ Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
 // Table Ordering Routes
 // ---------------------------------------------------------
 Route::get('/table/login/{token}', [\App\Http\Controllers\TableOrderController::class, 'loginWithQr']);
-Route::post('/table/order/confirm', [\App\Http\Controllers\TableOrderController::class, 'confirmOrder']);
+Route::match(['get', 'post'], '/table/order/confirm', [\App\Http\Controllers\TableOrderController::class, 'confirmOrder']);
 Route::get('/table/order/success', [\App\Http\Controllers\TableOrderController::class, 'success']);
 Route::post('/table/call-staff', [\App\Http\Controllers\TableOrderController::class, 'callStaff']);
 

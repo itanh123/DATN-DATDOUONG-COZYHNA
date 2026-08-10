@@ -48,6 +48,8 @@ class OrderController extends Controller
             $reviewedOrderIds = $reviews->pluck('order_id')->unique()->toArray();
         }
 
+        $allItems = collect();
+
         foreach ($orders as $order) {
             $order->items = DB::table('order_items')
                 ->leftJoin('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
@@ -62,11 +64,7 @@ class OrderController extends Controller
 
             foreach ($order->items as $item) {
                 $item->is_reviewed = in_array($order->id . '_' . $item->product_id, $reviewedItems);
-                $item->toppings = DB::table('order_item_toppings')
-                    ->join('toppings', 'order_item_toppings.topping_id', '=', 'toppings.id')
-                    ->where('order_item_toppings.order_item_id', $item->id)
-                    ->select('order_item_toppings.*', 'toppings.name as topping_name')
-                    ->get();
+                $allItems->push($item);
             }
 
             $order->address = DB::table('customer_addresses')
@@ -87,6 +85,26 @@ class OrderController extends Controller
                 ->where('order_id', $order->id)
                 ->first();
         }
+
+        $allItemIds = $allItems->pluck('id')->toArray();
+        if (!empty($allItemIds)) {
+            $allToppings = DB::table('order_item_toppings')
+                ->join('toppings', 'order_item_toppings.topping_id', '=', 'toppings.id')
+                ->whereIn('order_item_toppings.order_item_id', $allItemIds)
+                ->select('order_item_toppings.*', 'toppings.name as topping_name')
+                ->get()
+                ->groupBy('order_item_id');
+
+            foreach ($allItems as $item) {
+                $item->toppings = $allToppings->get($item->id, collect());
+            }
+        } else {
+            foreach ($allItems as $item) {
+                $item->toppings = collect();
+            }
+        }
+
+
 
         $activeOrders = $orders->filter(function ($order) {
             $status = strtolower($order->status ?? $order->order_status ?? '');
