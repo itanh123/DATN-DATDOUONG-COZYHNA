@@ -20,7 +20,7 @@ class RestaurantTableController extends Controller
         }
 
         $floors = Floor::with(['areas.tables' => function ($q) {
-            $q->withCount('mergedTableItems');
+            $q->withCount('mergedTables');
         }])->where('status', true)->orderBy('display_order')->get();
 
         $mergedGroups = [];
@@ -65,6 +65,12 @@ class RestaurantTableController extends Controller
     }
 
     // ─── Floor CRUD ─────────────────────────────────────────────────
+
+    public function statusData()
+    {
+        $tables = RestaurantTable::select('id', 'status')->get();
+        return response()->json($tables);
+    }
 
     public function storeFloor(Request $request)
     {

@@ -3,7 +3,7 @@
 @section('title', 'Cập nhật Voucher')
 
 @section('content')
-<main class="ml-[280px] pt-16 min-h-screen bg-surface p-gutter">
+<main class="md:ml-[280px] pt-16 min-h-screen bg-surface p-gutter">
 <div class="max-w-[1100px] mx-auto">
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-xs py-md text-on-surface-variant mb-md">

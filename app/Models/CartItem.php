@@ -11,10 +11,10 @@ class CartItem extends Model
 
     protected $fillable = [
         'cart_id',
-        'product_id',       // always filled (even for sized products)
-        'product_size_id',  // nullable – null when product has no sizes
+        'product_id',
+        'product_size_id',
         'quantity',
-        'unit_price',       // price snapshot at time of adding
+        'unit_price',
     ];
 
     public function cart()
@@ -22,34 +22,18 @@ class CartItem extends Model
         return $this->belongsTo(Cart::class, 'cart_id');
     }
 
-    /** The size variant (null for no-size products) */
-    public function productSize()
-    {
-        return $this->belongsTo(ProductSize::class, 'product_size_id');
-    }
-
-    /** Always present */
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    /** Human-readable size label */
-    public function getSizeLabelAttribute(): string
+    public function productSize()
     {
-        return $this->productSize?->size?->name ?? 'Mặc định';
+        return $this->belongsTo(ProductSize::class, 'product_size_id');
     }
 
     public function toppings()
     {
-        return $this->hasMany(CartItemTopping::class);
-    }
-
-    /** Line total */
-    public function getLineTotalAttribute(): float
-    {
-        $baseTotal = $this->unit_price * $this->quantity;
-        $toppingsTotal = $this->toppings->sum('unit_price') * $this->quantity;
-        return $baseTotal + $toppingsTotal;
+        return $this->hasMany(CartItemTopping::class, 'cart_item_id');
     }
 }

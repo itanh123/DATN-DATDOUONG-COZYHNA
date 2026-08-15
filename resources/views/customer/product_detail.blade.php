@@ -3,7 +3,7 @@
 @section('title', 'Product Detail')
 
 @section('content')
-<main class="max-w-container-max mx-auto px-md py-lg">
+<main class="max-w-container-max mx-auto px-md pt-lg pb-24 md:pb-lg">
 <header class="flex justify-between items-center mb-xl">
 <h1 class="font-headline-lg text-headline-lg text-primary">CozyHNA</h1>
 <div class="flex gap-md">

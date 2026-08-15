@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Voucher extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'vouchers';
 
@@ -20,16 +19,18 @@ class Voucher extends Model
         'discount_value',
         'minimum_order',
         'maximum_discount',
+        'usage_limit',
+        'used_count',
         'quantity',
         'used',
         'start_date',
         'end_date',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
-        'status' => 'boolean',
     ];
 }

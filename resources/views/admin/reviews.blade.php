@@ -50,19 +50,38 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="p-4">
-                            <select onchange="updateStatus({{ $review->id }}, this.value)" class="text-sm rounded border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50
-                                {{ $review->status == 'approved' ? 'bg-green-50 text-green-700' : ($review->status == 'pending' ? 'bg-yellow-50 text-yellow-700' : 'bg-red-50 text-red-700') }}">
-                                <option value="pending" {{ $review->status == 'pending' ? 'selected' : '' }}>Chờ duyệt</option>
-                                <option value="approved" {{ $review->status == 'approved' ? 'selected' : '' }}>Đã duyệt</option>
-                                <option value="rejected" {{ $review->status == 'rejected' ? 'selected' : '' }}>Đã ẩn</option>
-                            </select>
+                        <td class="p-4 text-sm">
+                            @if($review->status === 'approved')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Đã duyệt</span>
+                            @elseif($review->status === 'pending')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Chờ duyệt</span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Đã ẩn</span>
+                            @endif
                         </td>
                         <td class="p-4 text-sm text-gray-500">{{ $review->created_at->format('d/m/Y H:i') }}</td>
                         <td class="p-4 text-right">
-                            <button type="button" onclick="replyReview({{ $review->id }}, '{{ addslashes($review->admin_reply) }}')" class="text-blue-500 hover:text-blue-700 p-2" title="Trả lời">
-                                <span class="material-symbols-outlined text-xl">reply</span>
-                            </button>
+                            <div class="flex justify-end items-center">
+                                @if($review->status === 'pending')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'approved')" class="text-green-500 hover:text-green-700 p-2" title="Duyệt">
+                                    <span class="material-symbols-outlined text-xl">check_circle</span>
+                                </button>
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'rejected')" class="text-red-500 hover:text-red-700 p-2" title="Từ chối">
+                                    <span class="material-symbols-outlined text-xl">cancel</span>
+                                </button>
+                                @elseif($review->status === 'approved')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'rejected')" class="text-red-500 hover:text-red-700 p-2" title="Ẩn đánh giá">
+                                    <span class="material-symbols-outlined text-xl">visibility_off</span>
+                                </button>
+                                @elseif($review->status === 'rejected')
+                                <button type="button" onclick="updateReviewStatus({{ $review->id }}, 'approved')" class="text-green-500 hover:text-green-700 p-2" title="Hiện đánh giá">
+                                    <span class="material-symbols-outlined text-xl">visibility</span>
+                                </button>
+                                @endif
+                                <button type="button" onclick="replyReview({{ $review->id }}, '{{ addslashes($review->admin_reply) }}')" class="text-blue-500 hover:text-blue-700 p-2" title="Trả lời">
+                                    <span class="material-symbols-outlined text-xl">reply</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -86,29 +105,6 @@
 
 @push('scripts')
 <script>
-    async function updateStatus(reviewId, status) {
-        try {
-            const response = await fetch(`/admin/reviews/${reviewId}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ status: status })
-            });
-            const data = await response.json();
-            if (data.success) {
-                // Optionally show a toast notification here
-                window.location.reload();
-            } else {
-                alert(data.message || 'Có lỗi xảy ra');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Lỗi kết nối mạng');
-        }
-    }
-
     function replyReview(id, currentReply) {
         const reply = prompt("Nhập câu trả lời cho đánh giá này:", currentReply);
         if (reply !== null) {
@@ -135,6 +131,28 @@
             document.body.appendChild(form);
             form.submit();
         }
+    }
+
+    function updateReviewStatus(id, status) {
+        if (!confirm('Bạn có chắc chắn muốn ' + (status === 'approved' ? 'duyệt/hiển thị' : 'từ chối/ẩn') + ' đánh giá này?')) return;
+        
+        fetch(`/admin/reviews/${id}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Có lỗi xảy ra');
+            }
+        })
+        .catch(err => alert('Lỗi kết nối'));
     }
 </script>
 @endpush

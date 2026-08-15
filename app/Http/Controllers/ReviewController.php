@@ -52,34 +52,18 @@ class ReviewController extends Controller
             return back()->with('error', 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.');
         }
 
-        $status = 'approved';
-        $comment = $request->comment;
-        
-        if ($comment) {
-            $badWords = ['địt', 'lồn', 'cặc', 'buồi', 'đụ', 'chó', 'điếm', 'đĩ', 'đm', 'vcl', 'vl', 'đcm', 'dkm', 'ngu', 'cc', 'cứt', 'fuck', 'shit', 'bitch'];
-            foreach ($badWords as $word) {
-                // Use regex with 'u' modifier for unicode and 'i' for case-insensitivity
-                if (preg_match("/\b" . preg_quote($word, '/') . "\b/ui", $comment)) {
-                    $status = 'rejected';
-                    break;
-                }
-            }
-        }
-
-        ProductReview::create([
+        $review = ProductReview::create([
             'user_id' => $userId,
             'product_id' => $request->product_id,
             'order_id' => $request->order_id,
             'rating' => $request->rating,
             'comment' => $request->comment,
-            'status' => $status,
+            'status' => 'pending', // Wait for AI
         ]);
 
-        if ($status === 'rejected') {
-            return back()->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm! Đánh giá của bạn đang chờ kiểm duyệt do chứa từ khóa nhạy cảm.');
-        }
+        \App\Jobs\ProcessAiReview::dispatch($review);
 
-        return back()->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm!');
+        return back()->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm! Hệ thống AI đang xử lý đánh giá của bạn.');
     }
 
     /**
@@ -88,7 +72,7 @@ class ReviewController extends Controller
     public function index()
     {
         if (!check_permission('view_products')) {
-            return redirect('/login')->with('error', 'Unauthorized');
+            return redirect('/login')->with('error', 'Không có quyền truy cập.');
         }
 
         $reviews = ProductReview::with(['user', 'product'])
@@ -104,7 +88,7 @@ class ReviewController extends Controller
     public function updateStatus(Request $request, ProductReview $review)
     {
         if (!check_permission('view_products')) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return response()->json(['success' => false, 'message' => 'Không có quyền truy cập.'], 403);
         }
 
         $request->validate([
@@ -123,7 +107,7 @@ class ReviewController extends Controller
     public function reply(Request $request, ProductReview $review)
     {
         if (!check_permission('view_products')) {
-            return back()->with('error', 'Unauthorized');
+            return back()->with('error', 'Không có quyền truy cập.');
         }
 
         $request->validate([

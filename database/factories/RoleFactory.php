@@ -1,0 +1,21 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Role;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class RoleFactory extends Factory
+{
+    protected $model = Role::class;
+
+    public function definition(): array
+    {
+        return [
+            'code' => $this->faker->unique()->word,
+            'name' => $this->faker->word,
+            'description' => $this->faker->sentence,
+            'status' => true,
+        ];
+    }
+}

@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductSize extends Model
 {
-    use HasFactory;
-
     protected $table = 'product_sizes';
 
     protected $fillable = [
@@ -16,22 +13,20 @@ class ProductSize extends Model
         'size_id',
         'selling_price',
         'cost_price',
+        'calories',
         'is_default',
         'status',
     ];
 
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
+    public function product() {
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
-    public function size()
-    {
-        return $this->belongsTo(Size::class);
+    public function size() {
+        return $this->belongsTo(Size::class, 'size_id');
     }
 
-    public function recipes()
-    {
+    public function recipes() {
         return $this->hasMany(Recipe::class, 'product_size_id');
     }
 }

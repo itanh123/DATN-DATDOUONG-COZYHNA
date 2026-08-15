@@ -3,7 +3,7 @@
 @section('title', 'Nhân viên')
 
 @section('content')
-<main class="ml-[280px] pt-16 min-h-screen p-8 bg-background">
+<main class="md:ml-[280px] pt-16 min-h-screen p-8 bg-background">
 <div class="max-w-[1400px] mx-auto space-y-8">
 <!-- Staff Tổng quan Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

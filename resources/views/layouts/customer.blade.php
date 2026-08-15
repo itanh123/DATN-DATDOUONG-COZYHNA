@@ -2,6 +2,7 @@
 <html class="light" lang="en">
 <head>
 <meta charset="utf-8"/>
+<meta name="csrf-token" content="{{ csrf_token() }}"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>CozyHNA | @yield('title', 'Premium Beverages')</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -27,8 +28,69 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9ff;
         }
+        
+        /* Ghi đè giao diện Choices.js cho khớp với hệ thống */
+        .choices {
+            margin-bottom: 0 !important;
+        }
+        .choices__inner {
+            background-color: #ffffff !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            border-radius: 0.5rem !important;
+            min-height: 40px !important;
+            padding: 4px 12px !important;
+            display: flex;
+            align-items: center;
+            font-size: 14px !important;
+            color: #0b1c30 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .choices.is-focused .choices__inner {
+            border-color: #006e1c !important;
+            box-shadow: 0 0 0 2px rgba(0, 110, 28, 0.2) !important;
+        }
+        .choices[data-type*="select-one"]::after {
+            border: none !important;
+            content: "" !important;
+            height: 20px !important;
+            width: 20px !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236f7a6b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-size: contain !important;
+            right: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            margin-top: 0 !important;
+            position: absolute !important;
+            pointer-events: none;
+        }
+        .choices.is-open[data-type*="select-one"]::after {
+            transform: translateY(-50%) rotate(180deg) !important;
+        }
+        .choices__list--single {
+            padding: 0 !important;
+        }
+        .choices__list--dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            z-index: 100 !important;
+            margin-top: 4px !important;
+        }
+        .choices__list--dropdown .choices__item {
+            font-size: 14px !important;
+            padding: 10px 12px !important;
+            color: #0b1c30 !important;
+        }
+        .choices__list--dropdown .choices__item--selectable.is-highlighted {
+            background-color: #f8f9ff !important;
+            color: #006e1c !important;
+        }
         @stack('styles')
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -131,7 +193,7 @@
 <!-- Top Navigation Bar -->
 <header class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm">
 <div class="flex items-center gap-xl">
-<span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain">
 <nav class="hidden md:flex gap-lg">
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
 @if(!session('is_table_order'))
@@ -146,14 +208,19 @@
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
 </div>
-<a href="/customer/checkout" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<a href="/customer/cart" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Giỏ hàng">
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
-    <span id="cart-badge" class="absolute top-0 right-0 bg-error text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="display: none;">0</span>
+    <span id="cart-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
 </a>
 @if(!session('is_table_order'))
 @if(session()->has('user_id'))
-    <a href="/customer/favorites" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="favorite" title="Yêu thích">favorite</a>
+    <a href="/customer/favorites" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Yêu thích">
+        <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+        <span id="favorite-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
+    </a>
     <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
+    <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
+
 @else
     <a href="/login" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Đăng nhập">account_circle</a>
 @endif
@@ -163,6 +230,36 @@
 </div>
 </header>
 
+<!-- Global Flash Messages -->
+@if(session('error') || session('success'))
+    <div id="global-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] min-w-[320px] shadow-2xl rounded-xl overflow-hidden transition-all duration-500 transform translate-y-0 opacity-100">
+        @if(session('error'))
+            <div class="bg-error text-on-error px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">error</span>
+                <span class="font-body-md flex-1">{{ session('error') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="bg-primary text-on-primary px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="font-body-md flex-1">{{ session('success') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+    </div>
+    <script>
+        setTimeout(() => {
+            const toast = document.getElementById('global-toast');
+            if (toast) {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 8000);
+    </script>
+@endif
+
 @yield('content')
 
 <!-- Mobile Bottom Navigation -->
@@ -171,7 +268,7 @@
 <span class="material-symbols-outlined" data-icon="home">home</span>
 <span class="font-label-sm text-label-sm">Trang chủ</span>
 </a>
-<a href="/customer/checkout" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
+<a href="/customer/cart" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
 <span class="font-label-sm text-label-sm">Đặt hàng</span>
 </a>
@@ -194,7 +291,7 @@
 <footer class="hidden md:block bg-surface-container-low border-t border-outline-variant/30 py-2xl mt-auto">
 <div class="max-w-container-max mx-auto px-lg grid grid-cols-4 gap-2xl">
 <div class="col-span-1">
-<span class="font-title-lg text-title-lg font-bold text-primary mb-md block">CozyHNA</span>
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-12 object-contain mb-md block">
 <p class="text-on-surface-variant text-body-md mb-xl">Tạo nên những khoảnh khắc tuyệt vời trong từng ngụm trà. Hãy tham gia cộng đồng người yêu thích đồ uống của chúng tôi.</p>
 </div>
 <div>
@@ -252,6 +349,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false
+            });
+        });
+        
         @if(session()->has('user_id') && !session('is_table_order'))
         @php
             $user = \App\Models\User::find(session('user_id'));
@@ -264,6 +370,19 @@
         @else
         window.favoriteProductIds = [];
         @endif
+
+        function updateFavoriteBadge() {
+            const fbadge = document.getElementById('favorite-badge');
+            if (fbadge) {
+                if (window.favoriteProductIds.length > 0) {
+                    fbadge.innerText = window.favoriteProductIds.length;
+                    fbadge.style.display = 'flex';
+                } else {
+                    fbadge.style.display = 'none';
+                }
+            }
+        }
+        updateFavoriteBadge();
 
         // Initialize favorite icons
         window.favoriteProductIds.forEach(id => {
@@ -283,6 +402,7 @@
                 @endif
 
                 const productId = this.getAttribute('data-product-id');
+                const pIdInt = parseInt(productId);
                 const icons = document.querySelectorAll('.favorite-icon-' + productId);
 
                 fetch(`/favorites/toggle/${productId}`, {
@@ -296,16 +416,21 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'added') {
+                        if (!window.favoriteProductIds.includes(pIdInt)) {
+                            window.favoriteProductIds.push(pIdInt);
+                        }
                         icons.forEach(icon => {
                             icon.style.fontVariationSettings = "'FILL' 1";
                             icon.classList.add('text-error');
                         });
                     } else if (data.status === 'removed') {
+                        window.favoriteProductIds = window.favoriteProductIds.filter(id => id !== pIdInt);
                         icons.forEach(icon => {
                             icon.style.fontVariationSettings = "'FILL' 0";
                             icon.classList.remove('text-error');
                         });
                     }
+                    updateFavoriteBadge();
                 })
                 .catch(error => console.error('Error toggling favorite:', error));
             });
@@ -336,5 +461,27 @@ function callStaff() {
 </script>
 @endif
 
+@include('components.ai-chat-widget')
+
+@if(session('is_table_order') && session('table_login_time'))
+<script>
+    (function() {
+        const loginTime = {{ session('table_login_time') }};
+        const serverCurrentTime = {{ now()->timestamp }};
+        const timeoutSeconds = 7200; // 120 minutes
+        
+        const elapsed = serverCurrentTime - loginTime;
+        let remainingSeconds = timeoutSeconds - elapsed;
+        
+        if (remainingSeconds <= 0) {
+            window.location.reload();
+        } else {
+            setTimeout(() => {
+                window.location.reload();
+            }, remainingSeconds * 1000);
+        }
+    })();
+</script>
+@endif
 </body>
 </html>

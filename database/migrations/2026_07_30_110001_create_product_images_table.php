@@ -6,20 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('product_images', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('image', 255)->nullable();
-            $table->integer('sort_order')->default(1);
-            $table->boolean('is_primary')->default(false);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('product_images')) {
+            Schema::create('product_images', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+                $table->string('image_url');
+                $table->boolean('is_primary')->default(false);
+                $table->integer('display_order')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('product_images');
     }
 };

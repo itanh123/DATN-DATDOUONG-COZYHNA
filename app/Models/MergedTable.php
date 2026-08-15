@@ -10,6 +10,8 @@ class MergedTable extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'merged_tables';
+
     protected $fillable = ['code', 'name', 'capacity', 'status'];
 
     public function items()
@@ -29,5 +31,3 @@ class MergedTable extends Model
         return $this->tables()->wherePivot('is_primary', true)->first();
     }
 }
-
-// Separate pivot model

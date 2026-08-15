@@ -3,7 +3,7 @@
 @section('title', 'Khuyến mãi')
 
 @section('content')
-<main class="ml-[280px] pt-16 min-h-screen">
+<main class="md:ml-[280px] pt-16 min-h-screen">
 <div class="p-xl space-y-xl max-w-[1600px] mx-auto">
 <!-- Hero Metrics Row -->
 <section class="bento-grid">

@@ -4,15 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MeasurementUnit extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'measurement_units';
 
     protected $fillable = [
         'code',
         'name',
-        'type',
+        'symbol',
+        'description',
         'status',
     ];
 }

@@ -16,12 +16,11 @@ class ChichuMenuSeeder extends Seeder
     public function run()
     {
         Schema::disableForeignKeyConstraints();
-        DB::table('cart_items')->truncate();
-        DB::table('carts')->truncate();
         DB::table('product_sizes')->truncate();
         DB::table('products')->truncate();
         DB::table('categories')->truncate();
         DB::table('sizes')->truncate();
+        DB::table('toppings')->truncate();
         Schema::enableForeignKeyConstraints();
 
         $sizeM = Size::create(['name' => 'M']);
@@ -180,7 +179,6 @@ class ChichuMenuSeeder extends Seeder
                     'name' => $prodData['name'],
                     'code' => strtoupper(Str::random(6)),
                     'status' => true,
-                    'base_price' => isset($prodData['price']) ? $prodData['price'] : null,
                 ]);
 
                 if (isset($prodData['sizes'])) {
@@ -193,15 +191,41 @@ class ChichuMenuSeeder extends Seeder
 
                         ProductSize::create([
                             'product_id' => $product->id,
-                            'size_id' => $size->id,
+                            'size_id' => $size ? $size->id : $sizeM->id,
                             'selling_price' => $price,
                             'is_default' => $isFirst,
                             'status' => true,
                         ]);
                         $isFirst = false;
                     }
+                } elseif (isset($prodData['price'])) {
+                    ProductSize::create([
+                        'product_id' => $product->id,
+                        'size_id' => $sizeM->id,
+                        'selling_price' => $prodData['price'],
+                        'is_default' => true,
+                        'status' => true,
+                    ]);
                 }
             }
+        }
+
+        // Toppings
+        $toppings = [
+            ['name' => 'Trân Châu Đen', 'price' => 5000],
+            ['name' => 'Trân Châu Trắng', 'price' => 5000],
+            ['name' => 'Thạch Nha Đam', 'price' => 5000],
+            ['name' => 'Thạch Phô Mai', 'price' => 10000],
+            ['name' => 'Kem Cheese', 'price' => 10000],
+            ['name' => 'Pudding Trứng', 'price' => 10000],
+        ];
+        foreach ($toppings as $top) {
+            \App\Models\Topping::create([
+                'code' => strtoupper(\Illuminate\Support\Str::random(6)),
+                'name' => $top['name'],
+                'price' => $top['price'],
+                'status' => true,
+            ]);
         }
     }
 }

@@ -10,6 +10,8 @@ class Floor extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'floors';
+
     protected $fillable = ['code', 'name', 'description', 'display_order', 'status'];
 
     public function areas()

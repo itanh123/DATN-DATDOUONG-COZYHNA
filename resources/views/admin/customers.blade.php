@@ -3,7 +3,7 @@
 @section('title', 'Khách hàng')
 
 @section('content')
-<main class="ml-[280px] flex-1 h-screen flex flex-col bg-surface-container-lowest">
+<main class="md:ml-[280px] flex-1 h-screen flex flex-col bg-surface-container-lowest">
 <!-- Top App Bar -->
 <header class="h-16 flex items-center justify-between px-gutter bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-40">
 <div class="flex items-center gap-md bg-surface-container-low px-md py-xs rounded-full border border-outline-variant focus-within:ring-2 focus-within:ring-primary transition-all w-96">
@@ -118,8 +118,8 @@
 </button>
 </div>
 </div>
-<div class="flex-1 overflow-auto">
-<table class="w-full text-left border-collapse">
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
 <thead class="sticky top-0 bg-surface-container-low z-10">
 <tr>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Khách hàng</th>

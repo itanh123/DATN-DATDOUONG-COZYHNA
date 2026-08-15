@@ -6,26 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('product_complaints', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_item_id')->nullable()->constrained('order_items')->nullOnDelete();
-            $table->foreignId('customer_id')->nullable()->constrained('customer_profiles')->nullOnDelete();
-            $table->string('complaint_type', 100)->nullable();
-            $table->string('reason', 255)->nullable();
-            $table->text('description')->nullable();
-            $table->string('image', 255)->nullable();
-            $table->string('status', 30)->default('pending'); // pending | reviewing | resolved | rejected
-            $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('resolved_at')->nullable();
-            $table->text('resolution_note')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('product_complaints')) {
+            Schema::create('product_complaints', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+                $table->foreignId('customer_id')->constrained('customer_profiles')->onDelete('cascade');
+                $table->string('title');
+                $table->text('content');
+                $table->enum('status', ['PENDING', 'PROCESSING', 'RESOLVED', 'REJECTED'])->default('PENDING');
+                $table->text('resolution_note')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('product_complaints');
     }
 };

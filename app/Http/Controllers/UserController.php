@@ -5,66 +5,71 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('id', 'desc')->get();
+        if (!check_permission('view_users')) {
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
+        }
+
         $roles = DB::table('roles')->get();
 
-        // Map role to user
-        foreach ($users as $user) {
-            $user->role = $roles->firstWhere('id', $user->role_id);
+        $query = User::with('role');
+
+        if ($request->has('role_id') && $request->role_id != '') {
+            $query->where('role_id', $request->role_id);
         }
 
-        $staffUsers = $users->filter(function ($user) {
-            return $user->role && in_array($user->role->code, ['admin', 'staff', 'shipper']);
-        });
-
-        $customerUsers = $users->filter(function ($user) {
-            return !$user->role || !in_array($user->role->code, ['admin', 'staff', 'shipper']);
-        });
-
-        // Filter based on logged-in user role
-        $roleCode = session('role_code');
-        $userId = session('user_id');
-
-        if ($roleCode === 'staff') {
-            // Staff can only see themselves in staff list, and all customers
-            $staffUsers = $staffUsers->filter(function ($user) use ($userId) {
-                return $user->id == $userId;
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('username', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
             });
-        } elseif ($roleCode === 'shipper') {
-            // Shipper can only see themselves, no customers
-            $staffUsers = $staffUsers->filter(function ($user) use ($userId) {
-                return $user->id == $userId;
-            });
-            $customerUsers = collect(); // empty collection
         }
-        // If 'admin', they see everything, so no filter needed.
+
+        $staffUsers = (clone $query)->whereHas('role', function($q) {
+            $q->where('code', '!=', 'customer');
+        })->get();
+
+        $customerUsers = (clone $query)->whereHas('role', function($q) {
+            $q->where('code', 'customer');
+        })->get();
 
         return view('admin.users', compact('staffUsers', 'customerUsers', 'roles'));
     }
 
     public function store(Request $request)
     {
+        if (!check_permission('create_users')) {
+            return back()->withErrors(['error' => 'Bạn không có quyền truy cập.']);
+        }
+
         $request->validate([
-            'username' => ['required', 'string', 'max:50', 'unique:users,username'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
-            'password' => ['required', 'string', 'min:6'],
-            'role_id' => ['required', 'exists:roles,id'],
+            'username' => 'required|string|max:50|unique:users,username',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'required|string|min:6',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $request->input('username'),
+            'name' => $request->input('name'),
             'email' => $request->input('email'),
             'phone' => $request->input('phone'),
-            'password' => \Illuminate\Support\Facades\Hash::make($request->input('password')),
+            'password' => Hash::make($request->input('password')),
             'role_id' => $request->input('role_id'),
             'status' => true,
         ]);
+
+        $this->ensureShipperProfile($user);
 
         return back()->with('success', 'Đã tạo người dùng mới thành công!');
     }
@@ -79,6 +84,8 @@ class UserController extends Controller
             'role_id' => $request->input('role_id')
         ]);
 
+        $this->ensureShipperProfile($user);
+
         return back()->with('success', 'Cập nhật quyền hạn thành công!');
     }
 
@@ -88,7 +95,6 @@ class UserController extends Controller
             return back()->withErrors(['error' => 'Bạn chưa được cấp quyền đổi mật khẩu cá nhân!']);
         }
 
-        // Only allow if logged in user is the same as the target user
         if ($user->id != session('user_id')) {
             return back()->withErrors(['error' => 'Bạn không có quyền đổi mật khẩu của người khác!']);
         }
@@ -98,7 +104,7 @@ class UserController extends Controller
         ]);
 
         $user->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($request->input('new_password'))
+            'password' => Hash::make($request->input('new_password'))
         ]);
 
         return back()->with('success', 'Đổi mật khẩu thành công!');
@@ -106,7 +112,6 @@ class UserController extends Controller
 
     public function toggleStatus(Request $request, User $user)
     {
-        // Only admin can lock/unlock accounts
         if (session('role_code') !== 'admin') {
             return back()->withErrors(['error' => 'Chỉ Admin mới có quyền khóa tài khoản!']);
         }
@@ -125,12 +130,10 @@ class UserController extends Controller
 
     public function toggleRestriction(Request $request, User $user)
     {
-        // Both Admin and Staff can restrict accounts
         if (!in_array(session('role_code'), ['admin', 'staff'])) {
             return back()->withErrors(['error' => 'Bạn không có quyền thực hiện thao tác này!']);
         }
 
-        // Only allow restricting customers
         if ($user->role && in_array($user->role->code, ['admin', 'staff', 'shipper'])) {
             return back()->withErrors(['error' => 'Chỉ có thể hạn chế tài khoản Khách hàng!']);
         }
@@ -141,5 +144,18 @@ class UserController extends Controller
 
         $action = $user->is_restricted ? 'Hạn chế' : 'Bỏ hạn chế';
         return back()->with('success', "Đã $action tài khoản thành công!");
+    }
+
+    private function ensureShipperProfile(User $user)
+    {
+        $role = DB::table('roles')->where('id', $user->role_id)->first();
+        if ($role && $role->code === 'shipper') {
+            \App\Models\ShipperProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'status' => 'OFFLINE'
+                ]
+            );
+        }
     }
 }

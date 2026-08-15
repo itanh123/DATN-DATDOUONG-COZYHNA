@@ -2,38 +2,39 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-#[Fillable(['name', 'username', 'email', 'phone', 'avatar', 'password', 'role_id', 'status', 'google_id', 'is_restricted'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $table = 'users';
 
-    public function customerProfile()
-    {
-        return $this->hasOne(CustomerProfile::class);
-    }
+    protected $fillable = [
+        'name',
+        'username',
+        'full_name',
+        'email',
+        'phone',
+        'avatar',
+        'password',
+        'role_id',
+        'status',
+        'google_id',
+        'is_restricted',
+        'gender',
+        'birthday',
+        'remember_token',
+        'login_provider',
+        'last_login_at',
+        'last_login_ip',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     public function reviews()
     {
@@ -47,6 +48,21 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function customerProfile()
+    {
+        return $this->hasOne(CustomerProfile::class, 'user_id');
+    }
+
+    public function employeeProfile()
+    {
+        return $this->hasOne(EmployeeProfile::class, 'user_id');
+    }
+
+    public function shipperProfile()
+    {
+        return $this->hasOne(ShipperProfile::class, 'user_id');
     }
 }

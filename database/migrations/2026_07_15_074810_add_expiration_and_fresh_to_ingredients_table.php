@@ -6,24 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('ingredients', function (Blueprint $table) {
-            $table->dateTime('expiration_date')->nullable()->after('minimum_stock');
-            $table->boolean('is_fresh')->default(false)->after('expiration_date');
-        });
+        if (Schema::hasTable('ingredients')) {
+            Schema::table('ingredients', function (Blueprint $table) {
+                if (!Schema::hasColumn('ingredients', 'expiration_date')) {
+                    $table->dateTime('expiration_date')->nullable();
+                }
+                if (!Schema::hasColumn('ingredients', 'is_fresh')) {
+                    $table->boolean('is_fresh')->default(false);
+                }
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('ingredients', function (Blueprint $table) {
-            $table->dropColumn(['expiration_date', 'is_fresh']);
-        });
     }
 };

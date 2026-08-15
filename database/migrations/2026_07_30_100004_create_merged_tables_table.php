@@ -6,30 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('merged_tables', function (Blueprint $table) {
-            $table->id();
-            $table->string('code', 30)->unique()->nullable();
-            $table->string('name', 100)->nullable();
-            $table->integer('capacity')->default(0);
-            $table->boolean('status')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
-        Schema::create('merged_table_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('merged_table_id')->constrained('merged_tables')->cascadeOnDelete();
-            $table->foreignId('table_id')->constrained('restaurant_tables')->cascadeOnDelete();
-            $table->boolean('is_primary')->default(false); // bàn chính hay bàn phụ
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('merged_tables')) {
+            Schema::create('merged_tables', function (Blueprint $table) {
+                $table->id();
+                $table->string('name', 100);
+                $table->foreignId('primary_table_id')->constrained('restaurant_tables')->onDelete('cascade');
+                $table->boolean('status')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('merged_table_items');
-        Schema::dropIfExists('merged_tables');
     }
 };

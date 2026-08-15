@@ -322,15 +322,22 @@ class CheckoutController extends Controller
 
         $receiverName = $request->input('receiver_name');
         $receiverPhone = $request->input('receiver_phone');
-        $shippingAddress = $request->input('shipping_address');
-        $distanceKm = (float) $request->input('distance_km', 0);
+        
+        $province = $request->input('province');
+        $district = $request->input('district');
+        $ward = $request->input('ward');
+        $specificAddress = $request->input('address');
 
-        if (!$receiverName || !$receiverPhone || !$shippingAddress) {
+        if (!$receiverName || !$receiverPhone || !$province || !$district || !$ward || !$specificAddress) {
             return back()->with('error', 'Vui lòng nhập đầy đủ thông tin giao hàng.');
         }
+
+        $shippingAddress = "{$specificAddress}, {$ward}, {$district}, {$province}";
+        $distanceKm = (float) $request->input('distance_km', 0);
+        $maxRadius = (float) \App\Models\Setting::get('max_delivery_radius', 0);
         
-        if ($distanceKm > 10) {
-            return back()->with('error', 'Khoảng cách giao hàng vượt quá 10km. Cửa hàng không thể hỗ trợ giao đơn hàng này.');
+        if ($maxRadius > 0 && $distanceKm > $maxRadius) {
+            return back()->with('error', "Khoảng cách giao hàng ({$distanceKm}km) vượt quá bán kính cho phép ({$maxRadius}km).");
         }
 
         $addressId = $request->input('address_id');
@@ -340,7 +347,10 @@ class CheckoutController extends Controller
             // Check if exact address already exists for this user (even if not explicitly "saved in book")
             $existingAddress = DB::table('customer_addresses')
                 ->where('customer_id', $customerProfile->id)
-                ->where('address', $shippingAddress)
+                ->where('address', $specificAddress)
+                ->where('ward', $ward)
+                ->where('district', $district)
+                ->where('province', $province)
                 ->where('receiver_phone', $receiverPhone)
                 ->first();
 
@@ -354,13 +364,10 @@ class CheckoutController extends Controller
                     'customer_id' => $customerProfile->id,
                     'receiver_name' => $receiverName,
                     'receiver_phone' => $receiverPhone,
-                    'address' => $request->input('specific_address', ''),
-                    'province' => $request->input('province_name', ''),
-                    'district' => $request->input('district_name', ''),
-                    'ward' => $request->input('ward_name', ''),
-                    'province_code' => $request->input('province_code'),
-                    'district_code' => $request->input('district_code'),
-                    'ward_code' => $request->input('ward_code'),
+                    'address' => $specificAddress,
+                    'province' => $province,
+                    'district' => $district,
+                    'ward' => $ward,
                     'is_default' => 0,
                     'is_saved' => $isSaved ? 1 : 0,
                     'created_at' => now(),
@@ -396,6 +403,11 @@ class CheckoutController extends Controller
         $cartTotal = 0;
         foreach ($cartItems as $item) {
             $cartTotal += $item->line_total;
+        }
+
+        $minOrderAmount = (float) \App\Models\Setting::get('min_order_amount', 0);
+        if ($cartTotal < $minOrderAmount) {
+            return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để giao hàng (' . number_format($minOrderAmount, 0, ',', '.') . ' đ).');
         }
 
         $discountAmount = 0;
@@ -479,7 +491,7 @@ class CheckoutController extends Controller
                 if ($user && $user->email) {
                     $order = DB::table('orders')->where('id', $orderId)->first();
                     \Illuminate\Support\Facades\Mail::to($user->email)
-                        ->send(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
+                        ->queue(new \App\Mail\OrderStatusChanged($order, $user->username, 'Đặt hàng thành công (Đang chờ xác nhận)'));
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());

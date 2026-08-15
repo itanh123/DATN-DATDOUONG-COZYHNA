@@ -17,6 +17,12 @@ class TableOrderController extends Controller
             return redirect('/')->with('error', 'Mã QR không hợp lệ hoặc bàn đã bị vô hiệu hóa.');
         }
 
+        // Cập nhật trạng thái bàn thành "Có khách" nếu đang trống
+        if ($table->status === 'available') {
+            $table->status = 'occupied';
+            $table->save();
+        }
+
         // Tự động tạo "tài khoản bàn" nếu chưa có
         $username = 'table_' . $table->id;
         $user = \App\Models\User::where('username', $username)->first();
@@ -78,76 +84,123 @@ class TableOrderController extends Controller
             return redirect('/')->with('error', 'Lỗi dữ liệu tài khoản bàn.');
         }
 
-        $cart = DB::table('carts')->where('customer_id', $customerProfile->id)->first();
-        if (!$cart) {
-            return redirect('/customer/checkout')->with('error', 'Không tìm thấy giỏ hàng trong CSDL.');
+        $cartItemsRaw = session('cart', []);
+        $checkoutItemIds = session('checkout_items', []);
+        $cartItems = [];
+        
+        foreach ($cartItemsRaw as $item) {
+            if (in_array($item['id'], $checkoutItemIds)) {
+                $cartItems[] = $item;
+            }
         }
 
-        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)
-            ->with(['toppings'])
-            ->get();
-            
-        if ($cartItems->isEmpty()) {
-            return redirect('/customer/checkout')->with('error', 'Giỏ hàng không có sản phẩm nào.');
+        if (empty($cartItems)) {
+            return redirect('/customer/cart')->with('error', 'Không có sản phẩm nào được chọn để thanh toán.');
         }
 
         $subtotal = 0;
         foreach ($cartItems as $item) {
-            $subtotal += $item->line_total;
+            $subtotal += $item['unit_price'] * $item['quantity'];
         }
 
         DB::beginTransaction();
         try {
-            // Create Order
-            $orderId = DB::table('orders')->insertGetId([
-                'order_code' => 'TBL' . date('YmdHis') . rand(100, 999),
-                'customer_id' => $customerProfile->id,
-                'subtotal' => $subtotal,
-                'discount_amount' => 0,
-                'shipping_fee' => 0,
-                'total_amount' => $subtotal,
-                'payment_method' => 'cash', // Default to cash for table order, can pay later
-                'status' => 'pending',
-                'order_type' => 'at_table', // Custom column we added
-                'ordered_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
+            $orderCode = 'TBL-' . strtoupper(uniqid());
+
+            $appliedVoucher = session('applied_voucher');
+            $discountAmount = 0;
+            $voucherId = null;
+            if ($appliedVoucher) {
+                $discountAmount = $appliedVoucher['discount_amount'];
+                $voucherId = $appliedVoucher['id'];
+                
+                // Cập nhật số lượng voucher
+                $voucher = \App\Models\Voucher::find($voucherId);
+                if ($voucher && $voucher->quantity > 0) {
+                    $voucher->increment('used');
+                }
+            }
+
+            // Create Order using Eloquent for consistency
+            $order = \App\Models\Order::create([
+                'customer_id'     => $customerProfile->id,
+                'order_code'      => $orderCode,
+                'order_source'    => 'WEBSITE',
+                'order_type'      => 'AT_TABLE',
+                'order_status'    => 'PENDING',
+                'status'          => 'pending',
+                'receiver_name'   => $customerProfile->full_name,
+                'receiver_phone'  => 'N/A',
+                'delivery_address'=> 'Tại bàn',
+                'subtotal'        => $subtotal,
+                'discount_amount' => $discountAmount,
+                'voucher_id'      => $voucherId,
+                'shipping_fee'    => 0,
+                'tax_amount'      => 0,
+                'total_amount'    => max(0, $subtotal - $discountAmount),
+                'created_by'      => $userId
             ]);
 
             // Add Order Items
             foreach ($cartItems as $item) {
-                $orderItemId = DB::table('order_items')->insertGetId([
-                    'order_id' => $orderId,
-                    'product_id' => $item->product_id,
-                    'product_size_id' => $item->product_size_id,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_price' => $item->line_total,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                $productName = '';
+                $sizeName = '';
+                if ($item['product_id']) {
+                    $p = \App\Models\Product::find($item['product_id']);
+                    if ($p) $productName = $p->name;
+                }
+                if ($item['product_size_id']) {
+                    $ps = \App\Models\ProductSize::with('size')->find($item['product_size_id']);
+                    if ($ps && $ps->size) $sizeName = $ps->size->name;
+                }
+
+                $orderItem = \App\Models\OrderItem::create([
+                    'order_id'        => $order->id,
+                    'product_size_id' => $item['product_size_id'],
+                    'product_name'    => $productName,
+                    'size_name'       => $sizeName,
+                    'quantity'        => $item['quantity'],
+                    'unit_price'      => $item['unit_price'],
+                    'discount'        => 0,
+                    'final_price'     => $item['unit_price'],
                 ]);
 
-                foreach ($item->toppings as $topping) {
-                    DB::table('order_item_toppings')->insert([
-                        'order_item_id' => $orderItemId,
-                        'topping_id' => $topping->topping_id,
-                        'quantity' => $topping->quantity,
-                        'unit_price' => $topping->unit_price,
-                        'total_price' => $topping->total_price,
-                    ]);
+                if (!empty($item['toppings'])) {
+                    foreach ($item['toppings'] as $topping) {
+                        \App\Models\OrderItemTopping::create([
+                            'order_item_id' => $orderItem->id,
+                            'topping_id'    => $topping['id'],
+                            'quantity'      => $item['quantity'],
+                            'unit_price'    => $topping['price'],
+                            'total_price'   => $topping['price'] * $item['quantity'],
+                        ]);
+                    }
                 }
             }
 
-            // Clear Cart
-            DB::table('cart_items')->where('cart_id', $cart->id)->delete();
-            DB::table('carts')->where('id', $cart->id)->delete(); // Or just leave cart items deleted
+            \App\Models\Payment::create([
+                'order_id'       => $order->id,
+                'payment_method' => 'cash',
+                'payment_status' => 'PENDING',
+                'amount'         => $subtotal + round($subtotal * 0.08),
+            ]);
+
+            // Clear checkout items from cart
+            $currentCart = session('cart', []);
+            $checkoutItemIds = session('checkout_items', []);
+            foreach ($checkoutItemIds as $id) {
+                unset($currentCart[$id]);
+            }
+            session(['cart' => $currentCart]);
+            session()->forget('checkout_items');
+            session()->forget('applied_voucher');
 
             DB::commit();
 
             return redirect('/table/order/success')->with('success', 'Đã đặt món thành công!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect('/customer/checkout')->with('error', 'Có lỗi xảy ra khi đặt món: ' . $e->getMessage());
+            return redirect('/customer/cart')->with('error', 'Có lỗi xảy ra khi đặt món: ' . $e->getMessage());
         }
     }
 
@@ -162,7 +215,7 @@ class TableOrderController extends Controller
     public function callStaff()
     {
         if (!session('is_table_order') || !session('table_id')) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return response()->json(['success' => false, 'message' => 'Không có quyền truy cập.'], 403);
         }
 
         // Avoid multiple pending calls from the same table to prevent spam

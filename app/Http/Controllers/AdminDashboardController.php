@@ -11,7 +11,7 @@ class AdminDashboardController extends Controller
     public function index(Request $request)
     {
         if (!check_permission('view_dashboard')) {
-            return redirect('/login')->with('error', 'You do not have permission to access this page.');
+            return redirect('/login/admin')->with('error', 'Bạn không có quyền truy cập trang này.');
         }
 
         // 1. Doanh thu (Revenue)

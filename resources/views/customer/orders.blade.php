@@ -1,482 +1,395 @@
 @extends('layouts.customer')
 
-@section('title', 'Đơn hàng')
+@section('title', 'Lịch Sử Đơn Hàng')
 
 @section('content')
-<main class="pt-24 pb-32 px-4 md:px-lg max-w-container-max mx-auto">
-<!-- Header & Tabs -->
-<div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
-<div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface">Your Đơn hàng</h1>
-<p class="text-on-surface-variant mt-1">Track, manage, and reorder your favorite brews.</p>
-</div>
-<div class="flex bg-surface-container p-1 rounded-xl w-fit">
-<button class="px-xl py-2 rounded-lg font-label-md text-label-md transition-all bg-surface-container-lowest text-primary shadow-sm active-tab-indicator" id="btn-active" onclick="switchTab('active')">Đơn hàng hiện tại</button>
-<button class="px-xl py-2 rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:text-primary" id="btn-history" onclick="switchTab('history')">Lịch sử đơn hàng</button>
-</div>
-</div>
-
-@if(session('success'))
-<div class="mb-lg p-4 bg-green-100 text-green-700 rounded-xl border border-green-200">
-    {{ session('success') }}
-</div>
-@endif
-
-@if(session('cancel_success'))
-<div class="mb-lg p-4 bg-red-100 text-red-700 rounded-xl border border-red-200 font-bold">
-    {{ session('cancel_success') }}
-</div>
-@endif
-
-@if(session('error'))
-<div class="mb-lg p-4 bg-red-100 text-red-700 rounded-xl border border-red-200">
-    {{ session('error') }}
-</div>
-@endif
-
-<!-- Hoạt động Đơn hàng Giâytion -->
-<section class="space-y-gutter" id="section-active">
-    @if($activeOrders->isEmpty())
-        <div class="flex flex-col items-center justify-center py-2xl text-center space-y-md">
-            <h3 class="font-headline-md text-headline-md text-on-surface-variant">Chưa có đơn hàng nào đang hoạt động</h3>
+<main class="mt-24 pb-24 max-w-container-max mx-auto px-4 md:px-lg font-sans">
+    <div class="mb-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="font-headline-lg text-headline-lg text-on-background font-bold">Đơn hàng của tôi</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant">Theo dõi tiến độ, xem lại hóa đơn và thanh toán VietQR tiện lợi.</p>
         </div>
-    @else
-        @foreach($activeOrders as $order)
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-xl">
-            <!-- Trạng thái Timeline -->
-            <div class="lg:col-span-2 bg-white rounded-xl border border-outline-variant/30 shadow-sm p-lg overflow-hidden relative h-fit">
-                <div class="flex justify-between items-start mb-xl">
-                    <div>
-                        <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider mb-2 inline-block">Order #{{ $order->order_code }}</span>
-                        <h2 class="font-title-lg text-title-lg">Trạng thái: 
-                            @if($order->status == 'pending') Chờ xác nhận
-                            @elseif($order->status == 'confirmed') Đã xác nhận
-                            @elseif($order->status == 'preparing') Đang chuẩn bị
-                            @elseif($order->status == 'delivering') Đang giao hàng
-                            @else {{ ucfirst($order->status) }} @endif
-                        </h2>
-                    </div>
-                    <div class="text-right flex flex-col items-end gap-2">
-                        <div>
-                            <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
-                            <p class="text-headline-md font-headline-md text-primary">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
-                        </div>
-                        @if(in_array($order->status, ['pending', 'confirmed']))
-                        <button type="button" onclick="openCancelModal({{ $order->id }})" class="px-4 py-2 bg-error/10 text-error hover:bg-error hover:text-white rounded-lg text-sm font-bold transition-colors">
-                            Hủy đơn hàng
-                        </button>
-                        @endif
-                        @if(\Illuminate\Support\Facades\Storage::disk('public')->exists('invoices/' . $order->order_code . '.pdf'))
-                        <a href="/orders/invoice/{{ $order->order_code }}" target="_blank" class="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm font-bold transition-colors mt-2 text-center inline-block">
-                            <i class="fa-solid fa-file-pdf mr-1"></i> Xem hóa đơn
-                        </a>
-                        @endif
-                    </div>
-                </div>
-                <!-- Timeline -->
-                @php
-                    $progress = 0;
-                    if (in_array($order->status, ['confirmed', 'preparing'])) $progress = 33;
-                    if ($order->status == 'delivering') $progress = 66;
-                    if ($order->status == 'completed') $progress = 100;
-                @endphp
-                <div class="relative flex justify-between items-center px-4 py-8 mt-lg mb-md">
-                    <div class="absolute top-1/2 left-0 w-full h-1 bg-surface-container -translate-y-1/2 -z-10"></div>
-                    <div class="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 -z-10 transition-all duration-1000" style="width: {{ $progress }}%;"></div>
-                    
-                    <div class="flex flex-col items-center gap-xs">
-                        <div class="w-10 h-10 rounded-full {{ $progress >= 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant' }} flex items-center justify-center shadow-md">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt</span>
-                        </div>
-                        <span class="font-label-md text-label-md {{ $progress >= 0 ? 'text-primary font-bold' : 'text-on-surface-variant' }}">Đã nhận</span>
-                    </div>
-                    
-                    <div class="flex flex-col items-center gap-xs">
-                        <div class="w-10 h-10 rounded-full {{ $progress >= 33 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant' }} flex items-center justify-center shadow-md">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">coffee_maker</span>
-                        </div>
-                        <span class="font-label-md text-label-md {{ $progress >= 33 ? 'text-primary font-bold' : 'text-on-surface-variant' }}">Chuẩn bị</span>
-                    </div>
-                    
-                    <div class="flex flex-col items-center gap-xs">
-                        <div class="w-10 h-10 rounded-full {{ $progress >= 66 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant' }} flex items-center justify-center shadow-md">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">delivery_dining</span>
-                        </div>
-                        <span class="font-label-md text-label-md {{ $progress >= 66 ? 'text-primary font-bold' : 'text-on-surface-variant' }}">Đang giao</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Order Details Panel -->
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden h-fit">
-                <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
-                    <h3 class="font-title-lg text-title-lg">Chi Tiết Đơn Hàng</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-xl p-lg">
-                    <div class="space-y-md">
-                        @foreach($order->items as $item)
-                        <div class="flex gap-md">
-                            <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
-                                <img class="w-full h-full object-cover" src="{{ $item->product_image ?: 'https://placehold.co/100' }}"/>
-                            </div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between">
-                                    <p class="font-bold">{{ $item->product_name }}</p>
-                                    <p class="text-primary font-bold">{{ number_format($item->total_price, 0, ',', '.') }}đ</p>
-                                </div>
-                                <p class="text-on-surface-variant text-body-md">Size: {{ $item->size_name }} (x{{ $item->quantity }})</p>
-                                @if(isset($item->toppings) && $item->toppings->count() > 0)
-                                <div class="mt-1 text-label-sm text-on-surface-variant">
-                                    @foreach($item->toppings as $topping)
-                                        <p>+ {{ $topping->topping_name }} ({{ number_format($topping->unit_price, 0, ',', '.') }}đ)</p>
-                                    @endforeach
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endforeach
-                        
-                        <div class="pt-md border-t border-outline-variant/30">
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-1">
-                                <span>Tạm tính</span>
-                                <span>{{ number_format($order->subtotal, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-1">
-                                <span>Giảm giá</span>
-                                <span>-{{ number_format($order->discount_amount, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-2">
-                                <span>Phí giao hàng</span>
-                                <span>{{ number_format($order->shipping_fee, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between font-bold text-title-lg mt-xs text-primary pt-2 border-t border-outline-variant/30">
-                                <span>Tổng cộng</span>
-                                <span>{{ number_format($order->total_amount, 0, ',', '.') }}đ</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-surface-container-low rounded-b-xl p-lg space-y-md border-t border-outline-variant/30">
-                    <div>
-                        <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Địa Chỉ Giao Hàng</p>
-                        <p class="text-body-md">{{ $order->address ? $order->address->address : 'Không có thông tin' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Phương Thức Thanh Toán</p>
-                        <div class="flex items-center gap-xs">
-                            <span class="material-symbols-outlined text-primary">credit_card</span>
-                            <p class="text-body-md uppercase">{{ $order->payment_method }}</p>
-                        </div>
-                    </div>
-                    @if($order->note)
-                    <div class="bg-white p-md rounded-lg border border-outline-variant/20">
-                        <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Ghi chú</p>
-                        <p class="text-body-md italic">"{{ $order->note }}"</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
+    </div>
+
+    @if(session('success'))
+        <div class="mb-md p-md bg-emerald-100 text-emerald-800 rounded-2xl font-body-md flex items-center gap-sm border border-emerald-300 shadow-sm">
+            <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+            {{ session('success') }}
         </div>
-        @endforeach
     @endif
-</section>
-<!-- History Giâytion (Hidden by default) -->
-<section class="hidden space-y-md" id="section-history">
-    @if($historyOrders->isEmpty())
-        <div class="flex flex-col items-center justify-center py-2xl text-center space-y-md">
-            <h3 class="font-headline-md text-headline-md text-on-surface-variant">Chưa có lịch sử đơn hàng</h3>
+
+    @if($orders->isEmpty())
+        <div class="text-center py-2xl bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm">
+            <span class="material-symbols-outlined text-[80px] text-outline-variant">receipt_long</span>
+            <h2 class="font-headline-md text-headline-md text-on-surface mt-md">Chưa có đơn hàng nào</h2>
+            <p class="text-on-surface-variant font-body-md mt-xs mb-xl">Hãy chọn những món quà thơm ngon từ CozyHNA nhé!</p>
+            <a href="/" class="bg-primary text-white px-xl py-md rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md">Xem thực đơn</a>
         </div>
     @else
-        @foreach($historyOrders as $order)
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-xl">
-            <!-- Order Details Panel -->
-            <div class="lg:col-span-3 bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden h-fit">
-                <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
+        <div class="space-y-lg">
+            @foreach($orders as $order)
+            @php
+                $statusUpper = strtoupper($order->order_status ?? $order->status ?? 'PENDING');
+                $isUnpaid = ($order->payment && $order->payment->payment_status === 'PENDING') || $statusUpper === 'PENDING';
+            @endphp
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                {{-- Order Header --}}
+                <div class="p-lg border-b border-outline-variant/10 bg-surface-container-low/30 flex flex-col sm:flex-row sm:items-center justify-between gap-md">
                     <div>
-                        <span class="{{ $order->status == 'completed' ? 'bg-green-100 text-secondary' : 'bg-red-100 text-error' }} px-3 py-1 rounded-full text-label-sm font-label-sm uppercase tracking-wider mb-2 inline-block">Order #{{ $order->order_code }}</span>
-                        <h3 class="font-title-lg text-title-lg">Trạng thái: 
-                            @if($order->status == 'completed') Hoàn thành
-                            @else <span class="text-error font-bold">Đã hủy</span>
+                        <p class="font-label-md text-label-md text-on-surface-variant mb-xs">Mã đơn hàng</p>
+                        <p class="font-title-lg text-title-lg font-bold tracking-wider text-primary">{{ $order->code }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($statusUpper === 'PENDING')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-amber-100 text-amber-800">Chờ xác nhận</span>
+                        @elseif($statusUpper === 'CONFIRMED' || $statusUpper === 'PREPARING')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-blue-100 text-blue-800">Đang pha chế</span>
+                        @elseif($statusUpper === 'READY_FOR_DELIVERY')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-purple-100 text-purple-800">Chờ giao hàng</span>
+                        @elseif($statusUpper === 'DELIVERING' || $statusUpper === 'SHIPPING')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-indigo-100 text-indigo-800">Đang giao hàng</span>
+                        @elseif($statusUpper === 'COMPLETED')
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-emerald-100 text-emerald-800">Hoàn thành</span>
+                        @else
+                            <span class="px-md py-xs rounded-full font-label-md text-label-md font-bold bg-red-100 text-red-800">Đã hủy</span>
+                        @endif
+
+                        @if($isUnpaid && $statusUpper !== 'CANCELLED' && $statusUpper !== 'COMPLETED')
+                            <button onclick="openVietQrModal('{{ $order->code }}')" 
+                                class="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs flex items-center gap-1 shadow-sm hover:scale-105 active:scale-95 transition-all">
+                                <span class="material-symbols-outlined text-sm">qr_code_2</span>
+                                Thanh toán VietQR
+                            </button>
+                        @endif
+
+                        @if(in_array($statusUpper, ['PENDING', 'CONFIRMED']))
+                            <button onclick="cancelOrder({{ $order->id }}, this)"
+                                class="px-md py-xs rounded-full border border-red-300 text-red-600 font-label-md text-label-md hover:bg-red-50 transition-colors">
+                                Hủy đơn
+                            </button>
+                        @endif
+
+                        @if($statusUpper === 'COMPLETED')
+                            @if(in_array($order->id, $reviewedOrderIds))
+                                <span class="px-md py-xs rounded-full border border-emerald-300 text-emerald-700 font-label-md text-label-md bg-emerald-50">
+                                    Đã đánh giá
+                                </span>
+                            @else
+                                <a href="{{ route('orders.review', $order->id) }}" class="px-md py-xs rounded-full bg-primary text-on-primary font-label-md text-label-md hover:bg-primary/90 transition-colors flex items-center gap-1 shadow-sm">
+                                    <span class="material-symbols-outlined text-sm">star</span>
+                                    Đánh giá
+                                </a>
                             @endif
-                        </h3>
-                        @if($order->status == 'cancelled')
-                        <p class="text-error text-sm mt-1">Cảm ơn bạn đã góp ý kiến.</p>
+                            
+                            <button onclick="openComplaintModal({{ $order->id }})" class="px-md py-xs rounded-full bg-red-600 text-white font-label-md text-label-md hover:bg-red-700 transition-colors flex items-center gap-1 shadow-sm">
+                                <span class="material-symbols-outlined text-sm">report_problem</span>
+                                Khiếu nại
+                            </button>
                         @endif
                     </div>
-                    <div class="text-right">
-                        <p class="text-label-sm font-label-sm text-on-surface-variant">NGÀY ĐẶT</p>
-                        <p class="text-headline-md font-headline-md {{ $order->status == 'completed' ? 'text-primary' : 'text-error' }}">{{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
-                    </div>
                 </div>
-                
-                <div class="grid grid-cols-1 gap-xl p-lg">
-                    <div class="space-y-md">
+
+                {{-- Order Items --}}
+                <div class="p-lg">
+                    <div class="space-y-sm mb-lg">
                         @foreach($order->items as $item)
-                        <div class="flex gap-md">
-                            <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
-                                <img class="w-full h-full object-cover" src="{{ $item->product_image ?: 'https://placehold.co/100' }}"/>
-                            </div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between">
-                                    <p class="font-bold">{{ $item->product_name }}</p>
-                                    <p class="text-primary font-bold">{{ number_format($item->total_price, 0, ',', '.') }}đ</p>
-                                </div>
-                                <div class="flex justify-between items-center mt-1">
-                                    <p class="text-on-surface-variant text-body-md">Size: {{ $item->size_name }} (x{{ $item->quantity }})</p>
-                                    @if($order->status == 'completed')
-                                        @if($item->is_reviewed)
-                                        <span class="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded text-xs font-bold">Đã đánh giá</span>
-                                        @else
-                                        <button onclick="openReviewModal({{ $order->id }}, {{ $item->product_id }}, '{{ $item->product_name }}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs font-bold transition-colors">Đánh giá</button>
-                                        @endif
-                                    @endif
-                                </div>
-                                @if(isset($item->toppings) && $item->toppings->count() > 0)
-                                <div class="mt-1 text-label-sm text-on-surface-variant">
-                                    @foreach($item->toppings as $topping)
-                                        <p>+ {{ $topping->topping_name }} ({{ number_format($topping->unit_price, 0, ',', '.') }}đ)</p>
-                                    @endforeach
-                                </div>
+                        <div class="flex items-center gap-md">
+                            <div class="w-14 h-14 rounded-xl bg-surface-container overflow-hidden flex-shrink-0 border border-outline-variant/10">
+                                @if(isset($item->product_image) && $item->product_image)
+                                    <img class="w-full h-full object-cover" src="{{ $item->product_image }}" alt="{{ $item->product_name }}"/>
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-amber-50 text-amber-700">
+                                        <span class="material-symbols-outlined text-[24px]">local_cafe</span>
+                                    </div>
                                 @endif
                             </div>
+                            <div class="flex-grow">
+                                <p class="font-body-lg text-body-lg font-bold text-on-surface">{{ $item->product_name ?? 'Sản phẩm' }}</p>
+                                <p class="font-label-md text-label-md text-on-surface-variant">
+                                    {{ $item->size_name ? 'Size ' . $item->size_name : '' }} × {{ $item->quantity }}
+                                </p>
+                                @if(isset($item->toppings) && count($item->toppings) > 0)
+                                    <p class="text-xs text-emerald-700 mt-0.5">
+                                        + Topping: {{ collect($item->toppings)->pluck('topping_name')->join(', ') }}
+                                    </p>
+                                @endif
+                            </div>
+                            <p class="font-body-lg text-body-lg font-bold text-primary flex-shrink-0">
+                                {{ number_format($item->unit_price * $item->quantity, 0, ',', '.') }} đ
+                            </p>
                         </div>
                         @endforeach
-                        
-                        <div class="pt-md border-t border-outline-variant/30">
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-1">
-                                <span>Tạm tính</span>
-                                <span>{{ number_format($order->subtotal, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-1">
-                                <span>Giảm giá</span>
-                                <span>-{{ number_format($order->discount_amount, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between text-body-md text-on-surface-variant mb-2">
-                                <span>Phí giao hàng</span>
-                                <span>{{ number_format($order->shipping_fee, 0, ',', '.') }}đ</span>
-                            </div>
-                            <div class="flex justify-between font-bold text-title-lg mt-xs text-primary pt-2 border-t border-outline-variant/30">
-                                <span>Tổng cộng</span>
-                                <span>{{ number_format($order->total_amount, 0, ',', '.') }}đ</span>
-                            </div>
-                        </div>
                     </div>
-                </div>
-                <div class="bg-surface-container-low rounded-b-xl p-lg space-y-md border-t border-outline-variant/30">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+
+                    {{-- Order Footer --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-sm pt-md border-t border-outline-variant/10">
                         <div>
-                            <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Địa Chỉ Giao Hàng</p>
-                            <p class="text-body-md">{{ $order->address ? $order->address->address : 'Không có thông tin' }}</p>
+                            <p class="font-label-md text-label-md text-on-surface-variant">
+                                Nơi giao: <b>{{ $order->receiver_name }}</b> ({{ $order->receiver_phone }}) - {{ $order->delivery_address }}
+                            </p>
+                            <p class="font-label-sm text-label-sm text-on-surface-variant/70 mt-0.5">
+                                Thời gian đặt: {{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') }}
+                            </p>
                         </div>
-                        <div>
-                            <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Phương Thức Thanh Toán</p>
-                            <div class="flex items-center gap-xs">
-                                <span class="material-symbols-outlined text-primary">credit_card</span>
-                                <p class="text-body-md uppercase">{{ $order->payment_method }}</p>
-                            </div>
+                        <div class="flex items-center gap-sm">
+                            <p class="font-body-md text-body-md text-on-surface-variant">Tổng cộng:</p>
+                            <p class="font-headline-md text-headline-md text-primary font-bold">
+                                {{ number_format($order->total_amount, 0, ',', '.') }} đ
+                            </p>
                         </div>
                     </div>
-                    @if($order->note)
-                    <div class="bg-white p-md rounded-lg border border-outline-variant/20 mt-2">
-                        <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-1">Ghi chú</p>
-                        <p class="text-body-md italic text-on-surface">"{{ $order->note }}"</p>
-                    </div>
-                    @endif
                 </div>
             </div>
+            @endforeach
         </div>
-        @endforeach
     @endif
-</section>
 </main>
 
-<!-- Review Modal -->
-<div id="reviewModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
-        <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-error">
+<!-- VietQR Payment Modal -->
+<div id="vietqr-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-surface-container-lowest rounded-3xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/20 relative transform scale-95 transition-transform duration-200" id="vietqr-card">
+        <!-- Close button -->
+        <button onclick="closeVietQrModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container">
             <span class="material-symbols-outlined">close</span>
         </button>
-        <h3 class="text-title-lg font-bold mb-4">Đánh giá sản phẩm</h3>
-        <p id="reviewProductName" class="text-primary font-bold mb-4"></p>
-        
-        <form action="/customer/reviews" method="POST">
-            @csrf
-            <input type="hidden" name="order_id" id="reviewOrderId">
-            <input type="hidden" name="product_id" id="reviewProductId">
-            
-            <div class="mb-4">
-                <label class="block text-label-md font-bold mb-2">Đánh giá của bạn</label>
-                <div class="flex gap-2 text-2xl cursor-pointer" id="starRating">
-                    <span class="material-symbols-outlined text-outline-variant star" data-value="1" style="font-variation-settings: 'FILL' 1;">star</span>
-                    <span class="material-symbols-outlined text-outline-variant star" data-value="2" style="font-variation-settings: 'FILL' 1;">star</span>
-                    <span class="material-symbols-outlined text-outline-variant star" data-value="3" style="font-variation-settings: 'FILL' 1;">star</span>
-                    <span class="material-symbols-outlined text-outline-variant star" data-value="4" style="font-variation-settings: 'FILL' 1;">star</span>
-                    <span class="material-symbols-outlined text-outline-variant star" data-value="5" style="font-variation-settings: 'FILL' 1;">star</span>
+
+        <div class="text-center">
+            <div class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold mb-2">
+                <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+                Thanh Toán Chuyển Khoản VietQR
+            </div>
+            <h3 class="font-bold text-xl text-on-surface" id="modal-order-code">Đang tải mã QR...</h3>
+            <p class="text-xs text-on-surface-variant mt-1">Quét mã bằng ứng dụng Ngân hàng (MBBank, VCB, MoMo...)</p>
+
+            <!-- QR Image Box -->
+            <div class="my-4 p-3 bg-white rounded-2xl border-2 border-emerald-500/30 inline-block shadow-inner relative group">
+                <img id="vietqr-img" src="" alt="Mã VietQR Thanh toán" class="w-56 h-56 object-contain rounded-lg mx-auto min-h-[220px] bg-gray-50"/>
+                <div id="qr-loading" class="absolute inset-0 flex items-center justify-center bg-white/90 rounded-lg">
+                    <span class="material-symbols-outlined text-emerald-600 text-3xl animate-spin">sync</span>
                 </div>
-                <input type="hidden" name="rating" id="reviewRating" value="5" required>
             </div>
-            
-            <div class="mb-4">
-                <label class="block text-label-md font-bold mb-2">Bình luận (Tùy chọn)</label>
-                <textarea name="comment" class="w-full p-3 border border-outline-variant rounded-lg focus:border-primary focus:ring-0" rows="3" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
-            </div>
-            
-            <button type="submit" class="w-full py-3 bg-primary text-on-primary rounded-xl font-bold">Gửi đánh giá</button>
-        </form>
-    </div>
-</div>
 
-<!-- Cancel Order Modal -->
-<div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-    <div class="absolute inset-0 bg-black/50" onclick="closeCancelModal()"></div>
-    <div class="bg-surface w-full max-w-md rounded-2xl p-6 relative z-10 mx-4">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">Lý do hủy đơn hàng</h3>
-            <button onclick="closeCancelModal()" class="text-on-surface-variant hover:text-on-surface">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+            <!-- Transfer Info Cards -->
+            <div class="space-y-2 text-left bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/30 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant">Ngân hàng:</span>
+                    <span class="font-bold text-on-surface" id="modal-bank-name">MBBank</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant">Số tài khoản:</span>
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold font-mono text-emerald-700 text-sm" id="modal-account-no">0987654321</span>
+                        <button onclick="copyText('modal-account-no')" class="p-1 text-primary hover:bg-primary/10 rounded" title="Sao chép">
+                            <span class="material-symbols-outlined text-sm">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant">Chủ tài khoản:</span>
+                    <span class="font-bold text-on-surface" id="modal-account-name">COZYHNA COFFEE AND TEA</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-on-surface-variant">Số tiền:</span>
+                    <span class="font-bold text-primary text-sm" id="modal-amount">0 đ</span>
+                </div>
+                <div class="flex justify-between items-center bg-amber-50 p-2 rounded-xl border border-amber-200">
+                    <span class="text-amber-900 font-semibold">Nội dung chuyển:</span>
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold font-mono text-amber-900 text-sm" id="modal-transfer-note">ORD-XXXX</span>
+                        <button onclick="copyText('modal-transfer-note')" class="p-1 text-amber-900 hover:bg-amber-200 rounded" title="Sao chép">
+                            <span class="material-symbols-outlined text-sm">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="mt-4 space-y-2">
+                <button onclick="confirmVietQrPayment()" id="btn-confirm-payment"
+                    class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-98 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Tôi đã chuyển khoản xong
+                </button>
+                <button onclick="closeVietQrModal()" class="w-full py-2 text-xs text-on-surface-variant hover:text-on-surface">
+                    Thanh toán sau
+                </button>
+            </div>
         </div>
-        <form id="cancelForm" method="POST" action="">
+    </div>
+</div>
+
+<!-- Complaint Modal -->
+<div id="complaint-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 overflow-y-auto pt-20 pb-10">
+    <div class="bg-surface-container-lowest rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-outline-variant/20 relative my-auto">
+        <button onclick="closeComplaintModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 text-red-600 rounded-full mb-3">
+                <span class="material-symbols-outlined text-3xl">report_problem</span>
+            </div>
+            <h3 class="font-bold text-xl text-on-surface">Gửi Khiếu Nại</h3>
+            <p class="text-sm text-on-surface-variant mt-1">Khiếu nại sẽ được gửi trực tiếp đến Quản lý cửa hàng</p>
+        </div>
+
+        <form id="complaint-form" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
-            <div class="space-y-3 mb-4">
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="cancel_reason" value="Muốn thay đổi địa chỉ nhận hàng" class="text-primary focus:ring-primary h-4 w-4" required onchange="toggleOtherReason()">
-                    <span>Muốn thay đổi địa chỉ nhận hàng</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="cancel_reason" value="Muốn thay đổi món/số lượng" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
-                    <span>Muốn thay đổi món/số lượng</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="cancel_reason" value="Thời gian giao hàng quá lâu" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
-                    <span>Thời gian giao hàng quá lâu</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="radio" name="cancel_reason" value="Lý do khác" id="radioOtherReason" class="text-primary focus:ring-primary h-4 w-4" onchange="toggleOtherReason()">
-                    <span>Lý do khác</span>
-                </label>
-            </div>
             
-            <div id="otherReasonDiv" class="hidden mb-4">
-                <textarea id="otherReasonText" class="w-full p-3 border border-outline-variant rounded-lg focus:border-primary focus:ring-0" rows="3" placeholder="Nhập lý do cụ thể..."></textarea>
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Thời gian xảy ra sự việc *</label>
+                <input type="datetime-local" name="incident_time" required class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0">
             </div>
-            
-            <button type="submit" class="w-full py-3 bg-error text-white rounded-xl font-bold mt-2">Xác nhận hủy</button>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Đối tượng liên quan (Shipper, Nhân viên...)</label>
+                <input type="text" name="target_person" placeholder="Ví dụ: Shipper Nguyễn Văn A" class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Chi tiết sự việc *</label>
+                <textarea name="description" required rows="4" placeholder="Vui lòng mô tả chi tiết sự việc..." class="w-full p-3 rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-on-surface mb-1">Hình ảnh minh chứng (Nhiều ảnh)</label>
+                <input type="file" name="images[]" multiple accept="image/*" class="w-full p-2 border border-outline-variant rounded-xl bg-surface-container-low file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                <p class="text-xs text-on-surface-variant mt-1">Hỗ trợ JPG, PNG. Tối đa 5MB mỗi ảnh.</p>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-98 transition-all flex items-center justify-center gap-2 mt-2">
+                <span class="material-symbols-outlined">send</span>
+                Gửi Khiếu Nại Ngay
+            </button>
         </form>
     </div>
 </div>
 
-@push('scripts')
-<script>
-    function openReviewModal(orderId, productId, productName) {
-        document.getElementById('reviewOrderId').value = orderId;
-        document.getElementById('reviewProductId').value = productId;
-        document.getElementById('reviewProductName').innerText = productName;
-        document.getElementById('reviewModal').classList.remove('hidden');
-        setRating(5); // default to 5 stars
-    }
-
-    function closeReviewModal() {
-        document.getElementById('reviewModal').classList.add('hidden');
-    }
-
-    function setRating(rating) {
-        document.getElementById('reviewRating').value = rating;
-        const stars = document.querySelectorAll('#starRating .star');
-        stars.forEach(star => {
-            if (parseInt(star.dataset.value) <= rating) {
-                star.classList.remove('text-outline-variant');
-                star.classList.add('text-[#FFD700]'); // Gold color
-            } else {
-                star.classList.add('text-outline-variant');
-                star.classList.remove('text-[#FFD700]');
-            }
-        });
-    }
-
-    document.querySelectorAll('#starRating .star').forEach(star => {
-        star.addEventListener('click', function() {
-            setRating(parseInt(this.dataset.value));
-        });
-    });
-
-    function openCancelModal(orderId) {
-        document.getElementById('cancelForm').action = '/customer/orders/' + orderId + '/cancel';
-        document.getElementById('cancelModal').classList.remove('hidden');
-    }
-
-    function closeCancelModal() {
-        document.getElementById('cancelModal').classList.add('hidden');
-    }
-
-    function toggleOtherReason() {
-        const isOther = document.getElementById('radioOtherReason').checked;
-        const otherDiv = document.getElementById('otherReasonDiv');
-        const otherText = document.getElementById('otherReasonText');
-        
-        if (isOther) {
-            otherDiv.classList.remove('hidden');
-            otherText.setAttribute('required', 'required');
-        } else {
-            otherDiv.classList.add('hidden');
-            otherText.removeAttribute('required');
-        }
-    }
-
-    document.getElementById('cancelForm').addEventListener('submit', function(e) {
-        const isOther = document.getElementById('radioOtherReason').checked;
-        if (isOther) {
-            const otherText = document.getElementById('otherReasonText').value.trim();
-            if (otherText) {
-                document.getElementById('radioOtherReason').value = otherText;
-            }
-        }
-    });
-</script>
-@endpush
 @endsection
 
 @push('scripts')
 <script>
+let currentQrOrderCode = null;
 
-        function switchTab(tab) {
-            const activeSection = document.getElementById('section-active');
-            const historySection = document.getElementById('section-history');
-            const btnActive = document.getElementById('btn-active');
-            const btnHistory = document.getElementById('btn-history');
+async function openVietQrModal(orderCode) {
+    currentQrOrderCode = orderCode;
+    const modal = document.getElementById('vietqr-modal');
+    const loading = document.getElementById('qr-loading');
+    const qrImg = document.getElementById('vietqr-img');
 
-            if (tab === 'active') {
-                activeSection.classList.remove('hidden');
-                historySection.classList.add('hidden');
-                
-                btnActive.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'active-tab-indicator');
-                btnActive.classList.remove('text-on-surface-variant');
-                
-                btnHistory.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'active-tab-indicator');
-                btnHistory.classList.add('text-on-surface-variant');
-            } else {
-                activeSection.classList.add('hidden');
-                historySection.classList.remove('hidden');
-                
-                btnHistory.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'active-tab-indicator');
-                btnHistory.classList.remove('text-on-surface-variant');
-                
-                btnActive.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'active-tab-indicator');
-                btnActive.classList.add('text-on-surface-variant');
-            }
+    modal.classList.remove('hidden');
+    loading.classList.remove('hidden');
+
+    try {
+        const response = await fetch(`/payment/qr/${orderCode}`);
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('modal-order-code').innerText = `Đơn hàng #${data.order_code}`;
+            document.getElementById('modal-bank-name').innerText = data.bank_name;
+            document.getElementById('modal-account-no').innerText = data.account_no;
+            document.getElementById('modal-account-name').innerText = data.account_name;
+            document.getElementById('modal-amount').innerText = data.formatted_amount;
+            document.getElementById('modal-transfer-note').innerText = data.transfer_note;
+
+            qrImg.src = data.qr_image;
+            qrImg.onload = () => loading.classList.add('hidden');
+        } else {
+            alert(data.error || 'Có lỗi tải mã VietQR');
+            closeVietQrModal();
         }
+    } catch (e) {
+        alert('Có lỗi mạng khi lấy mã VietQR');
+        closeVietQrModal();
+    }
+}
 
-        // Micro-interaction for buttons
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
-            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
-            btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
-        });
+function closeVietQrModal() {
+    document.getElementById('vietqr-modal').classList.add('hidden');
+}
 
-        @if(session('cancel_success'))
-        document.addEventListener('DOMContentLoaded', function() {
-            switchTab('history');
+function copyText(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text);
+    alert('Đã sao chép: ' + text);
+}
+
+async function confirmVietQrPayment() {
+    if (!currentQrOrderCode) return;
+    const btn = document.getElementById('btn-confirm-payment');
+    btn.disabled = true;
+    btn.innerText = 'Đang xác nhận...';
+
+    try {
+        const response = await fetch(`/payment/confirm/${currentQrOrderCode}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
         });
-        @endif
+        const res = await response.json();
+        if (res.success) {
+            alert(res.message);
+            location.reload();
+        } else {
+            alert(res.error || 'Xác nhận thất bại.');
+            btn.disabled = false;
+            btn.innerText = 'Tôi đã chuyển khoản xong';
+        }
+    } catch (e) {
+        alert('Lỗi mạng khi xác nhận thanh toán.');
+        btn.disabled = false;
+        btn.innerText = 'Tôi đã chuyển khoản xong';
+    }
+}
+
+function cancelOrder(orderId, btn) {
+    if (!confirm('Bạn có chắc muốn hủy đơn hàng này không?')) return;
+
+    btn.disabled = true;
+    btn.innerText = 'Đang hủy...';
+
+    fetch(`/customer/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success || res.cancel_success) {
+            alert(res.message || 'Đã hủy đơn hàng');
+            location.reload();
+        } else {
+            alert(res.error || 'Có lỗi xảy ra.');
+            btn.disabled = false;
+            btn.innerText = 'Hủy đơn';
+        }
+    })
+    .catch(() => {
+        alert('Đã xử lý hủy đơn.');
+        location.reload();
+    });
+}
+
+// Auto open VietQR modal if redirected from checkout
+@if(session('show_vietqr'))
+    document.addEventListener('DOMContentLoaded', () => {
+        openVietQrModal('{{ session('show_vietqr') }}');
+    });
+@endif
+
+function openComplaintModal(orderId) {
+    const form = document.getElementById('complaint-form');
+    form.action = `/customer/orders/${orderId}/complaint`;
+    document.getElementById('complaint-modal').classList.remove('hidden');
+}
+
+function closeComplaintModal() {
+    document.getElementById('complaint-modal').classList.add('hidden');
+}
+
 </script>
 @endpush

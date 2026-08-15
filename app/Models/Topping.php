@@ -4,30 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Topping extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-    protected $fillable = [
-        'code',
-        'name',
-        'image',
-        'description',
-        'price',
-        'max_quantity',
-        'status',
-    ];
+    protected $table = 'toppings';
 
-    protected $casts = [
-        'price' => 'decimal:2',
-        'max_quantity' => 'integer',
-        'status' => 'boolean',
-    ];
+    protected $fillable = ['name', 'price', 'status'];
 
-    public function getImageUrlAttribute()
+    public function products()
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
+        return $this->belongsToMany(Product::class, 'product_toppings');
     }
 }

@@ -10,6 +10,8 @@ class Ingredient extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'ingredients';
+
     protected $fillable = [
         'supplier_id',
         'unit_id',
@@ -34,5 +36,10 @@ class Ingredient extends Model
     public function unit()
     {
         return $this->belongsTo(MeasurementUnit::class, 'unit_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

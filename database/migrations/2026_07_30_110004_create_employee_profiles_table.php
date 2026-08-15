@@ -6,26 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        Schema::create('employee_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->unique()->constrained('users')->cascadeOnDelete();
-            $table->string('employee_code', 30)->unique()->nullable();
-            $table->text('address')->nullable();
-            $table->string('citizen_id', 20)->nullable();
-            $table->date('hire_date')->nullable();
-            $table->date('resignation_date')->nullable();
-            $table->decimal('salary', 12, 2)->nullable();
-            $table->boolean('status')->default(true);
-            $table->string('emergency_contact', 255)->nullable();
-            $table->string('emergency_phone', 20)->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('employee_profiles')) {
+            Schema::create('employee_profiles', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->string('employee_code', 30)->unique();
+                $table->string('department', 50)->nullable();
+                $table->string('position', 50)->nullable();
+                $table->date('hire_date')->nullable();
+                $table->decimal('salary', 12, 2)->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('employee_profiles');
     }
 };

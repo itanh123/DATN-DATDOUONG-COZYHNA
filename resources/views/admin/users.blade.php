@@ -22,6 +22,11 @@
                     <div class="bg-error-container text-on-error-container px-4 py-2 rounded-lg text-label-md">
                         Có lỗi xảy ra, vui lòng kiểm tra lại!
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.getElementById('addUserModal').classList.remove('hidden');
+                        });
+                    </script>
                 @endif
                 @if(session('role_code') === 'admin')
                 <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="px-4 py-2 bg-primary text-white rounded-lg font-label-md hover:bg-primary/90 flex items-center gap-2">
@@ -48,6 +53,11 @@
                         @error('username') <span class="text-error text-xs">{{ $message }}</span> @enderror
                     </div>
                     <div>
+                        <label class="block font-label-md mb-1 text-on-surface-variant">Họ và tên</label>
+                        <input type="text" name="name" required value="{{ old('name') }}" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
+                        @error('name') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
                         <label class="block font-label-md mb-1 text-on-surface-variant">Email</label>
                         <input type="email" name="email" required value="{{ old('email') }}" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
                         @error('email') <span class="text-error text-xs">{{ $message }}</span> @enderror
@@ -66,7 +76,9 @@
                         <label class="block font-label-md mb-1 text-on-surface-variant">Chức vụ (Role)</label>
                         <select name="role_id" required class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
                             @foreach($roles as $role)
-                                <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                                @if($role->code !== 'admin')
+                                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -163,23 +175,31 @@
                             </td>
                             @if(check_permission('assign_roles'))
                             <td class="p-4">
-                                <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0">
-                                    @csrf
-                                    <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
-                                        Lưu
-                                    </button>
-                                </form>
+                                @if($user->role && $user->role->code === 'admin')
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @else
+                                    <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0">
+                                        @csrf
+                                        <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
+                                            @foreach($roles as $role)
+                                                @if(!in_array($role->code, ['admin', 'customer']))
+                                                    <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
+                                                        {{ $role->name }}
+                                                    </option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                                            Lưu
+                                        </button>
+                                    </form>
+                                @endif
                             </td>
                             @endif
                             <td class="p-4">
-                                @if($user->id == session('user_id') && !$user->google_id)
+                                @if($user->role && $user->role->code === 'admin')
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @elseif($user->id == session('user_id') && !$user->google_id)
                                     <form action="/admin/users/{{ $user->id }}/password" method="POST" class="flex items-center gap-2 m-0">
                                         @csrf
                                         <input type="password" name="new_password" placeholder="Mật khẩu mới" required class="w-32 px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
@@ -228,9 +248,7 @@
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Tên & Email</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Số điện thoại</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Quyền hiện tại</th>
-                            @if(check_permission('assign_roles'))
-                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Cập nhật quyền</th>
-                            @endif
+
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Đổi mật khẩu</th>
                             @if(in_array(session('role_code'), ['admin', 'staff']))
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Hạn chế</th>
@@ -271,25 +289,11 @@
                                     <span class="text-on-surface-variant text-sm italic">Không có</span>
                                 @endif
                             </td>
-                            @if(check_permission('assign_roles'))
+
                             <td class="p-4">
-                                <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0">
-                                    @csrf
-                                    <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
-                                        Lưu
-                                    </button>
-                                </form>
-                            </td>
-                            @endif
-                            <td class="p-4">
-                                @if($user->id == session('user_id') && !$user->google_id)
+                                @if($user->role && $user->role->code === 'admin')
+                                    <span class="text-sm text-outline-variant italic">Không khả dụng</span>
+                                @elseif($user->id == session('user_id') && !$user->google_id)
                                     <form action="/admin/users/{{ $user->id }}/password" method="POST" class="flex items-center gap-2 m-0">
                                         @csrf
                                         <input type="password" name="new_password" placeholder="Mật khẩu mới" required class="w-32 px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">

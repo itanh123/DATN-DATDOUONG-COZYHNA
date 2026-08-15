@@ -203,6 +203,11 @@
                         <p class="font-body-md text-body-md text-on-surface-variant">Please enter your
                             credentials to access the management portal.</p>
                     </header>
+                    @if(session('error'))
+                        <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
+                            {{ session('error') }}
+                        </div>
+                    @endif
                     @if($errors->any())
                         <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
                             <ul class="list-disc pl-5">
@@ -213,7 +218,7 @@
                         </div>
                     @endif
                     <!-- Main Form -->
-                    <form id="authForm" class="space-y-md" method="POST" action="/loginadmin">
+                    <form id="authForm" class="space-y-md" method="POST" action="/login/admin">
                         @csrf
                         <div>
                             <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email

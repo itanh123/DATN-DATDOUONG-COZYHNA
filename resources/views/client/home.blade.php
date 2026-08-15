@@ -701,6 +701,8 @@
         const m = document.getElementById('minutes');
         const s = document.getElementById('seconds');
 
+        if (!h || !m || !s) return;
+
         let hours = parseInt(h.innerText);
         let mins = parseInt(m.innerText);
         let secs = parseInt(s.innerText);
