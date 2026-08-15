@@ -121,7 +121,7 @@
 <!-- SideNavBar (Shared Component) -->
 <aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant/30 shadow-md flex flex-col py-lg px-md z-40 hidden md:flex">
 <div class="mb-2xl px-sm">
-<h1 class="font-headline-md text-headline-md font-bold text-primary">CozyHNA</h1>
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain">
 @php
     $adminUser = \App\Models\User::find(session('user_id'));
     $adminName = $adminUser ? ($adminUser->name ?: $adminUser->username) : 'Admin';

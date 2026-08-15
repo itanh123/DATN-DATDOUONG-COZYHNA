@@ -132,7 +132,7 @@
 <!-- Top Navigation Bar -->
 <header class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm">
 <div class="flex items-center gap-xl">
-<span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain">
 <nav class="hidden md:flex gap-lg">
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
 @if(!session('is_table_order'))
@@ -230,7 +230,7 @@
 <footer class="hidden md:block bg-surface-container-low border-t border-outline-variant/30 py-2xl mt-auto">
 <div class="max-w-container-max mx-auto px-lg grid grid-cols-4 gap-2xl">
 <div class="col-span-1">
-<span class="font-title-lg text-title-lg font-bold text-primary mb-md block">CozyHNA</span>
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-12 object-contain mb-md block">
 <p class="text-on-surface-variant text-body-md mb-xl">Tạo nên những khoảnh khắc tuyệt vời trong từng ngụm trà. Hãy tham gia cộng đồng người yêu thích đồ uống của chúng tôi.</p>
 </div>
 <div>

@@ -242,7 +242,7 @@
 
             <!-- Danh sách sản phẩm -->
             <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Sản phẩm</h4>
-            <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden mb-xl">
+            <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-x-auto mb-xl">
                 <table class="w-full text-left border-collapse">
                     <tbody id="modalItemsList" class="divide-y divide-outline-variant/20">
                         <!-- Items injected by JS -->

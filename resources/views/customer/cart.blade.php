@@ -165,7 +165,7 @@
 
 @section('content')
 <div class="pt-20 pb-24 cart-bg">
-    <main class="max-w-6xl mx-auto px-4 md:px-lg">
+    <main class="max-w-6xl mx-auto px-4 md:px-lg pb-24 md:pb-8">
         
         <div class="mb-8">
             <h1 class="text-[28px] font-bold text-on-surface">Giỏ hàng của bạn</h1>

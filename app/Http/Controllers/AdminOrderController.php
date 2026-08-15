@@ -198,9 +198,7 @@ class AdminOrderController extends Controller
 
             } else if ($newStatusStr === 'CANCELLED') {
                 $order->cancelled_at = now();
-                if (in_array($oldStatus, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED'])) {
-                    $order->restoreInventory();
-                }
+                // Không hoàn lại nguyên liệu nếu đã qua công đoạn pha chế theo yêu cầu
             }
 
             $order->save();

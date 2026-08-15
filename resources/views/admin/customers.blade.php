@@ -118,8 +118,8 @@
 </button>
 </div>
 </div>
-<div class="flex-1 overflow-auto">
-<table class="w-full text-left border-collapse">
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
 <thead class="sticky top-0 bg-surface-container-low z-10">
 <tr>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Khách hàng</th>

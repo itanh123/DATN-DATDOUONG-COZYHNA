@@ -95,8 +95,8 @@
             </div>
 
 
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
-                <table class="w-full text-left border-collapse">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
                             <th class="p-4 w-10">
@@ -307,7 +307,8 @@
                     <span class="material-symbols-outlined">add</span> Thêm Topping
                 </button>
             </div>
-            <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
             <tr class="bg-surface-container-low border-b border-outline-variant/30">
             <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
@@ -357,8 +358,8 @@
                 @endif
             </div>
             
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
-                <table class="w-full text-left border-collapse">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
                             <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
@@ -588,7 +589,8 @@
             <div class="p-xl overflow-y-auto flex-1">
                 <form id="product_size_form" action="" method="POST" class="space-y-md">
                     @csrf
-                    <table class="w-full text-left border-collapse">
+                    <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant/30">
                                 <th class="p-3 w-10">Active</th>
@@ -620,6 +622,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
 
                     <div class="pt-4 border-t flex justify-end gap-3 mt-lg">
                         <button onclick="toggleModal('productSizeManageModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>

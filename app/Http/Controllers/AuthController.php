@@ -129,13 +129,13 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
-        return \Laravel\Socialite\Facades\Socialite::driver('google')->redirect();
+        return \Laravel\Socialite\Facades\Socialite::driver('google')->stateless()->redirect();
     }
 
     public function handleGoogleCallback(Request $request)
     {
         try {
-            $googleUser = \Laravel\Socialite\Facades\Socialite::driver('google')->user();
+            $googleUser = \Laravel\Socialite\Facades\Socialite::driver('google')->stateless()->user();
             
             $user = User::where('google_id', $googleUser->id)->first();
             

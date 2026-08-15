@@ -82,33 +82,63 @@ class ShipperController extends Controller
             return response()->json(['error' => 'Không có quyền truy cập.'], 401);
         }
 
-        DB::transaction(function () use ($orderId, $shipper) {
-            $order = Order::where('id', $orderId)
-                ->where('order_status', 'READY_FOR_DELIVERY')
-                ->whereNull('shipper_id')
-                ->lockForUpdate()
-                ->firstOrFail();
+        try {
+            DB::transaction(function () use ($orderId, $shipper) {
+                $order = Order::where('id', $orderId)
+                    ->where('order_status', 'READY_FOR_DELIVERY')
+                    ->whereNull('shipper_id')
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            // Gắn shipper vào đơn hàng
-            $order->shipper_id = $shipper->id;
-            $order->order_status = 'DELIVERING';
-            $order->status = 'shipping';
-            $order->save();
+                // Gắn shipper vào đơn hàng
+                $order->shipper_id = $shipper->id;
+                $order->order_status = 'DELIVERING';
+                $order->status = 'shipping';
+                $order->save();
 
-            // Tạo bản ghi history
-            OrderStatusHistory::create([
-                'order_id'   => $order->id,
-                'old_status' => 'READY_FOR_DELIVERY',
-                'new_status' => 'DELIVERING',
-                'changed_by' => session('user_id'),
-                'note'       => 'Shipper đã nhận đơn hàng.',
+                // Tạo bản ghi history
+                OrderStatusHistory::create([
+                    'order_id'   => $order->id,
+                    'old_status' => 'READY_FOR_DELIVERY',
+                    'new_status' => 'DELIVERING',
+                    'changed_by' => session('user_id'),
+                    'note'       => 'Shipper đã nhận đơn hàng.',
+                ]);
+            });
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Rất tiếc, đơn này đã có shipper khác nhanh tay nhận!'
             ]);
-        });
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Bạn đã nhận đơn hàng thành công!',
         ]);
+    }
+
+    /**
+     * Lấy danh sách đơn hàng có sẵn dưới dạng HTML để polling (cập nhật tự động).
+     * GET /shipper/orders/available-html
+     */
+    public function availableOrdersHtml()
+    {
+        // Giải phóng session lock sớm để các request khác (như nhận đơn) không bị block
+        session()->save();
+
+        $shipper = $this->getShipperProfile();
+        if (!$shipper) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $availableOrders = Order::where('order_status', 'READY_FOR_DELIVERY')
+            ->whereNull('shipper_id')
+            ->with(['customer.user', 'items.toppings.topping', 'address', 'items.productSize.product', 'items.productSize.size'])
+            ->orderByDesc('updated_at')
+            ->get();
+
+        return view('shipper.partials.available_orders_list', compact('availableOrders'))->render();
     }
 
     /**

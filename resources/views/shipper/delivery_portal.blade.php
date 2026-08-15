@@ -97,77 +97,7 @@
 
         {{-- Tab Content: Available --}}
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-lg animate-in fade-in duration-500" id="content-available">
-            @forelse($availableOrders as $order)
-                <div class="glass-card rounded-xl p-md flex flex-col gap-md hover:shadow-lg transition-all">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-title-lg text-title-lg text-on-surface">
-                                #{{ $order->code }}
-                            </h3>
-                            <p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-xs mt-xs">
-                                <span class="material-symbols-outlined text-[18px]">person</span>
-                                {{ $order->customer->user->username ?? $order->customer->full_name ?? 'Khách hàng' }}
-                            </p>
-                        </div>
-                        <span class="bg-secondary-container text-on-secondary-container px-sm py-[2px] rounded-full font-label-sm text-label-sm">
-                            {{ number_format($order->total_amount, 0, ',', '.') }}đ
-                        </span>
-                    </div>
-
-                    @if($order->delivery_address)
-                        <p class="font-body-md text-body-md text-on-surface-variant flex items-start gap-xs">
-                            <span class="material-symbols-outlined text-[18px] mt-[2px] shrink-0">location_on</span>
-                            {{ $order->delivery_address }}
-                        </p>
-                    @endif
-
-                    {{-- Danh sách sản phẩm --}}
-                    <div class="bg-surface-container-low rounded-lg p-sm space-y-xs">
-                        @foreach($order->items->take(3) as $item)
-                            <div class="flex justify-between text-body-sm text-on-surface-variant border-b border-outline-variant/10 pb-xs last:border-0 last:pb-0">
-                                <div>
-                                    <span class="text-on-surface">
-                                        {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
-                                        @if($item->size_name || $item->productSize?->size)
-                                            ({{ $item->size_name ?? $item->productSize->size->name }})
-                                        @endif
-                                    </span>
-                                    <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
-                                    @if($item->toppings && $item->toppings->count() > 0)
-                                        <div class="text-[11px] text-on-surface-variant mt-1">
-                                            + Topping: 
-                                            @foreach($item->toppings as $index => $t)
-                                                {{ $t->topping?->name ?? 'Topping' }} x{{ $t->quantity }}@if(!$loop->last), @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                                <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
-                            </div>
-                        @endforeach
-                        @if($order->items->count() > 3)
-                            <p class="text-label-sm text-on-surface-variant italic">... và {{ $order->items->count() - 3 }} sản phẩm khác</p>
-                        @endif
-                    </div>
-
-                    <div class="flex items-center justify-between mt-auto">
-                        <span class="font-label-md text-label-md text-on-surface-variant">
-                            {{ $order->updated_at->diffForHumans() }}
-                        </span>
-                        <button
-                            onclick="acceptOrder({{ $order->id }}, this)"
-                            class="bg-primary text-on-primary px-lg py-sm rounded-xl font-label-md text-label-md active:scale-95 transition-transform flex items-center gap-xs">
-                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                            Nhận đơn
-                        </button>
-                    </div>
-                </div>
-            @empty
-                <div class="xl:col-span-2 flex flex-col items-center justify-center py-2xl text-on-surface-variant gap-md">
-                    <span class="material-symbols-outlined text-[64px] opacity-30">inbox</span>
-                    <p class="font-body-lg">Hiện chưa có đơn hàng nào chờ giao.</p>
-                </div>
-            @endforelse
+            @include('shipper.partials.available_orders_list', ['availableOrders' => $availableOrders])
         </div>
 
         {{-- Tab Content: Active --}}
@@ -267,8 +197,8 @@
 
         {{-- Tab Content: History --}}
         <div class="hidden animate-in fade-in duration-500" id="content-history">
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <table class="w-full text-left border-collapse">
+            <div class="glass-card rounded-2xl overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[600px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
                             <th class="px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase">Mã đơn</th>
@@ -324,8 +254,36 @@
 
 {{-- Toast Notification --}}
 <div id="toast"
-     class="fixed bottom-lg right-lg z-50 hidden px-lg py-md rounded-xl shadow-lg font-label-md text-label-md transition-all duration-300"
+     class="fixed bottom-8 right-8 z-50 hidden px-lg py-md rounded-xl shadow-lg font-label-md text-label-md transition-all duration-300"
      style="min-width: 260px;">
+</div>
+
+{{-- New Order Modal --}}
+<div id="new-order-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-md bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    <div class="bg-surface rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 p-lg flex flex-col gap-lg border border-outline-variant/30">
+        <div class="flex items-center gap-md text-primary">
+            <span class="material-symbols-outlined text-[32px] animate-bounce">notifications_active</span>
+            <h2 class="font-headline-sm text-headline-sm">Có đơn hàng mới!</h2>
+        </div>
+        
+        <div id="new-order-modal-content" class="bg-surface-container-low rounded-xl p-md flex flex-col gap-sm">
+            <!-- Order details will be injected here -->
+        </div>
+
+        <div class="flex flex-col gap-sm mt-xs">
+            <button id="btn-accept-new-order" class="w-full bg-primary text-on-primary py-md rounded-xl font-title-md text-title-md active:scale-95 transition-transform flex items-center justify-center gap-xs">
+                <span class="material-symbols-outlined">check_circle</span> Nhận đơn ngay
+            </button>
+            <div class="flex gap-sm">
+                <button id="btn-view-new-order" onclick="closeNewOrderModal(true)" class="flex-1 bg-secondary-container text-on-secondary-container py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center gap-xs">
+                    <span class="material-symbols-outlined text-[20px]">visibility</span> Xem chi tiết
+                </button>
+                <button onclick="closeNewOrderModal(false)" class="flex-1 bg-surface-container-high text-on-surface py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center gap-xs hover:bg-error/10 hover:text-error">
+                    <span class="material-symbols-outlined text-[20px]">close</span> Không nhận
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 </main>
@@ -394,19 +352,182 @@
         .then(data => {
             if (data.success) {
                 showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1500);
+                // Thành công -> F5 để chuyển sang tab Đang giao
+                setTimeout(() => location.reload(), 1000);
             } else {
                 showToast(data.error || 'Đã có lỗi xảy ra.', 'error');
-                btn.disabled = false;
-                btn.textContent = 'Nhận đơn';
+                // Thất bại -> Refresh danh sách đơn chờ ngay lập tức
+                pollAvailableOrders();
             }
         })
         .catch(() => {
             showToast('Lỗi kết nối, vui lòng thử lại.', 'error');
             btn.disabled = false;
-            btn.textContent = 'Nhận đơn';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Nhận đơn';
         });
     }
+
+    // =============================================
+    // Polling Tự Động Cập Nhật Danh Sách Đơn (Real-time)
+    // =============================================
+    
+    // Store currently known order IDs to detect new ones
+    let knownOrderIds = Array.from(document.querySelectorAll('[id^="order-card-"]')).map(el => el.id);
+
+    function playNotificationSound() {
+        try {
+            // A simple beep sound using AudioContext
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15); // short beep
+            
+            // Second beep
+            setTimeout(() => {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6 note
+                gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.2);
+            }, 200);
+        } catch (e) {
+            console.log("Audio not supported or blocked");
+        }
+    }
+
+    function pollAvailableOrders() {
+        const fetchUrl = '/shipper/orders/available-html?_t=' + new Date().getTime();
+        fetch(fetchUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            cache: 'no-store',
+            credentials: 'include'
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.text();
+        })
+        .then(html => {
+            const container = document.getElementById('content-available');
+            if (container) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Check for new orders
+                const newOrderElements = Array.from(tempDiv.querySelectorAll('[id^="order-card-"]'));
+                const newOrderIds = newOrderElements.map(el => el.id);
+                
+                let hasNewOrder = false;
+                let newestOrderId = null;
+                let newestOrderCard = null;
+
+                for (let id of newOrderIds) {
+                    if (!knownOrderIds.includes(id)) {
+                        hasNewOrder = true;
+                        newestOrderId = id.replace('order-card-', '');
+                        newestOrderCard = tempDiv.querySelector('#' + id);
+                        break; // Just take the first new one
+                    }
+                }
+                
+                if (hasNewOrder && newestOrderCard) {
+                    playNotificationSound();
+                    showNewOrderModal(newestOrderId, newestOrderCard);
+                }
+                
+                // Update known IDs
+                knownOrderIds = newOrderIds;
+                
+                // Update badge count
+                const count = newOrderElements.length;
+                const tabBtn = document.getElementById('tab-available');
+                if (tabBtn) tabBtn.innerHTML = `Đơn sẵn sàng (${count})`;
+
+                // Update content
+                container.innerHTML = html;
+            }
+        })
+        .catch(err => console.error("Polling error:", err))
+        .finally(() => {
+            // Wait 3 seconds AFTER the current request finishes before polling again
+            setTimeout(pollAvailableOrders, 3000);
+        });
+    }
+
+    function showNewOrderModal(orderId, cardElement) {
+        const modal = document.getElementById('new-order-modal');
+        const content = document.getElementById('new-order-modal-content');
+        
+        // Extract basic info from the card
+        const title = cardElement.querySelector('.font-title-lg').innerText;
+        let customer = cardElement.querySelector('.font-body-md:nth-of-type(1)').innerText;
+        let total = cardElement.querySelector('.bg-secondary-container').innerText;
+        
+        // Remove material icon text if present
+        customer = customer.replace('person', '').trim();
+        
+        const addressEl = cardElement.querySelectorAll('.font-body-md')[1];
+        let address = addressEl ? addressEl.innerText : 'Khách lấy tại quầy';
+        address = address.replace('location_on', '').trim();
+        
+        content.innerHTML = `
+            <div class="flex justify-between items-center mb-xs">
+                <span class="font-title-lg text-title-lg text-primary">${title}</span>
+                <span class="font-title-md text-title-md text-on-surface">${total}</span>
+            </div>
+            <div class="text-body-md text-on-surface-variant flex flex-col gap-xs">
+                <p><strong class="text-on-surface">Khách hàng:</strong> ${customer}</p>
+                <p><strong class="text-on-surface">Địa chỉ:</strong> ${address}</p>
+            </div>
+        `;
+        
+        // Setup accept button
+        const acceptBtn = document.getElementById('btn-accept-new-order');
+        acceptBtn.onclick = function() {
+            closeNewOrderModal();
+            // Automatically find the real button in the DOM and click it to reuse logic
+            const realBtn = document.querySelector(`#order-card-${orderId} button`);
+            if (realBtn) {
+                acceptOrder(orderId, realBtn);
+            }
+        };
+
+        // Show modal
+        modal.classList.remove('hidden');
+        // Small delay for transition
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.firstElementChild.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeNewOrderModal(scrollToOrder = false) {
+        const modal = document.getElementById('new-order-modal');
+        modal.classList.add('opacity-0');
+        modal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            if (scrollToOrder) {
+                // Switch to available tab if not active
+                switchTab('available');
+            }
+        }, 300);
+    }
+
+    // Khởi động polling sau 3s
+    setTimeout(pollAvailableOrders, 3000);
 
     // =============================================
     // Cập nhật trạng thái giao hàng

@@ -163,11 +163,14 @@
     <!-- SideNavBar (Shared Component) -->
     <aside
         class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant/30 shadow-md flex flex-col py-lg px-md z-40 hidden md:flex">
-        <div class="mb-2xl px-sm">
-            <h1 class="font-headline-md text-headline-md font-bold text-primary">CozyHNA</h1>
-            <p class="font-label-md text-label-md text-on-surface-variant">Management Portal</p>
+        <div class="mb-2xl px-sm shrink-0 flex items-center gap-3">
+            <img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-12 object-contain">
+            <div>
+                <h1 class="font-headline-md text-headline-md font-bold text-primary leading-tight">CozyHNA</h1>
+                <p class="font-label-md text-label-md text-on-surface-variant">Management Portal</p>
+            </div>
         </div>
-        <nav class="flex-1 flex flex-col gap-xs">
+        <nav class="flex-1 flex flex-col gap-xs overflow-y-auto min-h-0 pr-1">
             <a href="/admin/dashboard"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/dashboard') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
@@ -219,12 +222,12 @@
         </nav>
 
         <button
-            class="mt-md w-full py-sm bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-xs hover:opacity-90 active:scale-95 transition-all">
+            class="mt-md w-full py-sm bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-xs hover:opacity-90 active:scale-95 transition-all shrink-0">
             <span class="material-symbols-outlined" data-icon="add">add</span>
             New Order
         </button>
 
-        <div class="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
+        <div class="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs shrink-0">
             <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all"
                 href="#">
                 <span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>

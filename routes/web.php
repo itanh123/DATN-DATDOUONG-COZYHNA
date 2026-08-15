@@ -176,6 +176,7 @@ Route::post('/staff/orders/{id}/complete', [\App\Http\Controllers\StaffControlle
 // Shipper Routes
 // ---------------------------------------------------------
 Route::get('/shipper/delivery_portal', [\App\Http\Controllers\ShipperController::class, 'portal'])->name('shipper.portal');
+Route::get('/shipper/orders/available-html', [\App\Http\Controllers\ShipperController::class, 'availableOrdersHtml'])->name('shipper.orders.available_html');
 Route::post('/shipper/orders/{id}/accept', [\App\Http\Controllers\ShipperController::class, 'acceptOrder'])->name('shipper.orders.accept');
 Route::post('/shipper/orders/{id}/status', [\App\Http\Controllers\ShipperController::class, 'updateStatus'])->name('shipper.orders.status');
 Route::get('/shipper/dashboard', function () { return view('shipper.dashboard'); });

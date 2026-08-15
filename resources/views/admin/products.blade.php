@@ -58,8 +58,8 @@
                         </button>
 </div>
 </div>
-<div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
-<table class="w-full text-left border-collapse">
+<div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
 <thead>
 <tr class="bg-surface-container-low border-b border-outline-variant/30">
 <th class="p-4 w-10"><input class="rounded text-primary focus:ring-primary border-outline" type="checkbox"/></th>
@@ -152,6 +152,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <div class="p-4 bg-surface-container-low flex justify-between items-center text-label-md text-on-surface-variant">
 <p>Showing 1-10 of 124 products</p>
 <div class="flex gap-2">
@@ -217,7 +218,8 @@
         <span class="material-symbols-outlined">add</span> Thêm Topping
     </button>
 </div>
-<table class="w-full text-left border-collapse">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
 <thead>
 <tr class="bg-surface-container-low border-b border-outline-variant/30">
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
