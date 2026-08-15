@@ -3,7 +3,7 @@
 @section('title', 'Product Management')
 
 @section('content')
-<main class="ml-[280px] h-screen flex flex-col overflow-hidden p-xl">
+<main class="md:ml-[280px] h-screen flex flex-col overflow-hidden px-4 py-8 md:p-xl">
     @if (session('success'))
         <div class="mb-lg px-xl py-lg bg-green-50 border border-green-200 text-green-800 rounded-xl">
             {{ session('success') }}
@@ -21,35 +21,38 @@
         </div>
     @endif
 
-    <div class="flex items-center justify-between mb-xl">
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between mb-xl gap-4">
 
-        <div class="flex items-center gap-4">
-            <h2 class="font-headline-md text-headline-md text-on-surface">Product Management</h2>
-            <div class="h-6 w-px bg-outline-variant/50"></div>
-            <div class="flex bg-surface-container-low p-1 rounded-lg">
+        <div class="flex flex-col md:flex-row md:items-center gap-4 max-w-full">
+            <h2 class="font-headline-md text-headline-md text-on-surface shrink-0">Product Management</h2>
+            <div class="hidden md:block h-6 w-px bg-outline-variant/50 shrink-0"></div>
+            <div class="flex bg-surface-container-low p-1 rounded-lg overflow-x-auto max-w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
+                <style>
+                    .flex.bg-surface-container-low::-webkit-scrollbar { display: none; }
+                </style>
                 <button
-                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all active-tab bg-white shadow-sm text-primary"
+                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all active-tab bg-white shadow-sm text-primary whitespace-nowrap shrink-0"
                     data-tab="products" type="button" onclick="switchTab('products')">Products</button>
                 <button
-                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface"
+                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
                     data-tab="categories" type="button" onclick="switchTab('categories')">Categories</button>
                 <button
-                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface"
+                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
                     data-tab="recipes" type="button" onclick="switchTab('recipes')">Quản lý Topping</button>
                 <button
-                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface"
+                    class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
                     data-tab="sizes" type="button" onclick="switchTab('sizes')">Sizes</button>
             </div>
         </div>
 
-        <div class="flex items-center gap-md">
-            <div class="relative">
+        <div class="flex items-center gap-md w-full xl:w-auto">
+            <div class="relative w-full xl:w-auto">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
                 <input
-                    class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-64 transition-all"
+                    class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-full xl:w-64 transition-all"
                     placeholder="Search items..." type="text" />
             </div>
-            <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
+            <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative shrink-0">
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
             </button>

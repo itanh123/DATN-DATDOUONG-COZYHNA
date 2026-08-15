@@ -3,7 +3,7 @@
 @section('title', 'Báo cáo')
 
 @section('content')
-<main class="ml-[280px] pt-24 px-gutter pb-xl min-h-screen">
+<main class="md:ml-[280px] pt-24 px-gutter pb-xl min-h-screen">
 <!-- Page Title & Ngày Filter -->
 <section class="flex flex-col md:flex-row md:items-end justify-between mb-xl gap-md">
 <div>

@@ -3,7 +3,7 @@
 @section('title', 'Sản phẩm')
 
 @section('content')
-<main class="ml-[280px] h-screen flex flex-col overflow-hidden">
+<main class="md:ml-[280px] h-screen flex flex-col overflow-hidden">
 <!-- Top Header -->
 <header class="h-16 flex items-center justify-between px-xl bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30">
 <div class="flex items-center gap-4">

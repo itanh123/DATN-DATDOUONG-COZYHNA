@@ -540,6 +540,18 @@
 </div>
 
 @push('scripts')
+<!-- Mobile Drag and Drop Polyfill for touch devices -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+<script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+<script>
+    // Initialize the polyfill to allow HTML5 Drag and Drop on mobile/touch screens
+    MobileDragDrop.polyfill({
+        holdToDrag: 250 // Giữ 250ms để bắt đầu kéo
+    });
+    // Required to prevent scrolling while dragging on iOS
+    window.addEventListener('touchmove', function() {}, {passive: false});
+</script>
+
 <script>
 const CSRF_TOKEN = '{{ csrf_token() }}';
 

@@ -3,7 +3,7 @@
 @section('title', 'Kho hàng')
 
 @section('content')
-<main class="ml-[280px] pt-16 min-h-screen p-gutter bg-background">
+<main class="md:ml-[280px] pt-16 min-h-screen p-gutter bg-background">
 <div class="max-w-[1400px] mx-auto space-y-gutter">
 <!-- Quick Thao tác & Alerts Giâytion -->
 <div class="flex flex-col lg:flex-row gap-gutter">

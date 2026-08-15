@@ -28,8 +28,69 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8f9ff;
         }
+        
+        /* Ghi đè giao diện Choices.js cho khớp với hệ thống */
+        .choices {
+            margin-bottom: 0 !important;
+        }
+        .choices__inner {
+            background-color: #ffffff !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            border-radius: 0.5rem !important;
+            min-height: 40px !important;
+            padding: 4px 12px !important;
+            display: flex;
+            align-items: center;
+            font-size: 14px !important;
+            color: #0b1c30 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .choices.is-focused .choices__inner {
+            border-color: #006e1c !important;
+            box-shadow: 0 0 0 2px rgba(0, 110, 28, 0.2) !important;
+        }
+        .choices[data-type*="select-one"]::after {
+            border: none !important;
+            content: "" !important;
+            height: 20px !important;
+            width: 20px !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236f7a6b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-size: contain !important;
+            right: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            margin-top: 0 !important;
+            position: absolute !important;
+            pointer-events: none;
+        }
+        .choices.is-open[data-type*="select-one"]::after {
+            transform: translateY(-50%) rotate(180deg) !important;
+        }
+        .choices__list--single {
+            padding: 0 !important;
+        }
+        .choices__list--dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            z-index: 100 !important;
+            margin-top: 4px !important;
+        }
+        .choices__list--dropdown .choices__item {
+            font-size: 14px !important;
+            padding: 10px 12px !important;
+            color: #0b1c30 !important;
+        }
+        .choices__list--dropdown .choices__item--selectable.is-highlighted {
+            background-color: #f8f9ff !important;
+            color: #006e1c !important;
+        }
         @stack('styles')
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -288,6 +349,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false
+            });
+        });
+        
         @if(session()->has('user_id') && !session('is_table_order'))
         @php
             $user = \App\Models\User::find(session('user_id'));

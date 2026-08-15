@@ -114,13 +114,95 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
+        
+        /* Ghi đè giao diện Choices.js cho khớp với hệ thống */
+        .choices {
+            margin-bottom: 0 !important;
+        }
+        .choices__inner {
+            background-color: #ffffff !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            border-radius: 0.5rem !important;
+            min-height: 40px !important;
+            padding: 4px 12px !important;
+            display: flex;
+            align-items: center;
+            font-size: 14px !important;
+            color: #0b1c30 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .choices.is-focused .choices__inner {
+            border-color: #006e1c !important;
+            box-shadow: 0 0 0 2px rgba(0, 110, 28, 0.2) !important;
+        }
+        .choices[data-type*="select-one"]::after {
+            border: none !important;
+            content: "" !important;
+            height: 20px !important;
+            width: 20px !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236f7a6b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-size: contain !important;
+            right: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            margin-top: 0 !important;
+            position: absolute !important;
+            pointer-events: none;
+        }
+        .choices.is-open[data-type*="select-one"]::after {
+            transform: translateY(-50%) rotate(180deg) !important;
+        }
+        .choices__list--single {
+            padding: 0 !important;
+        }
+        .choices__list--dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgba(190, 202, 185, 0.8) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            z-index: 100 !important;
+            margin-top: 4px !important;
+        }
+        .choices__list--dropdown .choices__item {
+            font-size: 14px !important;
+            padding: 10px 12px !important;
+            color: #0b1c30 !important;
+        }
+        .choices__list--dropdown .choices__item--selectable.is-highlighted {
+            background-color: #f8f9ff !important;
+            color: #006e1c !important;
+        }
         @stack('styles')
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
 <body class="bg-background text-on-surface">
+
+<!-- Mobile Top Header -->
+<header class="md:hidden flex items-center justify-between px-md py-sm bg-surface border-b border-outline-variant/30 sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-sm">
+        <button onclick="toggleSidebar()" class="p-1 text-on-surface-variant hover:bg-surface-container rounded-lg">
+            <span class="material-symbols-outlined text-[28px]">menu</span>
+        </button>
+        <img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-8 object-contain">
+    </div>
+    @php
+        $topAdminUser = \App\Models\User::find(session('user_id'));
+        $topAdminName = $topAdminUser ? ($topAdminUser->name ?: $topAdminUser->username) : 'Admin';
+    @endphp
+    <div class="font-label-md text-label-md text-on-surface-variant bg-surface-container-high px-sm py-1 rounded-full">
+        {{ $topAdminName }}
+    </div>
+</header>
+
+<!-- Sidebar Overlay for Mobile -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-50 hidden md:hidden backdrop-blur-sm transition-opacity opacity-0" onclick="toggleSidebar()"></div>
+
 <!-- SideNavBar (Shared Component) -->
-<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant/30 shadow-md flex flex-col py-lg px-md z-40 hidden md:flex">
-<div class="mb-2xl px-sm">
+<aside id="adminSidebar" class="fixed left-0 top-0 h-full w-[280px] bg-surface border-r border-outline-variant/30 shadow-md flex flex-col py-lg px-md z-[60] transition-transform duration-300 -translate-x-full md:translate-x-0">
+<div class="mb-2xl px-sm hidden md:block">
 <img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain">
 @php
     $adminUser = \App\Models\User::find(session('user_id'));
@@ -257,26 +339,37 @@
 
 @yield('content')
 
-<!-- BottomNavBar (Shared Component for Mobile) -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl md:hidden">
-<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90" href="{{ session('role_code') === 'admin' ? '/admin/dashboard' : (session('role_code') === 'shipper' ? '/shipper/delivery_portal' : '/staff/dashboard') }}">
-<span class="material-symbols-outlined" data-icon="home">home</span>
-<span class="font-label-sm text-label-sm">Trang chủ</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors" href="/admin/orders">
-<span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
-<span class="font-label-sm text-label-sm">Đơn hàng</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors" href="/admin/reports">
-<span class="material-symbols-outlined" data-icon="history">history</span>
-<span class="font-label-sm text-label-sm">Báo cáo</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors" href="/admin/employees">
-<span class="material-symbols-outlined" data-icon="person">person</span>
-<span class="font-label-sm text-label-sm">Hồ sơ</span>
-</a>
-</nav>
 @stack('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            new Choices(select, {
+                searchEnabled: false,
+                itemSelectText: '',
+                shouldSort: false
+            });
+        });
+    });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebar.classList.contains('-translate-x-full')) {
+            // Open sidebar
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            // small delay for transition
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        } else {
+            // Close sidebar
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+</script>
 
 <div id="table-call-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
 <script>

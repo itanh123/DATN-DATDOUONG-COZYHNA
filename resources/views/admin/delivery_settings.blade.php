@@ -3,8 +3,8 @@
 @section('title', 'Quản lý Giao hàng')
 
 @section('content')
-<main class="ml-[280px] pt-16 min-h-screen">
-    <div class="p-xl space-y-xl max-w-[800px] mx-auto">
+<main class="md:ml-[280px] pt-16 min-h-screen">
+    <div class="px-4 md:px-lg py-xl space-y-xl max-w-[800px] mx-auto">
         <div class="flex items-center justify-between mb-lg">
             <h1 class="text-on-surface font-display-sm text-display-sm">Thiết lập Giao hàng</h1>
         </div>
