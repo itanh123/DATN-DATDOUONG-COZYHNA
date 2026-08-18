@@ -37,6 +37,14 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
         $query->where('category_id', $request->category_id);
     }
 
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        });
+    }
+
     $products = $query->get();
 
     $availableProducts = $products->filter(function ($product) {

@@ -16,16 +16,16 @@ class AdminDashboardController extends Controller
 
         // 1. Doanh thu (Revenue)
         $revenue = DB::table('orders')
-            ->whereIn('status', ['completed', 'delivered'])
+            ->where('order_status', 'COMPLETED')
             ->sum('total_amount');
             
         $lastMonthRevenue = DB::table('orders')
-            ->whereIn('status', ['completed', 'delivered'])
+            ->where('order_status', 'COMPLETED')
             ->whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->sum('total_amount');
         
         $thisMonthRevenue = DB::table('orders')
-            ->whereIn('status', ['completed', 'delivered'])
+            ->where('order_status', 'COMPLETED')
             ->whereMonth('created_at', Carbon::now()->month)
             ->sum('total_amount');
             
@@ -62,7 +62,7 @@ class AdminDashboardController extends Controller
             // Data for each month of current year
             for ($i = 1; $i <= 12; $i++) {
                 $monthRevenue = DB::table('orders')
-                    ->whereIn('status', ['completed', 'delivered'])
+                    ->where('order_status', 'COMPLETED')
                     ->whereYear('created_at', date('Y'))
                     ->whereMonth('created_at', $i)
                     ->sum('total_amount');
@@ -74,7 +74,7 @@ class AdminDashboardController extends Controller
             for ($i = $days - 1; $i >= 0; $i--) {
                 $date = Carbon::now()->subDays($i)->format('Y-m-d');
                 $dailyRevenue = DB::table('orders')
-                    ->whereIn('status', ['completed', 'delivered'])
+                    ->where('order_status', 'COMPLETED')
                     ->whereDate('created_at', $date)
                     ->sum('total_amount');
                 $chartLabels[] = Carbon::now()->subDays($i)->format('d/m');
@@ -87,12 +87,12 @@ class AdminDashboardController extends Controller
             ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
             ->join('products', 'product_sizes.product_id', '=', 'products.id')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->whereNotIn('orders.status', ['cancelled'])
+            ->where('orders.order_status', 'COMPLETED')
             ->select(
                 'products.name',
                 'products.image',
                 DB::raw('SUM(order_items.quantity) as total_sold'),
-                DB::raw('SUM(order_items.total_price) as total_revenue')
+                DB::raw('SUM(COALESCE(order_items.total_price, order_items.final_price * order_items.quantity, order_items.unit_price * order_items.quantity)) as total_revenue')
             )
             ->groupBy('products.id', 'products.name', 'products.image')
             ->orderBy('total_sold', 'desc')

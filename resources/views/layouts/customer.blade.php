@@ -204,10 +204,10 @@
 </nav>
 </div>
 <div class="flex items-center gap-md">
-<div class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20">
+<form action="/" method="GET" class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20 m-0">
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
-</div>
+<input name="search" value="{{ request('search') }}" class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
+</form>
 <a href="/customer/cart" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Giỏ hàng">
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
     <span id="cart-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>

@@ -141,15 +141,14 @@
                             <h4 class="font-title-md text-title-md mb-sm">Sản phẩm</h4>
                             <ul class="space-y-sm">
                                 @foreach($order->items as $item)
-                                    <li class="flex justify-between items-start py-xs border-b border-outline-variant/10 text-body-sm last:border-0">
-                                        <div>
-                                            <span class="text-on-surface">
+                                    <li class="flex justify-between items-start py-xs border-b border-outline-variant/10 text-body-sm last:border-0 gap-md">
+                                        <div class="flex-1">
+                                            <div class="text-on-surface">
                                                 {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
                                                 @if($item->size_name || $item->productSize?->size)
                                                     ({{ $item->size_name ?? $item->productSize->size->name }})
                                                 @endif
-                                            </span>
-                                            <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
+                                            </div>
                                             @if($item->toppings && $item->toppings->count() > 0)
                                                 <div class="text-[11px] text-on-surface-variant mt-1">
                                                     + Topping: 
@@ -159,7 +158,10 @@
                                                 </div>
                                             @endif
                                         </div>
-                                        <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
+                                        <div class="text-right shrink-0">
+                                            <span class="font-medium text-on-surface-variant mr-xs">x{{ $item->quantity }}</span>
+                                            <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
+                                        </div>
                                     </li>
                                 @endforeach
                             </ul>

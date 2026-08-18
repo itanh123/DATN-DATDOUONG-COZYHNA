@@ -174,6 +174,7 @@ class ShipperController extends Controller
                 ]);
 
                 $order->order_status = 'COMPLETED';
+                $order->status = 'completed';
                 $order->completed_at = now();
                 $order->save();
 
@@ -192,6 +193,7 @@ class ShipperController extends Controller
                     'note'       => $request->note ?? 'Giao hàng thất bại',
                 ]);
                 $order->order_status = 'PREPARING';
+                $order->status = 'preparing';
                 $order->shipper_id = null;
                 $order->save();
             }

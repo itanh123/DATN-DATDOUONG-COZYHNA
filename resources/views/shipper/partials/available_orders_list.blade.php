@@ -25,15 +25,14 @@
         {{-- Danh sách sản phẩm --}}
         <div class="bg-surface-container-low rounded-lg p-sm space-y-xs">
             @foreach($order->items->take(3) as $item)
-                <div class="flex justify-between text-body-sm text-on-surface-variant border-b border-outline-variant/10 pb-xs last:border-0 last:pb-0">
-                    <div>
-                        <span class="text-on-surface">
+                <div class="flex justify-between text-body-sm text-on-surface-variant border-b border-outline-variant/10 pb-xs last:border-0 last:pb-0 gap-md">
+                    <div class="flex-1">
+                        <div class="text-on-surface">
                             {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
                             @if($item->size_name || $item->productSize?->size)
                                 ({{ $item->size_name ?? $item->productSize->size->name }})
                             @endif
-                        </span>
-                        <span class="font-bold ml-sm">x{{ $item->quantity }}</span>
+                        </div>
                         @if($item->toppings && $item->toppings->count() > 0)
                             <div class="text-[11px] text-on-surface-variant mt-1">
                                 + Topping: 
@@ -43,7 +42,10 @@
                             </div>
                         @endif
                     </div>
-                    <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
+                    <div class="text-right shrink-0">
+                        <span class="font-medium text-on-surface-variant mr-xs">x{{ $item->quantity }}</span>
+                        <span class="font-semibold">{{ number_format(($item->final_price ?? $item->unit_price ?? 0) * $item->quantity, 0, ',', '.') }}đ</span>
+                    </div>
                 </div>
             @endforeach
             @if($order->items->count() > 3)

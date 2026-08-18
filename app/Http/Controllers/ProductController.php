@@ -12,7 +12,13 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::query()->whereNull('deleted_at')->get();
+        $search = $request->input('search');
+
+        $categoriesQuery = Category::query()->whereNull('deleted_at');
+        if ($search) {
+            $categoriesQuery->where('name', 'like', '%' . $search . '%');
+        }
+        $categories = $categoriesQuery->get();
         
         $query = Product::query()->whereNull('deleted_at')->with('category', 'productSizes.size');
         
@@ -23,11 +29,30 @@ class ProductController extends Controller
         if ($request->has('status') && $request->status !== null) {
             $query->where('status', $request->status);
         }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%');
+            });
+        }
         
-        $products = $query->paginate(10);
-        $sizes = Size::orderBy('name')->get();
+        $products = $query->paginate(10)->withQueryString();
+        
+        $sizesQuery = Size::orderBy('name');
+        if ($search) {
+            $sizesQuery->where('name', 'like', '%' . $search . '%');
+        }
+        $sizes = $sizesQuery->get();
+
         $ingredients = \App\Models\Ingredient::orderBy('name')->get();
-        $toppings = \App\Models\Topping::all();
+
+        $toppingsQuery = \App\Models\Topping::query();
+        if ($search) {
+            $toppingsQuery->where('name', 'like', '%' . $search . '%');
+        }
+        $toppings = $toppingsQuery->get();
+
         return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients', 'toppings'));
     }
 
@@ -162,11 +187,18 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'status' => ['boolean'],
         ]);
 
         $validated['status'] = $request->has('status');
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('categories', 'public');
+            $validated['image'] = Storage::url($path);
+        } else {
+            $validated['image'] = null;
+        }
 
         Category::create($validated);
 
@@ -178,11 +210,18 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:categories,name,' . $category->id],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'status' => ['boolean'],
         ]);
 
         $validated['status'] = $request->has('status');
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('categories', 'public');
+            $validated['image'] = Storage::url($path);
+        } else {
+            unset($validated['image']);
+        }
 
         $category->update($validated);
 

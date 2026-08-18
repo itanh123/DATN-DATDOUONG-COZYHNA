@@ -46,12 +46,18 @@
         </div>
 
         <div class="flex items-center gap-md w-full xl:w-auto">
-            <div class="relative w-full xl:w-auto">
+            <form action="/admin/product" method="GET" class="relative w-full xl:w-auto m-0">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                <input
+                <input name="search" value="{{ request('search') }}"
                     class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-full xl:w-64 transition-all"
                     placeholder="Search items..." type="text" />
-            </div>
+                @if(request()->filled('category_id'))
+                    <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                @endif
+                @if(request()->has('status') && request()->status !== null)
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+                @endif
+            </form>
             <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative shrink-0">
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
@@ -64,22 +70,29 @@
         <section class="tab-pane space-y-lg pb-32" id="products-content">
             <div class="flex justify-between items-center">
                 <form action="/admin/product" method="GET" class="m-0 flex gap-2">
-                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-body-md">filter_list</span>
-                        <select name="status" onchange="this.form.submit()" class="border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
-                            <option value="">Status: All</option>
-                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
-                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
-                        </select>
+                    @if(request()->filled('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors" style="width: 160px;">
+                        <span class="material-symbols-outlined text-body-md shrink-0">filter_list</span>
+                        <div class="flex-1">
+                            <select name="status" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
+                                <option value="">Status: All</option>
+                                <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors">
-                        <span class="material-symbols-outlined text-body-md">category</span>
-                        <select name="category_id" onchange="this.form.submit()" class="border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
-                            <option value="">Category: All</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                            @endforeach
-                        </select>
+                    <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors" style="width: 260px;">
+                        <span class="material-symbols-outlined text-body-md shrink-0">category</span>
+                        <div class="flex-1">
+                            <select name="category_id" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
+                                <option value="">Category: All</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </form>
 
@@ -648,15 +661,15 @@
                 </button>
             </div>
             <div class="p-xl space-y-lg">
-                <form action="/admin/category/store" method="POST" class="space-y-lg">
+                <form action="/admin/category/store" method="POST" class="space-y-lg" enctype="multipart/form-data">
                     @csrf
                     <div>
                         <label class="block font-label-md mb-2">Category Name *</label>
                         <input name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="E.g. Coffee">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Image URL</label>
-                        <input name="image" type="text" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="https://...">
+                        <label class="block font-label-md mb-2">Category Image</label>
+                        <input name="image" type="file" accept="image/*" class="block w-full border border-outline-variant/50 rounded-xl p-2">
                     </div>
                     <div>
                         <label class="block font-label-md mb-2">Description</label>
@@ -685,15 +698,21 @@
                 </button>
             </div>
             <div class="p-xl space-y-lg">
-                <form id="categoryEditForm" method="POST" class="space-y-lg">
+                <form id="categoryEditForm" method="POST" class="space-y-lg" enctype="multipart/form-data">
                     @csrf
                     <div>
                         <label class="block font-label-md mb-2">Category Name *</label>
                         <input id="edit_category_name" name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Image URL</label>
-                        <input id="edit_category_image" name="image" type="text" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
+                        <label class="block font-label-md mb-2">Current Image</label>
+                        <div id="edit_current_category_image_preview" class="hidden w-24 h-24 rounded-lg bg-surface-container-high overflow-hidden">
+                            <img class="w-full h-full object-cover" src="" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">New Image (optional)</label>
+                        <input id="edit_category_image" name="image" type="file" accept="image/*" class="block w-full border border-outline-variant/50 rounded-xl p-2">
                     </div>
                     <div>
                         <label class="block font-label-md mb-2">Description</label>
@@ -853,7 +872,16 @@
                     btn.classList.add('text-on-surface-variant', 'hover:text-on-surface');
                 }
             });
+            
+            localStorage.setItem('activeAdminProductTab', tabId);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTab = localStorage.getItem('activeAdminProductTab');
+            if (savedTab && document.getElementById(savedTab + '-content')) {
+                switchTab(savedTab);
+            }
+        });
 
         function openProductActions(button) {
             if (!button) return;
@@ -892,7 +920,19 @@
             document.getElementById('categoryEditForm').action = '/admin/category/' + id + '/update';
             document.getElementById('edit_category_name').value = name || '';
             document.getElementById('edit_category_description').value = description || '';
-            document.getElementById('edit_category_image').value = image || '';
+            
+            const previewContainer = document.getElementById('edit_current_category_image_preview');
+            if (image && image !== 'null' && image !== '') {
+                previewContainer.classList.remove('hidden');
+                previewContainer.querySelector('img').src = image;
+            } else {
+                previewContainer.classList.add('hidden');
+                previewContainer.querySelector('img').src = '';
+            }
+
+            const fileInput = document.getElementById('edit_category_image');
+            if (fileInput) fileInput.value = '';
+
             document.getElementById('edit_category_status').checked = (status == 1);
 
             document.querySelectorAll('.category-action-menu').forEach(m => m.classList.add('hidden'));

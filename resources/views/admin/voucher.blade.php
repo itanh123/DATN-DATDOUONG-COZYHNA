@@ -17,10 +17,10 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                <div class="relative hidden lg:block">
+                <form action="/admin/voucher" method="GET" class="relative hidden lg:block m-0">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                    <input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search promo codes..." type="text" />
-                </div>
+                    <input name="search" value="{{ request('search') }}" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search promo codes..." type="text" />
+                </form>
             </div>
         </div>
             <!-- Summary Stats -->

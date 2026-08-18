@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 
 class VoucherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $vouchers = Voucher::orderBy('created_at', 'desc')->paginate(10);
+        $query = Voucher::orderBy('created_at', 'desc');
+        
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%");
+            });
+        }
+        
+        $vouchers = $query->paginate(10)->withQueryString();
         
         $totalVouchers = Voucher::count();
         $activeVouchers = Voucher::where('status', true)->count();
