@@ -81,10 +81,15 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 
+Route::get('/forgot-password', [\App\Http\Controllers\AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password/send-otp', [\App\Http\Controllers\AuthController::class, 'sendOtp'])->name('password.email');
+Route::post('/forgot-password/reset', [\App\Http\Controllers\AuthController::class, 'resetPassword'])->name('password.update');
+
 Route::get('/login/admin', [\App\Http\Controllers\AuthController::class, 'showLoginAdmin'])->name('admin.login');
 Route::post('/login/admin', [\App\Http\Controllers\AuthController::class, 'loginAdmin']);
 
 Route::post('/register', [\App\Http\Controllers\AuthController::class, 'register']);
+Route::post('/register/verify-otp', [\App\Http\Controllers\AuthController::class, 'verifyRegistrationOtp'])->name('register.verify');
 Route::get('/logout', [\App\Http\Controllers\AuthController::class, 'logout']);
 
 Route::get('/auth/google', [\App\Http\Controllers\AuthController::class, 'redirectToGoogle']);
@@ -113,6 +118,7 @@ Route::post('/customer/orders/{order}/complaint', [\App\Http\Controllers\OrderCo
 // AI Chat Assistant Routes
 Route::post('/ai/chat', [\App\Http\Controllers\AiChatController::class, 'chat'])->name('ai.chat');
 Route::get('/ai/history/{sessionId}', [\App\Http\Controllers\AiChatController::class, 'history'])->name('ai.history');
+Route::post('/ai/feedback', [\App\Http\Controllers\AiChatController::class, 'feedback'])->name('ai.feedback');
 
 // VietQR Payment Routes
 Route::get('/payment/qr/{orderCode}', [\App\Http\Controllers\PaymentController::class, 'getVietQr'])->name('payment.qr');
@@ -139,7 +145,8 @@ Route::post('/customer/account/update', function (\Illuminate\Http\Request $requ
     return app('App\Http\Controllers\ProfileController')->updateCustomer($request);
 })->name('customer.profile.update');
 
-Route::post('/customer/password/update', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+Route::post('/profile/password/update', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+Route::post('/profile/password/verify-otp', [\App\Http\Controllers\ProfileController::class, 'verifyPasswordOtp'])->name('profile.password.verify');
 Route::post('/customer/address/store', [\App\Http\Controllers\ProfileController::class, 'storeAddress'])->name('customer.address.store');
 Route::delete('/customer/address/{id}', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete');
 Route::post('/customer/address/{id}/delete', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete.post');
@@ -149,12 +156,7 @@ Route::get('/customer/notifications', function () { return view('customer.notifi
 Route::get('/customer/product_detail', function () { return view('customer.product_detail'); });
 Route::post('/customer/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
 
-Route::get('/orders/invoice/{orderCode}', function ($orderCode) {
-    if (!session('user_id')) return redirect('/login');
-    $path = storage_path('app/public/invoices/' . $orderCode . '.pdf');
-    if (!file_exists($path)) abort(404, 'Hóa đơn không tồn tại.');
-    return response()->file($path);
-});
+Route::get('/orders/invoice/{orderCode}', [\App\Http\Controllers\AdminOrderController::class, 'printInvoice'])->name('orders.invoice');
 
 // ---------------------------------------------------------
 // Table Ordering Routes

@@ -66,7 +66,7 @@
             <span class="w-2 h-2 bg-primary rounded-full animate-bounce"></span>
             <span class="w-2 h-2 bg-primary rounded-full animate-bounce delay-100"></span>
             <span class="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></span>
-            <span>AI đang soạn tin trả lời...</span>
+            <span id="ai-typing-text">AI đang soạn tin trả lời...</span>
         </div>
 
         <!-- Input Form -->
@@ -79,6 +79,65 @@
         </form>
     </div>
 </div>
+
+<style>
+    /* Feedback buttons */
+    .ai-feedback-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.1);
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        line-height: 1;
+    }
+    .ai-feedback-btn:hover {
+        transform: scale(1.15);
+    }
+    .ai-feedback-btn.like:hover, .ai-feedback-btn.like.active {
+        background: #dcfce7;
+        border-color: #22c55e;
+    }
+    .ai-feedback-btn.dislike:hover, .ai-feedback-btn.dislike.active {
+        background: #fee2e2;
+        border-color: #ef4444;
+    }
+    .ai-feedback-btn.active {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    .ai-feedback-btn.disabled {
+        pointer-events: none;
+        opacity: 0.3;
+    }
+    /* Search badge animation */
+    @keyframes searchPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .ai-search-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        color: #6366f1;
+        background: #eef2ff;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-top: 6px;
+        animation: searchPulse 1.5s ease-in-out infinite;
+    }
+    .ai-search-badge.done {
+        animation: none;
+        color: #059669;
+        background: #ecfdf5;
+    }
+</style>
 
 <script>
     let aiSessionId = localStorage.getItem('ai_chat_session_id') || null;
@@ -116,7 +175,11 @@
         appendChatMessage('user', msg);
         input.value = '';
 
-        document.getElementById('ai-typing').classList.remove('hidden');
+        // Show typing indicator
+        const typingEl = document.getElementById('ai-typing');
+        const typingText = document.getElementById('ai-typing-text');
+        typingEl.classList.remove('hidden');
+        typingText.textContent = 'AI đang soạn tin trả lời...';
         scrollAiBottom();
 
         // Lấy vị trí nếu người dùng hỏi về thời tiết
@@ -148,7 +211,7 @@
             });
 
             const data = await response.json();
-            document.getElementById('ai-typing').classList.add('hidden');
+            typingEl.classList.add('hidden');
 
             if (data.session_id) {
                 aiSessionId = data.session_id;
@@ -156,17 +219,17 @@
             }
 
             if (data.text) {
-                appendChatMessage('assistant', data.text);
+                appendChatMessage('assistant', data.text, data.message_id, data.used_search);
             } else {
                 appendChatMessage('assistant', 'Rất tiếc, AI tạm thời chưa thể phản hồi. Bạn vui lòng thử lại sau.');
             }
         } catch (err) {
-            document.getElementById('ai-typing').classList.add('hidden');
+            typingEl.classList.add('hidden');
             appendChatMessage('assistant', 'Có lỗi kết nối. Bạn vui lòng kiểm tra mạng và thử lại!');
         }
     }
 
-    function appendChatMessage(role, text) {
+    function appendChatMessage(role, text, messageId = null, usedSearch = false) {
         const container = document.getElementById('ai-chat-messages');
         const isUser = role === 'user';
 
@@ -187,16 +250,74 @@
                 </div>
             `;
         } else {
+            // Build search badge HTML
+            let searchBadgeHtml = '';
+            if (usedSearch) {
+                searchBadgeHtml = `<div class="ai-search-badge done"><span class="material-symbols-outlined" style="font-size:12px">travel_explore</span> Đã tìm kiếm & kiểm chứng</div>`;
+            }
+
+            // Build feedback buttons HTML
+            let feedbackHtml = '';
+            if (messageId) {
+                feedbackHtml = `
+                    <div class="flex items-center gap-1 mt-2 pt-1.5 border-t border-outline-variant/10">
+                        <button class="ai-feedback-btn like" onclick="sendAiFeedback(${messageId}, 'positive', this)" title="Câu trả lời hữu ích">👍</button>
+                        <button class="ai-feedback-btn dislike" onclick="sendAiFeedback(${messageId}, 'negative', this)" title="Câu trả lời chưa tốt">👎</button>
+                        <span class="ai-feedback-status text-[10px] text-on-surface-variant/50 ml-1"></span>
+                    </div>
+                `;
+            }
+
             wrapper.innerHTML = `
                 <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">AI</div>
                 <div class="bg-surface-container-lowest p-3 rounded-2xl rounded-tl-none border border-outline-variant/20 shadow-sm text-on-surface leading-relaxed">
                     ${formattedText}
+                    ${searchBadgeHtml}
+                    ${feedbackHtml}
                 </div>
             `;
         }
 
         container.appendChild(wrapper);
         scrollAiBottom();
+    }
+
+    async function sendAiFeedback(messageId, feedback, btnEl) {
+        const parentDiv = btnEl.closest('.flex');
+        const likeBtn = parentDiv.querySelector('.like');
+        const dislikeBtn = parentDiv.querySelector('.dislike');
+        const statusEl = parentDiv.querySelector('.ai-feedback-status');
+
+        // Disable cả 2 nút
+        likeBtn.classList.add(feedback === 'positive' ? 'active' : 'disabled');
+        dislikeBtn.classList.add(feedback === 'negative' ? 'active' : 'disabled');
+        statusEl.textContent = 'Đang gửi...';
+
+        try {
+            const response = await fetch('/ai/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    message_id: messageId,
+                    feedback: feedback
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                statusEl.textContent = feedback === 'positive' ? '✅ Cảm ơn!' : '📝 Đã ghi nhận';
+            } else {
+                statusEl.textContent = 'Lỗi';
+            }
+        } catch (err) {
+            statusEl.textContent = 'Lỗi mạng';
+            // Re-enable buttons on error
+            likeBtn.classList.remove('active', 'disabled');
+            dislikeBtn.classList.remove('active', 'disabled');
+        }
     }
 
     function scrollAiBottom() {

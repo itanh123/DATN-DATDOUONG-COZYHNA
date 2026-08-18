@@ -47,7 +47,7 @@
             <a class="text-primary font-label-md hover:underline" href="/?category_id={{ $catId }}">Xem Tất Cả {{ $categoryName }}</a>
             @endif
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-lg">
             @foreach($displayProducts as $product)
                 <x-product-card :product="$product" />
             @endforeach

@@ -236,6 +236,7 @@
                             <div class="flex justify-between items-center mb-xs ml-base mr-base">
                                 <label
                                     class="block font-label-md text-label-md text-on-surface-variant">Password</label>
+                                <a class="font-label-sm text-label-sm text-primary hover:underline transition-opacity" href="/forgot-password">Forgot password?</a>
                             </div>
                             <div class="relative">
                                 <span

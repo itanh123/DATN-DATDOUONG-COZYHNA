@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use App\Mail\OtpMail;
 
 class AuthController extends Controller
 {
@@ -109,14 +113,74 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:6'],
         ]);
 
-        $roleId = DB::table('roles')->where('code', 'customer')->value('id');
+        $email = $request->input('email');
 
-        $user = User::create([
+        // Rate limiting send OTP
+        if (RateLimiter::tooManyAttempts('send-otp-register:'.$email, 1)) {
+            return response()->json(['error' => 'Vui lòng đợi 1 phút trước khi gửi lại mã.'], 429);
+        }
+        RateLimiter::hit('send-otp-register:'.$email, 60);
+
+        $otp = (string) rand(100000, 999999);
+        
+        Cache::put('register_otp_'.$email, [
+            'otp' => $otp,
             'username' => $request->input('username'),
-            'email' => $request->input('email'),
+            'email' => $email,
             'phone' => $request->input('phone'),
             'password' => Hash::make($request->input('password')),
+        ], now()->addMinutes(10));
+
+        RateLimiter::clear('verify-otp-register:'.$email);
+
+        Mail::to($email)->queue(new OtpMail($otp, 'xác nhận đăng ký tài khoản'));
+
+        return response()->json([
+            'message' => 'Mã xác nhận đã được gửi đến email của bạn.',
+            'require_otp' => true,
+            'email' => $email
+        ]);
+    }
+
+    public function verifyRegistrationOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $email = $request->email;
+
+        if (RateLimiter::tooManyAttempts('verify-otp-register:'.$email, 5)) {
+            return response()->json(['error' => 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.'], 429);
+        }
+
+        $cachedData = Cache::get('register_otp_'.$email);
+        if (!$cachedData) {
+            return response()->json(['error' => 'Mã OTP đã hết hạn hoặc không tồn tại. Vui lòng đăng ký lại.'], 400);
+        }
+
+        if ($cachedData['otp'] !== $request->otp) {
+            RateLimiter::hit('verify-otp-register:'.$email, 1800);
+            $retriesLeft = RateLimiter::retriesLeft('verify-otp-register:'.$email, 5);
+            return response()->json(['error' => 'Mã OTP không đúng. Bạn còn '.$retriesLeft.' lần thử.'], 400);
+        }
+
+        // Tạo tài khoản
+        $roleId = DB::table('roles')->where('code', 'customer')->value('id');
+
+        // Double check existance to prevent race conditions
+        if (User::where('email', $email)->orWhere('username', $cachedData['username'])->exists()) {
+            return response()->json(['error' => 'Email hoặc Tên đăng nhập đã tồn tại.'], 400);
+        }
+
+        $user = User::create([
+            'username' => $cachedData['username'],
+            'email' => $cachedData['email'],
+            'phone' => $cachedData['phone'],
+            'password' => $cachedData['password'],
             'role_id' => $roleId,
+            'status' => true,
         ]);
         
         CustomerProfile::firstOrCreate(['user_id' => $user->id]);
@@ -124,7 +188,10 @@ class AuthController extends Controller
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', 'customer');
 
-        return redirect('/');
+        Cache::forget('register_otp_'.$email);
+        RateLimiter::clear('verify-otp-register:'.$email);
+
+        return response()->json(['message' => 'Đăng ký tài khoản thành công!']);
     }
 
     public function redirectToGoogle()
@@ -230,5 +297,77 @@ class AuthController extends Controller
         $user->save();
 
         return redirect('/customer/account')->with('success', 'Cập nhật thông tin thành công!');
+    }
+
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $email = $request->email;
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Email không tồn tại trong hệ thống.'], 404);
+        }
+
+        if ($user->google_id) {
+            return response()->json(['error' => 'Tài khoản này được đăng nhập qua Google. Không thể đặt lại mật khẩu tại đây.'], 403);
+        }
+
+        // Rate limiting send OTP (1 request per minute)
+        if (RateLimiter::tooManyAttempts('send-otp:'.$email, 1)) {
+            return response()->json(['error' => 'Vui lòng đợi 1 phút trước khi gửi lại mã.'], 429);
+        }
+        RateLimiter::hit('send-otp:'.$email, 60);
+
+        $otp = (string) rand(100000, 999999);
+        Cache::put('forgot_password_otp_'.$email, $otp, now()->addMinutes(10));
+        
+        // Reset verify attempt counter
+        RateLimiter::clear('verify-otp:'.$email);
+
+        Mail::to($email)->queue(new OtpMail($otp, 'khôi phục mật khẩu'));
+
+        return response()->json(['message' => 'Mã OTP đã được gửi đến email của bạn.']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:6',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        $email = $request->email;
+
+        // Check 5 wrong attempts lock for 30 minutes
+        if (RateLimiter::tooManyAttempts('verify-otp:'.$email, 5)) {
+            return response()->json(['error' => 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.'], 429);
+        }
+
+        $cachedOtp = Cache::get('forgot_password_otp_'.$email);
+        if (!$cachedOtp) {
+            return response()->json(['error' => 'Mã OTP đã hết hạn hoặc không tồn tại.'], 400);
+        }
+
+        if ($cachedOtp !== $request->otp) {
+            RateLimiter::hit('verify-otp:'.$email, 1800); // 30 minutes lock
+            $retriesLeft = RateLimiter::retriesLeft('verify-otp:'.$email, 5);
+            return response()->json(['error' => 'Mã OTP không đúng. Bạn còn '.$retriesLeft.' lần thử.'], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        Cache::forget('forgot_password_otp_'.$email);
+        RateLimiter::clear('verify-otp:'.$email);
+
+        return response()->json(['message' => 'Mật khẩu đã được đặt lại thành công.']);
     }
 }

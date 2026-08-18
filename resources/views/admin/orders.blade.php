@@ -128,7 +128,7 @@
                 <tbody class="divide-y divide-outline-variant/20">
                     @forelse($orders as $order)
                     <tr id="order-row-{{ $order->id }}" class="order-row transition-colors hover:bg-surface-container-lowest">
-                        <td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->code }}</td>
+                        <td class="px-lg py-lg font-body-md font-semibold text-primary">#{{ $order->order_code ?? $order->code }}</td>
                         <td class="px-lg py-lg">
                             <div class="flex items-center gap-sm">
                                 <span class="font-body-md font-medium">{{ $order->customer->user->username ?? $order->customer->full_name ?? $order->receiver_name }}</span>
@@ -182,6 +182,11 @@
                             <button id="edit-btn-{{ $order->id }}" onclick="openStatusModal({{ $order->id }}, '{{ $order->order_status }}')" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-secondary" title="Đổi trạng thái">
                                 <span class="material-symbols-outlined">edit_square</span>
                             </button>
+                            @endif
+                            @if(in_array($order->order_status, ['PREPARING', 'READY_FOR_DELIVERY', 'DELIVERING', 'COMPLETED']))
+                            <a href="/orders/invoice/{{ $order->order_code ?? $order->code }}" target="_blank" class="print-btn p-2 inline-block rounded-lg hover:bg-surface-container-high transition-colors text-teal-600" title="In Hóa Đơn">
+                                <span class="material-symbols-outlined">print</span>
+                            </a>
                             @endif
                         </td>
                     </tr>
@@ -286,8 +291,8 @@
 <!-- Modal Đổi Trạng Thái -->
 <div id="statusModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onclick="closeModal('statusModal')"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface rounded-3xl shadow-xl overflow-hidden">
-        <div class="p-lg md:p-xl border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface rounded-3xl shadow-xl overflow-visible">
+        <div class="p-lg md:p-xl border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-lowest rounded-t-3xl">
             <h3 class="font-headline-sm text-headline-sm text-on-surface">Cập nhật Trạng thái</h3>
             <button onclick="closeModal('statusModal')" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
                 <span class="material-symbols-outlined">close</span>
@@ -368,7 +373,7 @@
                 const order = data.order;
                 const histories = data.histories;
 
-                document.getElementById('modalOrderCode').textContent = order.code;
+                document.getElementById('modalOrderCode').textContent = order.order_code || order.code;
                 document.getElementById('modalCustomerName').textContent = order.receiver_name || (order.customer ? (order.customer.user.username || order.customer.full_name) : 'Khách vãng lai');
                 document.getElementById('modalCustomerPhone').textContent = order.receiver_phone || 'Không cung cấp';
                 let fullAddress = order.delivery_address || 'Tại quán';
@@ -582,6 +587,16 @@
                     const role = '{{ session('role_code') }}';
                     if (role === 'staff' && (status === 'READY_FOR_DELIVERY' || status === 'DELIVERING' || status === 'COMPLETED' || status === 'CANCELLED')) {
                         editBtn.style.display = 'none';
+                    }
+                }
+
+                const row = document.getElementById(`order-row-${id}`);
+                if (row && ['PREPARING', 'READY_FOR_DELIVERY', 'DELIVERING', 'COMPLETED'].includes(status)) {
+                    const actionTd = row.querySelector('.space-x-2');
+                    if (actionTd && !actionTd.querySelector('.print-btn')) {
+                        const codeNode = row.querySelector('.text-primary');
+                        const code = codeNode ? codeNode.innerText.replace('#', '').trim() : '';
+                        actionTd.insertAdjacentHTML('beforeend', `<a href="/orders/invoice/${code}" target="_blank" class="print-btn p-2 inline-block rounded-lg hover:bg-surface-container-high transition-colors text-teal-600" title="In Hóa Đơn"><span class="material-symbols-outlined">print</span></a>`);
                     }
                 }
             } else {

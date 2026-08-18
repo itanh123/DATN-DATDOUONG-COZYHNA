@@ -353,7 +353,9 @@ class CartController extends Controller
             })
             ->get();
 
-        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount', 'availableVouchers'));
+        $allToppings = \App\Models\Topping::where('status', true)->get();
+
+        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount', 'availableVouchers', 'allToppings'));
     }
 
     public function initCheckout(Request $request)

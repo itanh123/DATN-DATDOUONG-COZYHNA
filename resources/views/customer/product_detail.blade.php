@@ -11,7 +11,7 @@
 <span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
 </div>
 </header>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+<div class="grid grid-cols-3 md:grid-cols-4 gap-md">
 <div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
 <div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>
 <div class="aspect-square bg-surface-container rounded-2xl cursor-pointer hover:shadow-md transition-shadow" onclick="openDrawer()"></div>

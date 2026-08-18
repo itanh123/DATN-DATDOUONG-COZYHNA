@@ -92,6 +92,15 @@ class CheckoutController extends Controller
             }
         }
 
+        $usedVoucherIds = [];
+        if ($customerProfile) {
+            $usedVoucherIds = DB::table('orders')
+                ->where('customer_id', $customerProfile->id)
+                ->whereNotNull('voucher_id')
+                ->pluck('voucher_id')
+                ->toArray();
+        }
+
         $availableVouchers = DB::table('vouchers')
             ->where('status', 1)
             ->whereRaw('used < quantity')
@@ -101,7 +110,15 @@ class CheckoutController extends Controller
             ->where(function ($query) {
                 $query->whereNull('end_date')->orWhere('end_date', '>=', now());
             })
-            ->get();
+            ->where('minimum_order', '<=', $cartTotal)
+            ->get()
+            ->filter(function ($voucher) use ($usedVoucherIds) {
+                if ($voucher->is_one_time_use && in_array($voucher->id, $usedVoucherIds)) {
+                    return false;
+                }
+                return true;
+            })
+            ->values();
 
         return view('customer.checkout', compact('user', 'customerProfile', 'addresses', 'cartItems', 'cartTotal', 'discountAmount', 'finalTotal', 'appliedVoucher', 'availableVouchers'));
     }
@@ -144,6 +161,17 @@ class CheckoutController extends Controller
         }
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
+        
+        if ($voucher->is_one_time_use && $customerProfile) {
+            $hasUsed = DB::table('orders')
+                ->where('customer_id', $customerProfile->id)
+                ->where('voucher_id', $voucher->id)
+                ->exists();
+            if ($hasUsed) {
+                return back()->with('voucher_error', 'Bạn đã sử dụng mã giảm giá này rồi (mã này chỉ được áp dụng 1 lần cho mỗi tài khoản).');
+            }
+        }
+
         $cartTotal = 0;
         
         if ($customerProfile) {

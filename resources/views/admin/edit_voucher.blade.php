@@ -117,6 +117,15 @@
                             </div>
                             <span class="font-label-md text-label-md text-on-surface">Kích hoạt (Active)</span>
                         </label>
+
+                        <label class="flex items-center gap-md p-md border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" name="is_one_time_use" class="peer sr-only" value="1" {{ old('is_one_time_use', $voucher->is_one_time_use) ? 'checked' : '' }}>
+                                <div class="w-10 h-6 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+                                <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
+                            <span class="font-label-md text-label-md text-on-surface">Mã 1 lần (Mỗi tài khoản dùng 1 lần duy nhất)</span>
+                        </label>
                         
                         <div>
                             <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Ngày bắt đầu <span class="text-error">*</span></label>

@@ -49,6 +49,7 @@ class VoucherController extends Controller
 
         $data = $request->all();
         $data['status'] = $request->has('status');
+        $data['is_one_time_use'] = $request->has('is_one_time_use');
 
         Voucher::create($data);
 
@@ -85,6 +86,7 @@ class VoucherController extends Controller
 
         $data = $request->all();
         $data['status'] = $request->has('status');
+        $data['is_one_time_use'] = $request->has('is_one_time_use');
 
         $voucher->update($data);
 

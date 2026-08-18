@@ -9,6 +9,10 @@ use App\Models\ShipperProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use App\Mail\OtpMail;
 
 class ProfileController extends Controller
 {
@@ -101,7 +105,7 @@ class ProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $userId = session('user_id');
-        if (!$userId) return back()->with('error', 'Không có quyền truy cập.');
+        if (!$userId) return response()->json(['error' => 'Không có quyền truy cập.'], 401);
 
         $request->validate([
             'current_password' => 'required',
@@ -109,16 +113,75 @@ class ProfileController extends Controller
         ]);
 
         $user = User::find($userId);
-
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->with('error', 'Mật khẩu hiện tại không đúng.');
+        
+        if ($user->google_id) {
+            return response()->json(['error' => 'Tài khoản đăng nhập bằng Google không thể đổi mật khẩu.'], 403);
         }
 
-        $user->update([
-            'password' => Hash::make($request->new_password)
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Mật khẩu hiện tại không đúng.'], 400);
+        }
+
+        $email = $user->email;
+
+        // Rate limit send OTP
+        if (RateLimiter::tooManyAttempts('send-otp-profile:'.$email, 1)) {
+            return response()->json(['error' => 'Vui lòng đợi 1 phút trước khi gửi lại mã.'], 429);
+        }
+        RateLimiter::hit('send-otp-profile:'.$email, 60);
+
+        $otp = (string) rand(100000, 999999);
+        $pendingPassword = Hash::make($request->new_password);
+        
+        Cache::put('change_password_otp_'.$email, [
+            'otp' => $otp,
+            'password' => $pendingPassword
+        ], now()->addMinutes(10));
+
+        RateLimiter::clear('verify-otp-profile:'.$email);
+
+        Mail::to($email)->queue(new OtpMail($otp, 'thay đổi mật khẩu'));
+
+        return response()->json([
+            'message' => 'Mã xác nhận đã được gửi đến email của bạn.',
+            'require_otp' => true,
+            'email' => $email
+        ]);
+    }
+
+    public function verifyPasswordOtp(Request $request)
+    {
+        $userId = session('user_id');
+        if (!$userId) return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+
+        $request->validate([
+            'otp' => 'required|digits:6',
         ]);
 
-        return back()->with('success', 'Đổi mật khẩu thành công!');
+        $user = User::find($userId);
+        $email = $user->email;
+
+        if (RateLimiter::tooManyAttempts('verify-otp-profile:'.$email, 5)) {
+            return response()->json(['error' => 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.'], 429);
+        }
+
+        $cached = Cache::get('change_password_otp_'.$email);
+        if (!$cached) {
+            return response()->json(['error' => 'Mã OTP đã hết hạn hoặc không tồn tại. Vui lòng thử lại.'], 400);
+        }
+
+        if ($cached['otp'] !== $request->otp) {
+            RateLimiter::hit('verify-otp-profile:'.$email, 1800);
+            $retriesLeft = RateLimiter::retriesLeft('verify-otp-profile:'.$email, 5);
+            return response()->json(['error' => 'Mã OTP không đúng. Bạn còn '.$retriesLeft.' lần thử.'], 400);
+        }
+
+        $user->update(['password' => $cached['password']]);
+
+        Cache::forget('change_password_otp_'.$email);
+        RateLimiter::clear('verify-otp-profile:'.$email);
+
+        return response()->json(['message' => 'Đổi mật khẩu thành công!']);
     }
 
     public function storeAddress(Request $request)

@@ -102,7 +102,7 @@
 <div>
 <div class="flex justify-between items-center mb-xs ml-base mr-base">
 <label class="block font-label-md text-label-md text-on-surface-variant">Mật khẩu</label>
-<a class="font-label-sm text-label-sm text-primary hover:underline transition-opacity" href="#" id="forgotPass">Forgot password?</a>
+<a class="font-label-sm text-label-sm text-primary hover:underline transition-opacity" href="/forgot-password" id="forgotPass">Forgot password?</a>
 </div>
 <div class="relative">
 <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">lock</span>
@@ -137,6 +137,33 @@
 </div>
 </section>
 </main>
+
+<!-- OTP Modal for Registration -->
+<div id="otpModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-surface rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 relative">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-[18px] font-bold text-on-surface">Xác nhận đăng ký</h3>
+            <button onclick="closeOtpModal()" type="button" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <p class="text-[13px] text-on-surface-variant mb-4">Vui lòng nhập mã OTP 6 số vừa được gửi đến email <strong id="otp-email-display"></strong>.</p>
+        <div id="otp-alert" class="hidden mb-4 p-3 rounded-lg text-label-md bg-error-container text-on-error-container"></div>
+        <form id="verify-otp-form" onsubmit="submitVerifyOtp(event)">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Mã OTP</label>
+                <input name="otp" type="text" id="otp-input" required maxlength="6"
+                       class="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-3 text-center text-body-lg tracking-widest font-bold focus:ring-primary focus:border-primary outline-none" placeholder="123456"/>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeOtpModal()" class="px-5 py-2 rounded-xl text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Hủy</button>
+                <button type="submit" id="btn-verify-otp" class="px-5 py-2 rounded-xl bg-primary text-on-primary font-title-lg active:scale-95 transition-transform">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -207,13 +234,121 @@
             }
         }
 
-        // Loading state on submit
-        document.getElementById('authForm').addEventListener('submit', function() {
-            const btn = document.getElementById('submitBtn');
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-            // Không disable btn ngay lập tức để form vẫn submit được
+        // Loading state and AJAX for signup
+        document.getElementById('authForm').addEventListener('submit', async function(e) {
+            const form = e.target;
+            
+            if (form.action.endsWith('/register')) {
+                e.preventDefault();
+                const btn = document.getElementById('submitBtn');
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
+                btn.disabled = true;
+
+                const formData = new FormData(form);
+                
+                // Clear previous errors
+                const existingErrors = document.getElementById('register-errors');
+                if (existingErrors) existingErrors.remove();
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+
+                    if (!res.ok) {
+                        let errorMsg = data.error || data.message || 'Có lỗi xảy ra.';
+                        if (data.errors) { // validation errors
+                            errorMsg = Object.values(data.errors).flat().join('<br>');
+                        }
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.id = 'register-errors';
+                        errorDiv.className = 'p-3 bg-error-container text-on-error-container rounded-lg text-label-md mb-4';
+                        errorDiv.innerHTML = errorMsg;
+                        form.insertBefore(errorDiv, form.firstChild);
+                    } else {
+                        if(data.require_otp) {
+                            openOtpModal(data.email);
+                        } else {
+                            window.location.href = '/';
+                        }
+                    }
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    alert('Lỗi kết nối máy chủ.');
+                }
+            } else {
+                // Normal login submit
+                const btn = document.getElementById('submitBtn');
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
+            }
         });
+
+        let currentSignupEmail = '';
+
+        function openOtpModal(email) {
+            currentSignupEmail = email;
+            document.getElementById('otp-email-display').textContent = email;
+            document.getElementById('otpModal').classList.remove('hidden');
+            document.getElementById('otp-alert').classList.add('hidden');
+            document.getElementById('otp-input').value = '';
+        }
+
+        function closeOtpModal() {
+            document.getElementById('otpModal').classList.add('hidden');
+        }
+
+        async function submitVerifyOtp(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-verify-otp');
+            const alertBox = document.getElementById('otp-alert');
+            const otp = document.getElementById('otp-input').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Đang xử lý...';
+            alertBox.classList.add('hidden');
+
+            try {
+                const res = await fetch('{{ route("register.verify") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({ email: currentSignupEmail, otp: otp })
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Xác nhận';
+                    alertBox.textContent = data.error || data.message || 'Có lỗi xảy ra.';
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alertBox.textContent = 'Đăng ký thành công! Đang chuyển hướng...';
+                    alertBox.className = 'mb-4 p-3 rounded-lg text-label-md bg-primary-container text-on-primary-container block';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = 'Xác nhận';
+                alertBox.textContent = 'Lỗi kết nối máy chủ.';
+                alertBox.classList.remove('hidden');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             @if(old('username') || old('phone'))

@@ -215,7 +215,7 @@
                                  data-size-id="{{ $item->product_size_id }}"
                                  data-topping-ids="{{ json_encode(array_column($item->toppings, 'id')) }}"
                                  data-sizes="{{ json_encode($productSizes->map(fn($s) => ['id'=>$s->id, 'name'=>$s->size->name, 'price'=>$s->selling_price])) }}"
-                                 data-toppings="{{ json_encode($productToppings->map(fn($t) => ['id'=>$t->id, 'name'=>$t->name, 'price'=>$t->pivot->extra_price])) }}">
+                                 data-toppings="{{ json_encode($allToppings->map(fn($t) => ['id'=>$t->id, 'name'=>$t->name, 'price'=>$t->price])) }}">
                                 
                                 <div class="pt-2">
                                     <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" class="item-checkbox custom-checkbox" checked>
@@ -321,9 +321,9 @@
                             <div class="flex gap-2">
                                 <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
                                 @if($appliedVoucher)
-                                    <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-error/90 transition-all shrink-0">Gỡ mã</button>
+                                    <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-error/90 transition-all shrink-0 whitespace-nowrap">Gỡ mã</button>
                                 @else
-                                    <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all shrink-0">Áp dụng</button>
+                                    <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all shrink-0 whitespace-nowrap">Áp dụng</button>
                                 @endif
                             </div>
                             
@@ -437,7 +437,7 @@
 
 @push('scripts')
 <script>
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const csrfToken = '{{ csrf_token() }}';
     const formatMoney = (amount) => new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
     
     function showToast(message, type = 'error') {
@@ -493,10 +493,7 @@
                         // Always read from the input directly to avoid any state desync
                         const qtyInput = row.querySelector('.quantity-input');
                         if (qtyInput) {
-                            const val = parseInt(qtyInput.value);
-                            if (!isNaN(val) && val >= 1) {
-                                quantity = val;
-                            }
+                            quantity = parseInt(qtyInput.value) || 1;
                         } else {
                             quantity = parseInt(row.getAttribute('data-quantity') || 1);
                         }
@@ -507,7 +504,7 @@
                 }
             });
             
-            // Explicitly force update right side elements
+            // Update Right Side Elements
             const subtotalDisplay = document.querySelector('#subtotalDisplay');
             if (subtotalDisplay) subtotalDisplay.innerText = formatMoney(total);
             
@@ -516,13 +513,11 @@
             
             let discount = 0;
             if (typeof appliedVoucherDetails !== 'undefined' && appliedVoucherDetails) {
-                if (appliedVoucherDetails.minimum_order && total < appliedVoucherDetails.minimum_order) {
-                    discount = 0;
-                } else {
+                if (!appliedVoucherDetails.minimum_order || total >= appliedVoucherDetails.minimum_order) {
                     if (appliedVoucherDetails.discount_type === 'percent') {
                         discount = (total * appliedVoucherDetails.discount_value) / 100;
-                        if (appliedVoucherDetails.max_discount) {
-                            discount = Math.min(discount, appliedVoucherDetails.max_discount);
+                        if (appliedVoucherDetails.maximum_discount) { // Fixed property name
+                            discount = Math.min(discount, appliedVoucherDetails.maximum_discount);
                         }
                     } else {
                         discount = appliedVoucherDetails.discount_value;
@@ -549,12 +544,12 @@
             
             const selectAllCheckbox = document.querySelector('#selectAll');
             if (selectAllCheckbox) {
-                selectAllCheckbox.checked = count > 0 && count === checkboxes.length;
+                selectAllCheckbox.checked = (count > 0 && count === checkboxes.length);
             }
             
             const btnCheckout = document.querySelector('#btnCheckout');
             if (btnCheckout) {
-                btnCheckout.disabled = count === 0;
+                btnCheckout.disabled = (count === 0);
             }
         } catch (e) {
             console.error('Update Totals Error:', e);
@@ -575,26 +570,31 @@
     function updateRowUI(newQty, row) {
         row.setAttribute('data-quantity', newQty);
         row.dataset.quantity = newQty;
-        const qtyInput = row.querySelector('.quantity-input');
-        if (qtyInput && qtyInput.value != newQty) qtyInput.value = newQty;
         
-        const price = parseFloat(row.getAttribute('data-price') || row.dataset.price || 0);
+        const qtyInput = row.querySelector('.quantity-input');
+        if (qtyInput) {
+            qtyInput.value = newQty;
+        }
+        
+        const price = parseFloat(row.getAttribute('data-price') || 0);
         const totalDisplay = row.querySelector('.item-total-display');
-        if (totalDisplay) totalDisplay.textContent = formatMoney(price * newQty);
+        if (totalDisplay) {
+            totalDisplay.innerText = formatMoney(price * newQty);
+        }
         
         updateTotals();
     }
 
     async function updateCartQty(id, newQty, row) {
-        if (newQty < 1 || !row) return;
+        if (isNaN(newQty) || newQty < 1 || !row) return;
         
-        const originalQty = parseInt(row.getAttribute('data-server-quantity') || row.dataset.quantity);
+        const originalQty = parseInt(row.getAttribute('data-server-quantity') || row.dataset.quantity || 1);
         
-        // Optimistic UI Update
+        // Optimistic UI Update - force execution immediately
         updateRowUI(newQty, row);
         
         try {
-            const res = await fetch(`/cart/update/${id}`, {
+            const res = await fetch(`{{ url('/cart/update') }}/${id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -604,20 +604,14 @@
             });
             const data = await res.json();
             if (data.success) {
-                row.setAttribute('data-server-quantity', newQty);
-                // Update badge if exists
-                const badge = document.getElementById('cart-badge');
-                if(badge) {
-                    badge.textContent = data.cart_item_count;
-                    badge.classList.remove('hidden');
-                }
+                // Đảm bảo đồng bộ hoàn toàn với máy chủ bằng cách tải lại trang
+                window.location.reload(); 
             } else {
                 if (data.error) showToast(data.error, 'error');
-                // Revert on error
                 updateRowUI(originalQty, row);
             }
         } catch (e) { 
-            console.error(e);
+            console.error('Fetch Error:', e);
             updateRowUI(originalQty, row);
         }
     }
@@ -626,16 +620,22 @@
         // btn-increase
         const btnInc = e.target.closest('.btn-increase');
         if (btnInc) {
+            e.preventDefault();
             const row = btnInc.closest('.cart-item-row');
-            updateCartQty(btnInc.dataset.id, parseInt(row.dataset.quantity) + 1, row);
+            let currentQty = parseInt(row.dataset.quantity);
+            if (isNaN(currentQty)) currentQty = 1;
+            updateCartQty(btnInc.dataset.id, currentQty + 1, row);
             return;
         }
         
         // btn-decrease
         const btnDec = e.target.closest('.btn-decrease');
         if (btnDec) {
+            e.preventDefault();
             const row = btnDec.closest('.cart-item-row');
-            const qty = parseInt(row.dataset.quantity);
+            let qty = parseInt(row.dataset.quantity);
+            if (isNaN(qty)) qty = 2;
+            
             if (qty > 1) {
                 updateCartQty(btnDec.dataset.id, qty - 1, row);
             } else {

@@ -24,7 +24,7 @@
             <a href="/" class="bg-primary text-white px-xl py-md rounded-xl font-bold hover:bg-primary/90 transition-all">Xem thực đơn</a>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-lg">
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-lg">
             @foreach($favorites as $product)
             <div class="glass-card group flex flex-col h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative cursor-pointer" 
                  data-product="{{ json_encode($product) }}" 

@@ -562,8 +562,19 @@
                     <h1 class="text-[22px] font-bold text-on-surface">Bảo mật tài khoản</h1>
                     <p class="text-[13px] text-on-surface-variant mt-0.5">Đổi mật khẩu để bảo vệ tài khoản</p>
                 </div>
-                <form action="{{ route('profile.password') }}" method="POST">
+                
+                @if($user->google_id)
+                    <div class="p-4 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-center gap-3">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gxg_48dp.png" class="w-8 h-8" alt="Google">
+                        <div>
+                            <p class="font-semibold text-on-surface">Tài khoản Google</p>
+                            <p class="text-[12px] text-on-surface-variant">Tài khoản này được xác thực qua Google. Bạn không thể đổi mật khẩu tại đây.</p>
+                        </div>
+                    </div>
+                @else
+                <form id="change-password-form" onsubmit="submitChangePassword(event)" class="relative">
                     @csrf
+                    <div id="pwd-alert" class="hidden mb-4 p-3 rounded-lg text-label-md"></div>
                     <div class="max-w-md space-y-4">
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Mật khẩu hiện tại</label>
@@ -599,26 +610,22 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Xác nhận mật khẩu mới</label>
+                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Nhập lại mật khẩu mới</label>
                             <div class="relative">
                                 <input name="new_password_confirmation" type="password" id="conf-pw" required
-                                       class="premium-input pr-12" placeholder="Nhập lại mật khẩu"/>
+                                       class="premium-input pr-12" placeholder="••••••••"/>
                                 <button type="button" onclick="togglePw('conf-pw', this)"
                                         class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors">
                                     <span class="material-symbols-outlined text-[20px]">visibility</span>
                                 </button>
                             </div>
                         </div>
-                        <div class="pt-2">
-                            <button type="submit" class="btn-primary">
-                                <span class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[18px]">lock_reset</span>
-                                    Đổi mật khẩu
-                                </span>
-                            </button>
-                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button type="submit" id="btn-save-pwd" class="btn-primary w-auto">Lưu mật khẩu</button>
                     </div>
                 </form>
+                @endif
             </div>
 
             {{-- Security tips --}}
@@ -799,6 +806,32 @@
     </div>
 </div>
 
+<!-- OTP Modal -->
+<div id="otpModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-[18px] font-bold text-on-surface">Xác nhận đổi mật khẩu</h3>
+            <button onclick="closeOtpModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container-high text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <p class="text-[13px] text-on-surface-variant mb-4">Vui lòng nhập mã OTP 6 số vừa được gửi đến email <strong id="otp-email-display"></strong>.</p>
+        <div id="otp-alert" class="hidden mb-4 p-3 rounded-lg text-label-md bg-error-container text-on-error-container"></div>
+        <form id="verify-otp-form" onsubmit="submitVerifyOtp(event)">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Mã OTP</label>
+                <input name="otp" type="text" id="otp-input" required maxlength="6"
+                       class="premium-input text-center tracking-widest font-bold" placeholder="123456"/>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeOtpModal()" class="px-5 py-2 rounded-xl text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Hủy</button>
+                <button type="submit" id="btn-verify-otp" class="btn-primary">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -825,6 +858,107 @@ function switchTab(tabId) {
                 bar.style.width = bar.dataset.width || '0%';
             });
         }, 100);
+    }
+}
+
+// Modal OTP functions
+function openOtpModal(email) {
+    document.getElementById('otp-email-display').textContent = email;
+    document.getElementById('otpModal').classList.add('open');
+    document.getElementById('otp-alert').classList.add('hidden');
+    document.getElementById('otp-input').value = '';
+}
+
+function closeOtpModal() {
+    document.getElementById('otpModal').classList.remove('open');
+}
+
+// AJAX submit change password
+async function submitChangePassword(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('btn-save-pwd');
+    const alertBox = document.getElementById('pwd-alert');
+    const formData = new FormData(form);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
+    alertBox.classList.add('hidden');
+
+    try {
+        const res = await fetch('{{ route("profile.password") }}', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        });
+        const data = await res.json();
+        
+        btn.disabled = false;
+        btn.innerHTML = 'Lưu mật khẩu';
+
+        if (!res.ok) {
+            alertBox.textContent = data.error || data.message || 'Có lỗi xảy ra.';
+            alertBox.className = 'mb-4 p-3 rounded-lg text-label-md block bg-error-container text-on-error-container';
+        } else {
+            if(data.require_otp) {
+                openOtpModal(data.email);
+            } else {
+                alertBox.textContent = data.message;
+                alertBox.className = 'mb-4 p-3 rounded-lg text-label-md block bg-primary-container text-on-primary-container';
+                form.reset();
+            }
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = 'Lưu mật khẩu';
+        alertBox.textContent = 'Lỗi kết nối máy chủ.';
+        alertBox.className = 'mb-4 p-3 rounded-lg text-label-md block bg-error-container text-on-error-container';
+    }
+}
+
+// AJAX submit verify OTP
+async function submitVerifyOtp(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('btn-verify-otp');
+    const alertBox = document.getElementById('otp-alert');
+    
+    btn.disabled = true;
+    btn.innerHTML = 'Đang xử lý...';
+    alertBox.classList.add('hidden');
+
+    try {
+        const res = await fetch('{{ route("profile.password.verify") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ otp: document.getElementById('otp-input').value })
+        });
+        const data = await res.json();
+        
+        btn.disabled = false;
+        btn.innerHTML = 'Xác nhận';
+
+        if (!res.ok) {
+            alertBox.textContent = data.error || data.message || 'Có lỗi xảy ra.';
+            alertBox.classList.remove('hidden');
+        } else {
+            closeOtpModal();
+            const pwdAlert = document.getElementById('pwd-alert');
+            pwdAlert.textContent = data.message;
+            pwdAlert.className = 'mb-4 p-3 rounded-lg text-label-md block bg-primary-container text-on-primary-container';
+            document.getElementById('change-password-form').reset();
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = 'Xác nhận';
+        alertBox.textContent = 'Lỗi kết nối máy chủ.';
+        alertBox.classList.remove('hidden');
     }
 }
 

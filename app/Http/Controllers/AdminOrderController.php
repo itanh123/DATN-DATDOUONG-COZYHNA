@@ -271,4 +271,49 @@ class AdminOrderController extends Controller
             'count' => $newOrdersCount
         ]);
     }
+
+    public function printInvoice($orderCode)
+    {
+        if (!session('user_id')) return redirect('/login');
+
+        $order = Order::with(['customer.user', 'address', 'items.productSize.product', 'items.productSize.size'])
+            ->where(function($q) use ($orderCode) {
+                $q->where('order_code', $orderCode)->orWhere('code', $orderCode);
+            })
+            ->firstOrFail();
+        
+        $customer = null;
+        if ($order->customer) {
+            $customer = $order->customer->user ?? $order->customer;
+        } else {
+            $customer = new \stdClass();
+            $customer->name = $order->receiver_name ?? 'Khách vãng lai';
+            $customer->phone = $order->receiver_phone ?? '';
+            $customer->email = '';
+        }
+
+        $address = $order->address;
+        if (!$address && $order->delivery_address) {
+            $address = new \stdClass();
+            $address->receiver_name = $order->receiver_name ?? ($customer->name ?? 'Khách');
+            $address->receiver_phone = $order->receiver_phone ?? ($customer->phone ?? '');
+            $address->address = $order->delivery_address;
+        }
+
+        $items = collect();
+        foreach ($order->items as $item) {
+            $i = new \stdClass();
+            $i->product_name = $item->product_name ?? ($item->productSize->product->name ?? 'Sản phẩm');
+            $i->size_name = $item->size_name ?? ($item->productSize->size->name ?? '');
+            $i->quantity = $item->quantity;
+            $i->unit_price = $item->unit_price;
+            $i->total_price = $item->quantity * $item->unit_price;
+            $items->push($i);
+        }
+
+        $order->order_code = $order->code;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('order', 'customer', 'address', 'items'));
+        return $pdf->stream('hoadon_' . $order->code . '.pdf');
+    }
 }

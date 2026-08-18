@@ -349,7 +349,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const selects = document.querySelectorAll('select');
+        const selects = document.querySelectorAll('select:not(.no-choices)');
         selects.forEach(select => {
             new Choices(select, {
                 searchEnabled: false,

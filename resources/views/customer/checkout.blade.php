@@ -105,7 +105,7 @@
             @if(count($addresses) > 0)
             <div class="mb-md">
                 <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Chọn địa chỉ đã lưu</label>
-                <select id="saved_address_select" class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
+                <select id="saved_address_select" class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
                     <option value="">-- Nhập địa chỉ mới --</option>
                     @foreach($addresses as $addr)
                         <option value="{{ $addr->id }}" 
@@ -140,19 +140,19 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-md mt-md">
                 <div>
                     <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Tỉnh/Thành phố *</label>
-                    <select id="province_select" name="province" required class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
+                    <select id="province_select" name="province" required class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
                         <option value="">Chọn Tỉnh/Thành phố</option>
                     </select>
                 </div>
                 <div>
                     <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Quận/Huyện *</label>
-                    <select id="district_select" name="district" required disabled class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
+                    <select id="district_select" name="district" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
                         <option value="">Chọn Quận/Huyện</option>
                     </select>
                 </div>
                 <div>
                     <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Phường/Xã *</label>
-                    <select id="ward_select" name="ward" required disabled class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
+                    <select id="ward_select" name="ward" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
                         <option value="">Chọn Phường/Xã</option>
                     </select>
                 </div>
