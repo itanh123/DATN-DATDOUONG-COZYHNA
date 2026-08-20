@@ -196,6 +196,35 @@
 </head>
 <body class="bg-background text-on-surface">
 
+<!-- Global Flash Messages -->
+@if(session('error') || session('success'))
+    <div id="global-toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] min-w-[320px] shadow-2xl rounded-xl overflow-hidden transition-all duration-500 transform translate-y-0 opacity-100">
+        @if(session('error'))
+            <div class="bg-error text-on-error px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">error</span>
+                <span class="font-body-md flex-1">{{ session('error') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="bg-primary text-on-primary px-lg py-md flex items-center gap-md">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="font-body-md flex-1">{{ session('success') }}</span>
+                <button onclick="document.getElementById('global-toast').remove()" class="hover:opacity-70 active:scale-95 transition-transform"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        @endif
+    </div>
+    <script>
+        setTimeout(() => {
+            const toast = document.getElementById('global-toast');
+            if (toast) {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('-translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 8000);
+    </script>
+@endif
 <!-- Mobile Top Header -->
 <header class="md:hidden flex items-center justify-between px-md py-sm bg-surface border-b border-outline-variant/30 sticky top-0 z-30 shadow-sm">
     <div class="flex items-center gap-sm">

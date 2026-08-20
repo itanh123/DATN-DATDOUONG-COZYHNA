@@ -51,7 +51,7 @@ class AuthController extends Controller
         $request->session()->put('user_id', $user->id);
         $request->session()->put('role_code', $roleCode);
 
-        return redirect('/');
+        return redirect('/')->with('success', 'Xin chào ' . ($user->name ?? $user->username) . ', chào mừng bạn quay lại!');
     }
 
     public function showLoginAdmin()
@@ -191,6 +191,8 @@ class AuthController extends Controller
         Cache::forget('register_otp_'.$email);
         RateLimiter::clear('verify-otp-register:'.$email);
 
+        $request->session()->flash('success', 'Xin chào ' . $user->username . ', đăng ký thành công!');
+
         return response()->json(['message' => 'Đăng ký tài khoản thành công!']);
     }
 
@@ -246,7 +248,7 @@ class AuthController extends Controller
             $request->session()->put('user_id', $user->id);
             $request->session()->put('role_code', $roleCode);
 
-            return redirect('/');
+            return redirect('/')->with('success', 'Xin chào ' . ($user->name ?? $user->username) . ', chào mừng bạn quay lại!');
         } catch (\Exception $e) {
             Log::error('Google Login Error: ' . $e->getMessage());
             return redirect('/login')->withErrors(['email' => 'Đăng nhập Google thất bại. Lỗi: ' . $e->getMessage()]);
