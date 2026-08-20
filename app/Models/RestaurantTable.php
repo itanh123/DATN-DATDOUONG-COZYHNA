@@ -16,15 +16,16 @@ class RestaurantTable extends Model
         'area_id',
         'code',
         'name',
+        'table_name',
         'capacity',
-        'pos_x',
-        'pos_y',
-        'width',
-        'height',
+        'minimum_capacity',
+        'location_x',
+        'location_y',
         'shape',
         'qr_code',
         'qr_token',
         'status',
+        'note',
     ];
 
     public function area()
@@ -45,7 +46,6 @@ class RestaurantTable extends Model
     public function mergedTables()
     {
         return $this->belongsToMany(MergedTable::class, 'merged_table_items', 'table_id', 'merged_table_id')
-                    ->withPivot('is_primary')
-                    ->withTimestamps();
+                    ->withPivot('is_primary');
     }
 }

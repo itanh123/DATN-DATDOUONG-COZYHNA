@@ -87,8 +87,8 @@
             background-color: #f8f9ff !important;
             color: #006e1c !important;
         }
-        @stack('styles')
 </style>
+@stack('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script id="tailwind-config">
@@ -208,10 +208,12 @@
 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
 <input name="search" value="{{ request('search') }}" class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2" placeholder="Tìm kiếm đồ uống..." type="text"/>
 </form>
+@if(session()->has('user_id') || session('is_table_order'))
 <a href="/customer/cart" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Giỏ hàng">
     <span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
     <span id="cart-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
 </a>
+@endif
 @if(!session('is_table_order'))
 @if(session()->has('user_id'))
     <a href="/customer/favorites" class="relative flex items-center justify-center text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" title="Yêu thích">
@@ -268,10 +270,12 @@
 <span class="material-symbols-outlined" data-icon="home">home</span>
 <span class="font-label-sm text-label-sm">Trang chủ</span>
 </a>
+@if(session()->has('user_id') || session('is_table_order'))
 <a href="/customer/cart" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
 <span class="font-label-sm text-label-sm">Đặt hàng</span>
 </a>
+@endif
 @if(!session('is_table_order'))
 <a href="/customer/orders" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
 <span class="material-symbols-outlined" data-icon="history">history</span>

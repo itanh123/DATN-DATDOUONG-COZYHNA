@@ -483,8 +483,9 @@ class CartController extends Controller
         $storeSpecificAddress = \App\Models\Setting::get('store_specific_address', '');
         $storeLat = \App\Models\Setting::get('store_lat', '');
         $storeLon = \App\Models\Setting::get('store_lon', '');
+        $shippingTiers = \App\Models\Setting::get('shipping_tiers', '[{"max_km": 3, "fee": 15000}, {"max_km": 5, "fee": 20000}, {"max_km": 10, "fee": 30000}, {"max_km": 15, "fee": 40000}]');
 
-        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'baseFee', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress', 'storeLat', 'storeLon'));
+        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'baseFee', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress', 'storeLat', 'storeLon', 'shippingTiers'));
     }
 
     private function calcTotals($cartItems): array

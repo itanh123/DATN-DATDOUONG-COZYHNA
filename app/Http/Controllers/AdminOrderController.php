@@ -54,7 +54,9 @@ class AdminOrderController extends Controller
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
-        $shippers = ShipperProfile::with('user')->where('status', 'Available')->get();
+        $shippers = \Illuminate\Support\Facades\Cache::remember('available_shippers', 300, function () {
+            return ShipperProfile::with('user')->where('status', 'Available')->get();
+        });
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

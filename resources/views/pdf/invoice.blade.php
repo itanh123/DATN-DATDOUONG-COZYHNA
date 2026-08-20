@@ -22,7 +22,6 @@
         .totals-table th { background: transparent; text-align: right; }
         .total-row { font-size: 18px; font-weight: bold; color: #006400; border-top: 2px solid #006400 !important; }
         .footer { text-align: center; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 20px; margin-top: 50px; clear: both; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; background: #e3f2fd; color: #1976d2; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -36,13 +35,13 @@
     <div class="row">
         <div class="col-half">
             <div class="section-title">THÔNG TIN KHÁCH HÀNG</div>
-            @if($order->customer_id)
+            @if($order->customer_id && isset($customer))
                 <p><strong>Khách hàng:</strong> {{ $customer->name ?? $customer->username ?? 'Khách hàng' }}</p>
-                @if(isset($customer->email)) <p><strong>Email:</strong> {{ $customer->email }}</p> @endif
-                @if(isset($customer->phone)) <p><strong>SĐT:</strong> {{ $customer->phone }}</p> @endif
+                @if($customer->email) <p><strong>Email:</strong> {{ $customer->email }}</p> @endif
+                @if($customer->phone) <p><strong>SĐT:</strong> {{ $customer->phone }}</p> @endif
             @endif
             
-            @if($address)
+            @if(!empty($address))
             <div class="section-title" style="margin-top: 20px;">ĐỊA CHỈ GIAO HÀNG</div>
             <p><strong>Người nhận:</strong> {{ $address->receiver_name }}</p>
             <p><strong>SĐT:</strong> {{ $address->receiver_phone }}</p>
@@ -52,14 +51,15 @@
         <div class="col-half invoice-details">
             <div class="section-title text-right">HÓA ĐƠN BÁN HÀNG</div>
             <p><strong>Mã đơn hàng:</strong> {{ $order->order_code }}</p>
-            <p><strong>Ngày đặt:</strong> {{ \Carbon\Carbon::parse($order->created_at)->format('H:i, d/m/Y') }}</p>
-            <p><strong>Ngày xuất HĐ:</strong> {{ \Carbon\Carbon::now()->format('H:i, d/m/Y') }}</p>
+            <p><strong>Ngày đặt:</strong> {{ $order->created_at->format('H:i, d/m/Y') }}</p>
+            <p><strong>Ngày xuất HĐ:</strong> {{ now()->format('H:i, d/m/Y') }}</p>
             <p><strong>Phương thức TT:</strong> 
-                @if($order->payment_method == 'cash') Tiền mặt (COD)
-                @elseif($order->payment_method == 'momo') Ví MoMo
-                @elseif($order->payment_method == 'vnpay') VNPay
-                @elseif($order->payment_method == 'bank') Chuyển khoản
-                @else {{ $order->payment_method }} @endif
+                {{ [
+                    'cash' => 'Tiền mặt (COD)',
+                    'momo' => 'Ví MoMo',
+                    'vnpay' => 'VNPay',
+                    'bank' => 'Chuyển khoản'
+                ][$order->payment_method] ?? $order->payment_method }}
             </p>
         </div>
     </div>
@@ -92,10 +92,12 @@
             <th>Tạm tính:</th>
             <td class="text-right">{{ number_format($order->subtotal, 0, ',', '.') }}đ</td>
         </tr>
+        @if($order->discount_amount > 0)
         <tr>
             <th>Giảm giá:</th>
             <td class="text-right" style="color: #d32f2f;">-{{ number_format($order->discount_amount, 0, ',', '.') }}đ</td>
         </tr>
+        @endif
         <tr>
             <th>Phí vận chuyển:</th>
             <td class="text-right">{{ number_format($order->shipping_fee, 0, ',', '.') }}đ</td>

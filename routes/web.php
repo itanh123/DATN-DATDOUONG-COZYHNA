@@ -25,66 +25,7 @@ if (!function_exists('check_permission')) {
 // Home & Auth Routes
 // ---------------------------------------------------------
 
-Route::get('/', function (\Illuminate\Http\Request $request) {
-    $categories = \App\Models\Category::all();
-
-    $query = \App\Models\Product::query()
-        ->whereNull('deleted_at')
-        ->where('status', true)
-        ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category', 'reviews.user']);
-
-    if ($request->has('category_id')) {
-        $query->where('category_id', $request->category_id);
-    }
-
-    if ($request->has('search') && $request->search != '') {
-        $search = $request->search;
-        $query->where(function($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%");
-        });
-    }
-
-    $products = $query->get();
-
-    $availableProducts = $products->filter(function ($product) {
-        $hasAvailableSize = false;
-        foreach ($product->productSizes as $size) {
-            $isSizeAvailable = true;
-            $recipe = $size->recipes->first();
-            if ($recipe) {
-                foreach ($recipe->ingredients as $ri) {
-                    if ($ri->ingredient && $ri->ingredient->current_stock < $ri->quantity) {
-                        $isSizeAvailable = false;
-                        break;
-                    }
-                }
-            }
-            if ($isSizeAvailable) {
-                $hasAvailableSize = true;
-                break;
-            }
-        }
-        return $hasAvailableSize;
-    });
-
-    // Calculate sales
-    $sales = \Illuminate\Support\Facades\DB::table('order_items')
-        ->join('product_sizes', 'order_items.product_size_id', '=', 'product_sizes.id')
-        ->select('product_sizes.product_id', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_sales'))
-        ->groupBy('product_sizes.product_id')
-        ->pluck('total_sales', 'product_id');
-
-    // Sort descending by sales
-    $products = $availableProducts->sortByDesc(function ($product) use ($sales) {
-        return $sales->get($product->id, 0);
-    });
-
-    $isFiltered = $request->has('category_id');
-    $toppings = \App\Models\Topping::where('status', true)->get();
-
-    return view('customer.home', compact('products', 'categories', 'isFiltered', 'toppings'));
-});
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'index']);
 
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLogin']);
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
@@ -216,9 +157,11 @@ Route::middleware(['admin'])->group(function () {
     // Ingredients
     Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
     Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
+    Route::post('/admin/ingredients/import', [\App\Http\Controllers\AdminIngredientController::class, 'import']);
     Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
     Route::delete('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'destroy']);
-    Route::get('/admin/inventory', function () { return view('admin.inventory'); });
+    Route::get('/admin/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index']);
+    Route::get('/admin/inventory/transactions', [\App\Http\Controllers\Admin\InventoryController::class, 'transactions']);
 
     // Products
     Route::get('/admin/add_product', function () { return view('admin.add_product'); });
@@ -340,6 +283,10 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/admin/roles/store', function (\Illuminate\Http\Request $request) {
         if (!check_permission('manage_permissions')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
         return app('App\Http\Controllers\RoleController')->store($request);
+    });
+    Route::delete('/admin/roles/{role}', function (\App\Models\Role $role) {
+        if (!check_permission('manage_permissions')) return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
+        return app('App\Http\Controllers\RoleController')->destroy($role);
     });
 
     // Promotions, Reports, Reviews
@@ -522,3 +469,4 @@ Route::middleware(['admin'])->group(function () {
     Route::post('/admin/tables/unmerge', [\App\Http\Controllers\Admin\RestaurantTableController::class, 'unmergeTables']);
 });
 
+Route::get('/api/boundary', [\App\Http\Controllers\BoundaryController::class, 'getBoundary']);

@@ -9,9 +9,17 @@
             <h2 class="font-headline-lg text-headline-lg text-on-surface">Nguyên liệu</h2>
             <p class="text-on-surface-variant font-body-md text-body-md">Quản lý kho nguyên liệu và cảnh báo hết hạn.</p>
         </div>
-        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-xl font-label-md flex items-center gap-2">
-            <span class="material-symbols-outlined">add</span> Thêm mới
-        </button>
+        <div class="flex gap-2">
+            <a href="/admin/inventory/transactions" class="bg-surface-container-high text-on-surface hover:text-primary hover:bg-primary-container/20 px-4 py-2 rounded-xl font-label-md flex items-center gap-2 transition-colors border border-outline-variant/30">
+                <span class="material-symbols-outlined">history</span> Lịch sử biến động
+            </a>
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="bg-secondary text-on-secondary px-4 py-2 rounded-xl font-label-md flex items-center gap-2 hover:shadow-md transition-all">
+                <span class="material-symbols-outlined">input</span> Nhập kho
+            </button>
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-primary text-on-primary px-4 py-2 rounded-xl font-label-md flex items-center gap-2 hover:shadow-md transition-all">
+                <span class="material-symbols-outlined">add</span> Thêm mới
+            </button>
+        </div>
     </header>
 
     @if(session('success'))
@@ -165,10 +173,6 @@
             </div>
             <div class="flex gap-4">
                 <div class="flex-1">
-                    <label class="block font-label-md mb-1">Tồn kho</label>
-                    <input type="number" step="0.01" name="current_stock" id="edit_current_stock" required class="w-full rounded-lg border-outline-variant px-3 py-2">
-                </div>
-                <div class="flex-1">
                     <label class="block font-label-md mb-1">Tồn kho tối thiểu</label>
                     <input type="number" step="0.01" name="minimum_stock" id="edit_minimum_stock" required class="w-full rounded-lg border-outline-variant px-3 py-2">
                 </div>
@@ -188,6 +192,35 @@
         </form>
     </div>
 </div>
+<!-- Import Modal -->
+<div id="importModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+    <div class="bg-surface p-xl rounded-2xl w-[500px] max-w-full">
+        <h3 class="font-title-lg mb-md">Nhập kho nguyên liệu</h3>
+        <form action="/admin/ingredients/import" method="POST" class="flex flex-col gap-4">
+            @csrf
+            <div>
+                <label class="block font-label-md mb-1">Chọn nguyên liệu</label>
+                <select name="ingredient_id" required class="w-full rounded-lg border-outline-variant px-3 py-2">
+                    @foreach($ingredients as $ing)
+                        <option value="{{ $ing->id }}">{{ $ing->name }} ({{ $ing->code }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block font-label-md mb-1">Số lượng nhập</label>
+                <input type="number" step="0.01" min="0.01" name="quantity" required class="w-full rounded-lg border-outline-variant px-3 py-2" placeholder="Ví dụ: 10">
+            </div>
+            <div>
+                <label class="block font-label-md mb-1">Ghi chú (Tùy chọn)</label>
+                <input type="text" name="note" class="w-full rounded-lg border-outline-variant px-3 py-2" placeholder="Ví dụ: Nhập hàng từ nhà cung cấp">
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 font-label-md text-on-surface-variant">Hủy</button>
+                <button type="submit" class="px-4 py-2 font-label-md bg-secondary text-on-secondary rounded-lg">Xác nhận nhập kho</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
     function editItem(item) {
@@ -195,7 +228,6 @@
         document.getElementById('edit_code').value = item.code;
         document.getElementById('edit_name').value = item.name;
         document.getElementById('edit_unit_id').value = item.unit_id;
-        document.getElementById('edit_current_stock').value = item.current_stock;
         document.getElementById('edit_minimum_stock').value = item.minimum_stock;
         if(item.expiration_date) {
             // Format for datetime-local: YYYY-MM-DDThh:mm

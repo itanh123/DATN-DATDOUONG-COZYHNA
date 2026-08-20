@@ -20,6 +20,7 @@ class DeliverySettingController extends Controller
             'min_order_amount' => Setting::get('min_order_amount', 0),
             'store_lat' => Setting::get('store_lat', ''),
             'store_lon' => Setting::get('store_lon', ''),
+            'shipping_tiers' => Setting::get('shipping_tiers', '[{"max_km": 3, "fee": 15000}, {"max_km": 5, "fee": 20000}, {"max_km": 10, "fee": 30000}, {"max_km": 15, "fee": 40000}]'),
         ];
 
         return view('admin.delivery_settings', compact('settings'));
@@ -37,6 +38,7 @@ class DeliverySettingController extends Controller
             'min_order_amount' => 'required|numeric|min:0',
             'store_lat' => 'nullable|string',
             'store_lon' => 'nullable|string',
+            'shipping_tiers' => 'nullable|string', // JSON string from frontend
         ]);
 
         $fullAddress = $request->store_specific_address . ', ' . $request->store_ward . ', ' . $request->store_district . ', ' . $request->store_province;
@@ -50,6 +52,14 @@ class DeliverySettingController extends Controller
         Setting::updateOrCreate(['key' => 'fee_per_km'], ['value' => $request->fee_per_km]);
         Setting::updateOrCreate(['key' => 'max_delivery_radius'], ['value' => $request->max_delivery_radius]);
         Setting::updateOrCreate(['key' => 'min_order_amount'], ['value' => $request->min_order_amount]);
+        
+        // Validate JSON before saving
+        if ($request->filled('shipping_tiers')) {
+            $decoded = json_decode($request->shipping_tiers, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                Setting::updateOrCreate(['key' => 'shipping_tiers'], ['value' => $request->shipping_tiers]);
+            }
+        }
         
         if ($request->filled('store_lat') && $request->filled('store_lon')) {
             Setting::updateOrCreate(['key' => 'store_lat'], ['value' => $request->store_lat]);

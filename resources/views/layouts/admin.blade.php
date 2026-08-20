@@ -115,6 +115,22 @@
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
         
+        /* Tùy chỉnh thanh cuộn (scrollbar) */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #becab9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6f7a6b;
+        }
+        
         /* Ghi đè giao diện Choices.js cho khớp với hệ thống */
         .choices {
             margin-bottom: 0 !important;
@@ -173,8 +189,8 @@
             background-color: #f8f9ff !important;
             color: #006e1c !important;
         }
-        @stack('styles')
 </style>
+@stack('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
@@ -210,7 +226,7 @@
 @endphp
 <p class="font-label-md text-label-md text-on-surface-variant">Xin chào, {{ $adminName }}</p>
 </div>
-<nav class="flex-1 flex flex-col gap-xs">
+<nav class="flex-1 flex flex-col gap-xs overflow-y-auto">
 @php
     $roleCode = session('role_code');
     $userPermissions = [];
@@ -257,7 +273,7 @@
 
 @if($hasPermission('view_products') || $hasPermission('view_ingredients') || $hasPermission('view_reviews'))
 @if($hasPermission('view_ingredients'))
-<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/ingredients">
+<a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all {{ request()->is('admin/ingredients') ? 'bg-primary/10 text-primary font-bold' : '' }}" href="/admin/ingredients">
 <span class="material-symbols-outlined" data-icon="science">science</span>
 <span class="font-label-md text-label-md">Nguyên liệu</span>
 </a>
@@ -342,7 +358,7 @@
 @stack('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const selects = document.querySelectorAll('select');
+        const selects = document.querySelectorAll('select:not(.no-choices)');
         selects.forEach(select => {
             new Choices(select, {
                 searchEnabled: false,

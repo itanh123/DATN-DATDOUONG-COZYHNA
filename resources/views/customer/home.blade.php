@@ -84,60 +84,7 @@
 </div>
 </div>
 </section>
-<!-- Khách hàng Reviews Carousel -->
-<section class="mb-2xl pb-xl">
-<h2 class="font-headline-lg text-headline-lg text-center mb-2xl">Cộng Đồng Của Chúng Tôi</h2>
-<div class="flex gap-lg overflow-x-auto no-scrollbar -mx-lg px-lg">
-<div class="min-w-[300px] bg-white p-xl rounded-3xl border border-outline-variant/20 shadow-sm">
-<div class="flex items-center gap-md mb-lg">
-<div class="w-12 h-12 rounded-full bg-cover bg-center" data-alt="Profile photo of a professional woman in her 30s smiling warmly." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCqDJBMSdyDepeMrePkCzFRuQlsUAaF5JqE8nN-PkWHpElIbsRlVYA5g2cMAap5afA72qQv4mefYFylUSHLa9T_bNSs1lSAqji25WTUWXyyqJ6TZ6e-Mp__5Q1O_pjXf61jB8hyB2ftOTG09yZkhtAMG0MHcldyYWWxqpETK6PBjt8EOsZbmm8CBi86WbZ_gpmqtxWDz_f3WwvlTtE6ntkk9oOMKmU1UPN_UKndg3n-rwk6w2QeUtp2_0si2uCZJ34hfm3ym8Jd')"></div>
-<div>
-<p class="font-bold">Sarah Jenkins</p>
-<div class="flex text-tertiary">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-</div>
-</div>
-</div>
-<p class="text-body-lg italic text-on-surface-variant">"The Cold Brew Mật Ong Hoa Oải Hương is life-changing. It's the highlight of my morning commute!"</p>
-</div>
-<div class="min-w-[300px] bg-white p-xl rounded-3xl border border-outline-variant/20 shadow-sm">
-<div class="flex items-center gap-md mb-lg">
-<div class="w-12 h-12 rounded-full bg-cover bg-center" data-alt="Profile photo of a young male creative professional with glasses." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBcnfh2xr2UaEragR_HGrXCX0ihQKAKnV62VrP_u2FAZqLz6D7MWobvHUClJyJ1g3VlDh3d4CFS9Io6BFqsXgYfxlxfRKS0_SqSkT7RISjbyKK-GYjogBLN3zGMCsaTQR0B6LH4e7ZaPxxWQ83BiGZWQ17Y9iypeYDMi7RJCysHmbSiQAWBftIoxoD984EPGVIMqeNvveWw0VQGr9AFGModg46ZxsNSyRMTIOS9X8u6huGhQHluLmEtkuufRn7JHTxyB1i-AYh_')"></div>
-<div>
-<p class="font-bold">Mark Thompson</p>
-<div class="flex text-tertiary">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-</div>
-</div>
-</div>
-<p class="text-body-lg italic text-on-surface-variant">"Incredible interface and even better coffee. The loyalty program is actually worth it."</p>
-</div>
-<div class="min-w-[300px] bg-white p-xl rounded-3xl border border-outline-variant/20 shadow-sm">
-<div class="flex items-center gap-md mb-lg">
-<div class="w-12 h-12 rounded-full bg-cover bg-center" data-alt="Profile photo of a stylish elderly woman with grey hair and a bright smile." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjz3WkQwhsh3Uw5mdykPnktriiVKaDIsbonUDd90YPCreD_BuAtNOSQGQAdb48lyO3ySxt28XbyEYFDd4Vbm4tsS6pLbVd2wBI43cFDhwOGhjdd_F8OCRDZBFLaMW8JZPCHyy6KYLMXLyJCcd5r-D5UeWMRbnQ5l3cmGLM8a6nM0lixPzI3rittha8M_99Tm4Pz6qkYKp8iQxXGLcKaj4RoV4QMxfYJgeYy5cr3u3Tq6r58SnRx-F-Rbo-BHSd0OCVPAx75vmE')"></div>
-<div>
-<p class="font-bold">Elena Rodriguez</p>
-<div class="flex text-tertiary">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="material-symbols-outlined text-[16px]">star</span>
-</div>
-</div>
-</div>
-<p class="text-body-lg italic text-on-surface-variant">"I love that they have so many vegan options that don't compromise on taste."</p>
-</div>
-</div>
-</section>
+
 </div>
 </main>
 @push('scripts')

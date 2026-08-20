@@ -22,8 +22,7 @@ class MergedTable extends Model
     public function tables()
     {
         return $this->belongsToMany(RestaurantTable::class, 'merged_table_items', 'merged_table_id', 'table_id')
-                    ->withPivot('is_primary')
-                    ->withTimestamps();
+                    ->withPivot('is_primary');
     }
 
     public function primaryTable()

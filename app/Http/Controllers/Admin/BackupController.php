@@ -9,12 +9,10 @@ use Illuminate\Support\Facades\File;
 class BackupController extends Controller
 {
     protected $backupPath;
-    protected $dbPath;
 
     public function __construct()
     {
         $this->backupPath = storage_path('app/backups');
-        $this->dbPath = database_path('database.sqlite');
 
         // Ensure backup directory exists
         if (!File::isDirectory($this->backupPath)) {
@@ -31,7 +29,7 @@ class BackupController extends Controller
         $files = File::files($this->backupPath);
 
         foreach ($files as $file) {
-            if ($file->getExtension() === 'sqlite') {
+            if ($file->getExtension() === 'sql') {
                 $backups[] = [
                     'filename' => $file->getFilename(),
                     'size' => $file->getSize(),
@@ -54,14 +52,34 @@ class BackupController extends Controller
      */
     public function create()
     {
-        $filename = 'backup_' . date('Y-m-d_H-i-s') . '.sqlite';
+        $filename = 'backup_' . date('Y-m-d_H-i-s') . '.sql';
         $destination = $this->backupPath . DIRECTORY_SEPARATOR . $filename;
 
-        if (!File::exists($this->dbPath)) {
-            return redirect('/admin/backup')->with('error', 'Không tìm thấy file cơ sở dữ liệu.');
+        $dbName = env('DB_DATABASE');
+        $dbUser = env('DB_USERNAME');
+        $dbPass = env('DB_PASSWORD');
+
+        $mysqldumpPaths = [
+            'mysqldump', // if in PATH
+            'E:\laragon\bin\mysql\mysql-8.0.45-winx64\bin\mysqldump.exe',
+            'C:\xampp\mysql\bin\mysqldump.exe',
+            'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe'
+        ];
+
+        $success = false;
+        foreach ($mysqldumpPaths as $bin) {
+            $passArg = $dbPass ? "-p\"{$dbPass}\"" : "";
+            $cmd = "\"{$bin}\" -u \"{$dbUser}\" {$passArg} \"{$dbName}\" > \"{$destination}\" 2>&1";
+            exec($cmd, $output, $returnVar);
+            if ($returnVar === 0) {
+                $success = true;
+                break;
+            }
         }
 
-        File::copy($this->dbPath, $destination);
+        if (!$success) {
+            return redirect('/admin/backup')->with('error', 'Lỗi không thể tạo bản sao lưu MySQL. Vui lòng kiểm tra mysqldump.');
+        }
 
         return response()->download($destination, $filename)->deleteFileAfterSend(false);
     }
@@ -80,18 +98,38 @@ class BackupController extends Controller
             return redirect('/admin/backup')->with('error', 'Bản sao lưu không tồn tại.');
         }
 
-        // Auto-backup current DB before restoring
-        $autoBackupName = 'auto_before_restore_' . date('Y-m-d_H-i-s') . '.sqlite';
-        File::copy($this->dbPath, $this->backupPath . DIRECTORY_SEPARATOR . $autoBackupName);
+        // --- Execute restore via mysql ---
+        $dbName = env('DB_DATABASE');
+        $dbUser = env('DB_USERNAME');
+        $dbPass = env('DB_PASSWORD');
 
-        // Replace current database
-        File::copy($backupFile, $this->dbPath);
+        $mysqlPaths = [
+            'mysql',
+            'E:\laragon\bin\mysql\mysql-8.0.45-winx64\bin\mysql.exe',
+            'C:\xampp\mysql\bin\mysql.exe',
+            'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
+        ];
 
-        return redirect('/admin/backup')->with('success', 'Đã khôi phục thành công từ bản sao lưu "' . $filename . '". Bản sao lưu tự động trước khi khôi phục: "' . $autoBackupName . '".');
+        $success = false;
+        foreach ($mysqlPaths as $bin) {
+            $passArg = $dbPass ? "-p\"{$dbPass}\"" : "";
+            $cmd = "\"{$bin}\" -u \"{$dbUser}\" {$passArg} \"{$dbName}\" < \"{$backupFile}\" 2>&1";
+            exec($cmd, $output, $returnVar);
+            if ($returnVar === 0) {
+                $success = true;
+                break;
+            }
+        }
+
+        if (!$success) {
+            return redirect('/admin/backup')->with('error', 'Lỗi không thể khôi phục MySQL. Vui lòng kiểm tra lệnh mysql.');
+        }
+
+        return redirect('/admin/backup')->with('success', 'Đã khôi phục thành công từ bản sao lưu "' . $filename . '".');
     }
 
     /**
-     * Upload a .sqlite file and restore from it.
+     * Upload a .sql file and restore from it.
      */
     public function upload(Request $request)
     {
@@ -101,18 +139,42 @@ class BackupController extends Controller
 
         $file = $request->file('backup_file');
 
-        if ($file->getClientOriginalExtension() !== 'sqlite') {
-            return redirect('/admin/backup')->with('error', 'Chỉ chấp nhận file có đuôi .sqlite');
+        if ($file->getClientOriginalExtension() !== 'sql') {
+            return redirect('/admin/backup')->with('error', 'Chỉ chấp nhận file có đuôi .sql');
         }
 
-        // Auto-backup current DB before restoring
-        $autoBackupName = 'auto_before_upload_restore_' . date('Y-m-d_H-i-s') . '.sqlite';
-        File::copy($this->dbPath, $this->backupPath . DIRECTORY_SEPARATOR . $autoBackupName);
+        $filename = 'uploaded_' . date('Y-m-d_H-i-s') . '.sql';
+        $backupFile = $this->backupPath . DIRECTORY_SEPARATOR . $filename;
+        $file->move($this->backupPath, $filename);
 
-        // Save uploaded file and replace current database
-        $file->move(dirname($this->dbPath), basename($this->dbPath));
+        // --- Execute restore via mysql ---
+        $dbName = env('DB_DATABASE');
+        $dbUser = env('DB_USERNAME');
+        $dbPass = env('DB_PASSWORD');
 
-        return redirect('/admin/backup')->with('success', 'Đã khôi phục thành công từ file upload. Bản sao lưu tự động trước khi khôi phục: "' . $autoBackupName . '".');
+        $mysqlPaths = [
+            'mysql',
+            'E:\laragon\bin\mysql\mysql-8.0.45-winx64\bin\mysql.exe',
+            'C:\xampp\mysql\bin\mysql.exe',
+            'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe'
+        ];
+
+        $success = false;
+        foreach ($mysqlPaths as $bin) {
+            $passArg = $dbPass ? "-p\"{$dbPass}\"" : "";
+            $cmd = "\"{$bin}\" -u \"{$dbUser}\" {$passArg} \"{$dbName}\" < \"{$backupFile}\" 2>&1";
+            exec($cmd, $output, $returnVar);
+            if ($returnVar === 0) {
+                $success = true;
+                break;
+            }
+        }
+
+        if (!$success) {
+            return redirect('/admin/backup')->with('error', 'Lỗi không thể khôi phục MySQL từ file upload.');
+        }
+
+        return redirect('/admin/backup')->with('success', 'Đã tải lên và khôi phục thành công từ file upload.');
     }
 
     /**

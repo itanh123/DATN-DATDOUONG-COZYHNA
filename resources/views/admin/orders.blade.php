@@ -244,6 +244,17 @@
                     </div>
                 </div>
             </div>
+            
+            <div id="modalMapWrapper" class="hidden mb-xl">
+                <div class="flex justify-between items-center mb-sm">
+                    <h4 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Bản đồ giao hàng</h4>
+                    <p class="font-label-md text-on-surface-variant flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-[16px]">map</span>
+                        <span id="modalMapDistance"></span>
+                    </p>
+                </div>
+                <div id="modalAdminMap" class="w-full h-[300px] rounded-xl overflow-hidden border border-outline z-0"></div>
+            </div>
 
             <!-- Danh sách sản phẩm -->
             <h4 class="font-label-lg text-label-lg text-on-surface-variant mb-sm uppercase tracking-wider">Sản phẩm</h4>
@@ -341,7 +352,12 @@
 
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+@endpush
+
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     const CSRF_TOKEN = '{{ csrf_token() }}';
 
@@ -475,6 +491,80 @@
                 });
                 if(histories.length === 0) historyHtml = '<p class="text-on-surface-variant italic">Chưa có cập nhật nào</p>';
                 document.getElementById('modalHistoryList').innerHTML = historyHtml;
+
+                // Handle Map
+                const mapWrapper = document.getElementById('modalMapWrapper');
+                const mapDistance = document.getElementById('modalMapDistance');
+                
+                if (order.delivery_latitude && order.delivery_longitude && order.order_type === 'DELIVERY') {
+                    mapWrapper.classList.remove('hidden');
+                    mapDistance.innerHTML = `Khoảng cách: ${order.distance_km || 0} km (${order.route_duration_minutes || '--'} phút) &bull; <a href="https://www.google.com/maps/dir/?api=1&origin={{ \App\Models\Setting::get('store_lat', '0') }},{{ \App\Models\Setting::get('store_lon', '0') }}&destination=${order.delivery_latitude},${order.delivery_longitude}&travelmode=driving" target="_blank" class="text-primary hover:underline">Google Maps</a>`;
+                    
+                    // Initialize Leaflet map if it hasn't been created
+                    if (!window.adminMap) {
+                        window.adminMap = L.map('modalAdminMap');
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(window.adminMap);
+                    }
+                    
+                    // Clear previous layers
+                    window.adminMap.eachLayer((layer) => {
+                        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                            window.adminMap.removeLayer(layer);
+                        }
+                    });
+
+                    const storeLat = {{ \App\Models\Setting::get('store_lat', '0') }};
+                    const storeLon = {{ \App\Models\Setting::get('store_lon', '0') }};
+                    const destLat = order.delivery_latitude;
+                    const destLon = order.delivery_longitude;
+
+                    // Store marker
+                    const storeIcon = L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    });
+                    L.marker([storeLat, storeLon], {icon: storeIcon}).addTo(window.adminMap).bindPopup('<b>Cửa hàng</b>');
+
+                    // Customer marker
+                    const cusIcon = L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    });
+                    L.marker([destLat, destLon], {icon: cusIcon}).addTo(window.adminMap).bindPopup('<b>Khách hàng</b>');
+
+                    // Fit bounds
+                    const bounds = L.latLngBounds([[storeLat, storeLon], [destLat, destLon]]);
+                    
+                    // Lấy đường đi từ OSRM API
+                    fetch(`https://router.project-osrm.org/route/v1/driving/${storeLon},${storeLat};${destLon},${destLat}?overview=full&geometries=geojson`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.routes && data.routes[0]) {
+                                const routeLayer = L.geoJSON(data.routes[0].geometry, {
+                                    style: { color: '#006e1c', weight: 4, opacity: 0.8 }
+                                }).addTo(window.adminMap);
+                            }
+                        })
+                        .catch(e => console.error('Lỗi lấy đường đi:', e));
+
+                    setTimeout(() => {
+                        window.adminMap.invalidateSize();
+                        window.adminMap.fitBounds(bounds, {padding: [30, 30]});
+                    }, 300);
+
+                } else {
+                    mapWrapper.classList.add('hidden');
+                }
 
                 openModal('orderDetailModal');
             })

@@ -103,4 +103,27 @@ class RoleController extends Controller
             return back()->with('error', 'Lỗi khi thêm chức vụ: ' . $e->getMessage());
         }
     }
+
+    public function destroy(Role $role)
+    {
+        if (in_array($role->code, ['admin', 'customer'])) {
+            return back()->with('error', 'Không thể xóa chức vụ hệ thống mặc định.');
+        }
+
+        if ($role->users()->count() > 0) {
+            return back()->with('error', 'Không thể xóa chức vụ đang có người dùng. Vui lòng đổi chức vụ của họ trước.');
+        }
+
+        try {
+            DB::beginTransaction();
+            DB::table('role_permissions')->where('role_id', $role->id)->delete();
+            $role->delete();
+            DB::commit();
+
+            return back()->with('success', 'Đã xóa chức vụ thành công!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi khi xóa chức vụ: ' . $e->getMessage());
+        }
+    }
 }

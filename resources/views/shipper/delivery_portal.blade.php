@@ -166,9 +166,32 @@
                                 @endforeach
                             </ul>
                         </div>
+                        </div>
                     </div>
-
-                    {{-- Nút cập nhật trạng thái --}}
+                    
+                    {{-- Map Button & Container --}}
+                    @if($order->delivery_latitude && $order->delivery_longitude)
+                    <div class="mt-md border-t border-outline-variant/20 pt-md">
+                        <div class="flex items-center justify-between">
+                            <p class="font-label-md text-on-surface-variant flex items-center gap-xs">
+                                <span class="material-symbols-outlined text-[16px]">map</span>
+                                Khoảng cách: {{ $order->distance_km ?? 0 }} km ({{ $order->route_duration_minutes ?? '--' }} phút)
+                            </p>
+                            <div class="flex gap-sm">
+                                <a href="https://www.google.com/maps/dir/?api=1&origin={{ \App\Models\Setting::get('store_lat') }},{{ \App\Models\Setting::get('store_lon') }}&destination={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&travelmode=driving" 
+                                   target="_blank" 
+                                   class="px-sm py-xs border border-blue-200 text-blue-600 rounded-lg text-label-sm hover:bg-blue-50 flex items-center gap-xs">
+                                    <span class="material-symbols-outlined text-[14px]">directions</span> Google Maps
+                                </a>
+                                <button onclick="toggleMap({{ $order->id }}, {{ $order->delivery_latitude }}, {{ $order->delivery_longitude }})"
+                                    class="px-sm py-xs border border-primary text-primary rounded-lg text-label-sm hover:bg-primary/10 flex items-center gap-xs">
+                                    <span class="material-symbols-outlined text-[14px]">route</span> Lộ trình
+                                </button>
+                            </div>
+                        </div>
+                        <div id="map_container_{{ $order->id }}" class="mt-sm hidden w-full h-[300px] rounded-xl overflow-hidden border border-outline z-0"></div>
+                    </div>
+                    @endif
                     <div class="mt-lg flex flex-wrap gap-md border-t border-outline-variant/20 pt-md">
                         <button onclick="updateStatus({{ $order->id }}, 'picked_up', this)"
                             class="flex-1 border border-outline px-md py-sm rounded-xl font-label-md text-label-md hover:bg-surface-container transition-colors text-center">
@@ -178,7 +201,7 @@
                             class="flex-1 border border-outline px-md py-sm rounded-xl font-label-md text-label-md hover:bg-surface-container transition-colors text-center">
                             <span class="material-symbols-outlined align-middle text-[18px] mr-xs">local_shipping</span>Đang giao
                         </button>
-                        <button onclick="updateStatus({{ $order->id }}, 'completed', this)"
+                        <button onclick="openCompleteModal({{ $order->id }}, this)"
                             class="flex-1 bg-primary text-on-primary px-md py-sm rounded-xl font-label-md text-label-md active:scale-95 transition-transform text-center">
                             <span class="material-symbols-outlined align-middle text-[18px] mr-xs">check_circle</span>Hoàn thành
                         </button>
@@ -284,6 +307,57 @@
                     <span class="material-symbols-outlined text-[20px]">close</span> Không nhận
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- Complete Order Modal --}}
+<div id="complete-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-md bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 p-lg flex flex-col gap-lg border border-outline-variant/30">
+        <div class="flex flex-col items-center gap-md text-primary text-center">
+            <span class="material-symbols-outlined text-[48px]">check_circle</span>
+            <h2 class="font-headline-sm text-headline-sm text-on-surface">Hoàn thành đơn hàng?</h2>
+            <p class="text-body-md text-on-surface-variant">Vui lòng tải lên hình ảnh xác nhận giao hàng.</p>
+        </div>
+        
+        <div class="flex flex-col gap-sm">
+            <input type="file" id="complete-proof-image" accept="image/*" class="w-full border border-outline rounded-lg p-sm font-body-md">
+            <p id="complete-error" class="text-error text-label-sm hidden"></p>
+        </div>
+        
+        <div class="flex gap-sm mt-xs">
+            <button onclick="closeCompleteModal()" class="flex-1 bg-surface-container-high text-on-surface py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center">
+                Huỷ bỏ
+            </button>
+            <button id="btn-confirm-complete" class="flex-1 bg-primary text-on-primary py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center">
+                Xác nhận
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Confirm Cancel Modal --}}
+<div id="custom-confirm-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-md bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    <div class="bg-surface rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 p-lg flex flex-col gap-lg border border-outline-variant/30">
+        <div class="flex flex-col items-center gap-md text-error text-center">
+            <span class="material-symbols-outlined text-[48px]">warning</span>
+            <h2 class="font-headline-sm text-headline-sm text-on-surface">Xác nhận thất bại?</h2>
+            <p class="text-body-md text-on-surface-variant">Vui lòng nhập lý do và tải lên hình ảnh xác nhận.</p>
+        </div>
+        
+        <div class="flex flex-col gap-sm">
+            <textarea id="failed-reason" rows="2" placeholder="Lý do hủy đơn..." class="w-full border border-outline rounded-lg p-sm font-body-md focus:outline-none focus:border-primary resize-none"></textarea>
+            <input type="file" id="failed-proof-image" accept="image/*" class="w-full border border-outline rounded-lg p-sm font-body-md">
+            <p id="failed-error" class="text-error text-label-sm hidden"></p>
+        </div>
+        
+        <div class="flex gap-sm mt-xs">
+            <button onclick="closeConfirmModal()" class="flex-1 bg-surface-container-high text-on-surface py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center">
+                Huỷ bỏ
+            </button>
+            <button id="btn-confirm-action" class="flex-1 bg-error text-on-error py-sm rounded-xl font-label-lg text-label-lg active:scale-95 transition-transform flex items-center justify-center">
+                Xác nhận
+            </button>
         </div>
     </div>
 </div>
@@ -534,20 +608,24 @@
     // =============================================
     // Cập nhật trạng thái giao hàng
     // =============================================
-    function updateStatus(orderId, status, btn, note = null) {
+    function updateStatus(orderId, status, btn, note = null, proofImageFile = null) {
         if (btn.disabled) return;
         btn.disabled = true;
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Đang cập nhật...';
 
+        const formData = new FormData();
+        formData.append('status', status);
+        if (note) formData.append('note', note);
+        if (proofImageFile) formData.append('proof_image', proofImageFile);
+
         fetch(`/shipper/orders/${orderId}/status`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': CSRF_TOKEN,
             },
-            body: JSON.stringify({ status, note }),
+            body: formData,
         })
         .then(r => r.json())
         .then(data => {
@@ -567,10 +645,156 @@
         });
     }
 
-    // Cập nhật trạng thái "Thất bại" có xác nhận trước
+    // Modal Hoàn thành
+    function openCompleteModal(orderId, btn) {
+        const modal = document.getElementById('complete-modal');
+        const fileInput = document.getElementById('complete-proof-image');
+        const errorMsg = document.getElementById('complete-error');
+        
+        fileInput.value = '';
+        errorMsg.classList.add('hidden');
+
+        document.getElementById('btn-confirm-complete').onclick = function() {
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorMsg.textContent = 'Vui lòng chọn ảnh chụp xác nhận.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            updateStatus(orderId, 'completed', btn, null, fileInput.files[0]);
+            closeCompleteModal();
+        };
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.firstElementChild.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeCompleteModal() {
+        const modal = document.getElementById('complete-modal');
+        modal.classList.add('opacity-0');
+        modal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Modal Thất bại
     function updateStatusWithConfirm(orderId, status, btn) {
-        if (!confirm('Xác nhận giao hàng thất bại?\nĐơn hàng sẽ được trả lại vào danh sách chờ.')) return;
-        updateStatus(orderId, status, btn);
+        const modal = document.getElementById('custom-confirm-modal');
+        const fileInput = document.getElementById('failed-proof-image');
+        const reasonInput = document.getElementById('failed-reason');
+        const errorMsg = document.getElementById('failed-error');
+        
+        fileInput.value = '';
+        reasonInput.value = '';
+        errorMsg.classList.add('hidden');
+
+        document.getElementById('btn-confirm-action').onclick = function() {
+            if (!reasonInput.value.trim()) {
+                errorMsg.textContent = 'Vui lòng nhập lý do hủy đơn.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorMsg.textContent = 'Vui lòng chọn ảnh chụp xác nhận.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            updateStatus(orderId, status, btn, reasonInput.value.trim(), fileInput.files[0]);
+            closeConfirmModal();
+        };
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.firstElementChild.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeConfirmModal() {
+        const modal = document.getElementById('custom-confirm-modal');
+        modal.classList.add('opacity-0');
+        modal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
     }
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // Map functionality for active orders
+    const mapInstances = {};
+
+    function toggleMap(orderId, destLat, destLon) {
+        const containerId = 'map_container_' + orderId;
+        const container = document.getElementById(containerId);
+        
+        if (container.classList.contains('hidden')) {
+            // Mở bản đồ
+            container.classList.remove('hidden');
+            
+            if (!mapInstances[orderId]) {
+                const map = L.map(containerId);
+                mapInstances[orderId] = map;
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                const storeLat = {{ \App\Models\Setting::get('store_lat', '0') }};
+                const storeLon = {{ \App\Models\Setting::get('store_lon', '0') }};
+
+                // Store marker (Cửa hàng)
+                const storeIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                L.marker([storeLat, storeLon], {icon: storeIcon}).addTo(map).bindPopup('<b>Cửa hàng</b>');
+
+                // Customer marker (Khách hàng)
+                const cusIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                L.marker([destLat, destLon], {icon: cusIcon}).addTo(map).bindPopup('<b>Khách hàng</b>');
+
+                // Fit bounds
+                const bounds = L.latLngBounds([[storeLat, storeLon], [destLat, destLon]]);
+                map.fitBounds(bounds, {padding: [30, 30]});
+
+                // Lấy đường đi từ OSRM API (Frontend)
+                fetch(`https://router.project-osrm.org/route/v1/driving/${storeLon},${storeLat};${destLon},${destLat}?overview=full&geometries=geojson`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.routes && data.routes[0]) {
+                            L.geoJSON(data.routes[0].geometry, {
+                                style: { color: '#006e1c', weight: 4, opacity: 0.8 }
+                            }).addTo(map);
+                        }
+                    })
+                    .catch(e => console.error('Lỗi lấy đường đi:', e));
+            } else {
+                // Resize map nếu container thay đổi
+                mapInstances[orderId].invalidateSize();
+            }
+        } else {
+            // Đóng bản đồ
+            container.classList.add('hidden');
+        }
+    }
+</script>
+@endpush
+
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 @endpush

@@ -2,6 +2,13 @@
 
 @section('title', 'Thanh Toán')
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    #map { height: 250px; width: 100%; border-radius: 0.75rem; z-index: 10; margin-bottom: 0.5rem; }
+</style>
+@endpush
+
 @section('content')
 
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet" />
@@ -20,6 +27,11 @@
     }
     .ts-wrapper.single .ts-control:after {
         right: 15px;
+    }
+    .ts-dropdown .ts-dropdown-content {
+        max-height: 250px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 </style>
 
@@ -160,10 +172,28 @@
 
             <div class="mt-md">
                 <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Địa chỉ cụ thể *</label>
-                <input type="text" id="specific_address" name="address" required
-                    value="{{ old('address', optional($defaultAddr)->address ?? '') }}"
-                    class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                    placeholder="Số nhà, thôn, ngõ, ngách..."/>
+                <div class="flex gap-2">
+                    <input type="text" id="specific_address" name="address" required
+                        value="{{ old('address', optional($defaultAddr)->address ?? '') }}"
+                        class="flex-1 p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
+                        placeholder="Số nhà, thôn, ngõ, ngách..."/>
+                    <button type="button" id="btn_find_location" class="px-4 bg-secondary text-on-secondary rounded-xl hover:bg-secondary/90 transition-colors flex items-center justify-center whitespace-nowrap" title="Tìm trên bản đồ">
+                        <span class="material-symbols-outlined mr-1">search</span> Tìm
+                    </button>
+                    <button type="button" id="btn_current_location" class="px-4 bg-surface-container-high text-on-surface rounded-xl hover:bg-surface-variant transition-colors flex items-center justify-center whitespace-nowrap border border-outline-variant/30" title="Lấy vị trí hiện tại">
+                        <span class="material-symbols-outlined">my_location</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-md" id="map_container" style="display: none;">
+                <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs flex items-center gap-1">
+                    Xác nhận vị trí trên bản đồ <span class="text-error">*</span>
+                </label>
+                <p class="text-xs text-on-surface-variant mb-2" id="map_helper_text">Vui lòng kéo ghim (marker) đến chính xác vị trí nhận hàng của bạn.</p>
+                <div id="map" class="w-full border border-outline-variant shadow-inner"></div>
+                <input type="hidden" name="delivery_latitude" id="input_delivery_lat" value="">
+                <input type="hidden" name="delivery_longitude" id="input_delivery_lon" value="">
             </div>
 
             <div class="mt-sm flex items-center gap-xs">
@@ -265,10 +295,11 @@
 </main>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
     // === Toast Notification ===
     function showToast(message, type = 'success') {
         const existingToast = document.getElementById('checkout-toast');
@@ -306,10 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
         create: false,
         sortField: {field: "text", direction: "asc"},
         placeholder: 'Chọn...',
+        maxOptions: 500,
+        dropdownParent: 'body',
     };
     
     const tsSaved = document.getElementById('saved_address_select') ? new TomSelect('#saved_address_select', {
-        create: false, placeholder: '-- Nhập địa chỉ mới --'
+        create: false, placeholder: '-- Nhập địa chỉ mới --', dropdownParent: 'body'
     }) : null;
     
     const tsProvince = new TomSelect('#province_select', tsOptions);
@@ -317,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tsWard = new TomSelect('#ward_select', tsOptions);
 
     // Load Provinces
-    fetch('https://provinces.open-api.vn/api/p/')
+    fetch('https://provinces.open-api.vn/api/v1/p/')
         .then(res => res.json())
         .then(data => {
             const options = data.map(p => ({value: p.name, text: p.name, code: p.code}));
@@ -337,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (option && option.code) {
                 tsDistrict.enable();
                 tsDistrict.addOption({value: '', text: 'Đang tải...'});
-                fetch(`https://provinces.open-api.vn/api/p/${option.code}?depth=2`)
+                fetch(`https://provinces.open-api.vn/api/v1/p/${option.code}?depth=2`)
                     .then(res => res.json())
                     .then(data => {
                         tsDistrict.clearOptions();
@@ -362,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (option && option.code) {
                 tsWard.enable();
                 tsWard.addOption({value: '', text: 'Đang tải...'});
-                fetch(`https://provinces.open-api.vn/api/d/${option.code}?depth=2`)
+                fetch(`https://provinces.open-api.vn/api/v1/d/${option.code}?depth=2`)
                     .then(res => res.json())
                     .then(data => {
                         tsWard.clearOptions();
@@ -376,16 +409,334 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             tsWard.disable();
         }
-        calculateMockShipping();
     });
 
-    tsWard.on('change', function(value) {
-        calculateMockShipping();
+    let polygonLayer = null;
+    let currentBoundaryGeoJSON = null;
+
+    tsWard.on('change', async function(value) {
+        
+        const province = tsProvince.getValue();
+        const district = tsDistrict.getValue();
+        const ward = value;
+        
+        if (province && district && ward) {
+            // Fetch boundary
+            try {
+                const response = await fetch(`/api/boundary?province=${encodeURIComponent(province)}&district=${encodeURIComponent(district)}&ward=${encodeURIComponent(ward)}`);
+                const data = await response.json();
+                
+                if (data.success && data.geojson) {
+                    currentBoundaryGeoJSON = data.geojson;
+                    // Automatically init map and show boundary
+                    initMap(data.lat, data.lon, true);
+                    await calculateShippingWithCoords();
+                } else {
+                    currentBoundaryGeoJSON = null;
+                    if(polygonLayer && map) {
+                        map.removeLayer(polygonLayer);
+                    }
+                    
+                    if (data.lat && data.lon) {
+                        initMap(data.lat, data.lon, false);
+                        await calculateShippingWithCoords();
+                        showShippingWarning('Hệ thống chưa có ranh giới xã này trên bản đồ. Vui lòng kéo ghim chọn đúng vị trí.');
+                    } else {
+                        const fallbackCoords = await getCoordinatesWithFallback('', ward, district, province);
+                        if (fallbackCoords) {
+                            initMap(fallbackCoords.lat, fallbackCoords.lon, false);
+                            await calculateShippingWithCoords();
+                            showShippingWarning('Hệ thống chưa có ranh giới xã này trên bản đồ. Vui lòng kéo ghim chọn đúng vị trí.');
+                        } else {
+                            showShippingError('Không thể lấy tọa độ. Vui lòng nhấn "Lấy vị trí của tôi" hoặc tự tìm trên bản đồ.');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi lấy ranh giới", e);
+            }
+        }
     });
 
-    // Mock Distance Calculation
-    // OSRM Distance Calculation
+    // Leaflet Map Integration
+    let map = null;
+    let marker = null;
+    let currentCustomerCoords = null;
     let storeCoords = null;
+    
+    // Init store coords immediately
+    const sl = parseFloat("{{ \App\Models\Setting::get('store_lat', '') }}");
+    const slon = parseFloat("{{ \App\Models\Setting::get('store_lon', '') }}");
+    if (!isNaN(sl) && !isNaN(slon)) {
+        storeCoords = { lat: sl, lon: slon };
+    }
+    
+    // Parse shipping tiers passed from backend
+    let shippingTiers = [];
+    try {
+        shippingTiers = {!! $shippingTiers ?? '[]' !!};
+    } catch(e) { console.error('Lỗi parse shipping tiers'); }
+
+    function validateMarkerPosition(lat, lng) {
+        return true; // Bỏ qua kiểm tra ranh giới, cho phép ghim tự do
+    }
+
+    let isReverseGeocoding = false;
+
+    function fuzzyMatch(target, optionsObj) {
+        if (!target) return null;
+        const cleanTarget = target.toLowerCase().replace(/^(tỉnh|thành phố|quận|huyện|thị xã|phường|xã|thị trấn)\s+/i, '').trim();
+        for (let key in optionsObj) {
+            let optName = optionsObj[key].text;
+            let cleanOpt = optName.toLowerCase().replace(/^(tỉnh|thành phố|quận|huyện|thị xã|phường|xã|thị trấn)\s+/i, '').trim();
+            if (cleanOpt === cleanTarget || cleanOpt.includes(cleanTarget) || cleanTarget.includes(cleanOpt)) {
+                return key; 
+            }
+        }
+        return null;
+    }
+
+    async function reverseGeocode(lat, lng) {
+        try {
+            isReverseGeocoding = true;
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+            const res = await fetch(url, { headers: { 'Accept-Language': 'vi' } });
+            const data = await res.json();
+            
+            if (data && data.address) {
+                const addr = data.address;
+                const provName = addr.state || addr.city || addr.province;
+                const distName = addr.county || addr.city_district || addr.district || addr.borough;
+                const wardName = addr.suburb || addr.village || addr.quarter || addr.hamlet || addr.town;
+                const roadName = addr.road || '';
+                const houseNumber = addr.house_number || '';
+                
+                const fullStreet = houseNumber ? `${houseNumber} ${roadName}` : roadName;
+                if (fullStreet) {
+                    document.getElementById('specific_address').value = fullStreet.trim();
+                }
+                
+                const matchedProv = fuzzyMatch(provName, tsProvince.options);
+                if (matchedProv) {
+                    tsProvince.setValue(matchedProv, true);
+                    
+                    tsDistrict.enable();
+                    tsDistrict.clear(true);
+                    tsWard.clear(true);
+                    tsWard.disable();
+                    
+                    const option = tsProvince.options[matchedProv];
+                    const distRes = await fetch(`https://provinces.open-api.vn/api/v1/p/${option.code}?depth=3`);
+                    const dataP = await distRes.json();
+                    
+                    tsDistrict.clearOptions();
+                    tsDistrict.addOptions(dataP.districts.map(d => ({value: d.name, text: d.name, code: d.code})));
+                    tsDistrict.refreshOptions(false);
+                    
+                    let possibleNames = [
+                        addr.county, addr.city_district, addr.district, addr.borough,
+                        addr.suburb, addr.village, addr.quarter, addr.hamlet, addr.town,
+                        addr.city, addr.state, addr.province, addr.municipality
+                    ].filter(Boolean);
+                    
+                    // Thêm các bí danh (aliases) để xử lý việc sáp nhập hành chính
+                    let aliases = [];
+                    possibleNames.forEach(n => {
+                        let lower = n.toLowerCase().trim();
+                        if (lower === 'ninh bình' || lower === 'thành phố ninh bình' || lower === 'huyện hoa lư') {
+                            aliases.push('Hoa Lư');
+                        }
+                    });
+                    possibleNames.push(...aliases);
+                    
+                    let matchedDist = null;
+                    let targetDistObj = null;
+                    let targetWardVal = null;
+                    
+                    // 1. Tìm Huyện trực tiếp
+                    for (let d of dataP.districts) {
+                        for (let name of possibleNames) {
+                            if (fuzzyMatch(name, { [d.name]: {text: d.name} })) {
+                                matchedDist = d.name;
+                                targetDistObj = d;
+                                break;
+                            }
+                        }
+                        if (matchedDist) break;
+                    }
+                    
+                    // 2. Tìm Xã trong Huyện (hoặc tìm cả Huyện+Xã nếu chưa có Huyện)
+                    if (targetDistObj) {
+                        for (let w of targetDistObj.wards) {
+                            for (let name of possibleNames) {
+                                if (fuzzyMatch(name, { [w.name]: {text: w.name} })) {
+                                    targetWardVal = w.name;
+                                    break;
+                                }
+                            }
+                            if (targetWardVal) break;
+                        }
+                    } else {
+                        // Deep search
+                        for (let d of dataP.districts) {
+                            for (let w of d.wards) {
+                                for (let name of possibleNames) {
+                                    if (fuzzyMatch(name, { [w.name]: {text: w.name} })) {
+                                        matchedDist = d.name;
+                                        targetDistObj = d;
+                                        targetWardVal = w.name;
+                                        break;
+                                    }
+                                }
+                                if (targetWardVal) break;
+                            }
+                            if (targetWardVal) break;
+                        }
+                    }
+                    
+                    if (matchedDist && targetDistObj) {
+                        tsDistrict.setValue(matchedDist, true);
+                        
+                        tsWard.enable();
+                        tsWard.clearOptions();
+                        tsWard.addOptions(targetDistObj.wards.map(w => ({value: w.name, text: w.name})));
+                        tsWard.refreshOptions(false);
+                        
+                        if (targetWardVal) {
+                            tsWard.setValue(targetWardVal, true);
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            console.error('Lỗi định vị ngược', e);
+        } finally {
+            isReverseGeocoding = false;
+        }
+    }
+
+    async function handleMapInteraction(lat, lng, isDrag = false) {
+        marker.setLatLng([lat, lng]);
+        currentCustomerCoords = { lat: lat, lon: lng };
+        document.getElementById('input_delivery_lat').value = lat;
+        document.getElementById('input_delivery_lon').value = lng;
+        
+        // Reverse geocode
+        await reverseGeocode(lat, lng);
+        
+        await calculateShippingWithCoords();
+    }
+
+    function initMap(lat, lon, autoFitBoundary = false) {
+        document.getElementById('map_container').style.display = 'block';
+        if (!map) {
+            map = L.map('map').setView([lat, lon], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+
+            marker.on('dragend', function (e) {
+                const position = marker.getLatLng();
+                handleMapInteraction(position.lat, position.lng, true);
+            });
+            
+            map.on('click', function(e) {
+                handleMapInteraction(e.latlng.lat, e.latlng.lng);
+            });
+        } else {
+            if (!autoFitBoundary) {
+                map.setView([lat, lon], 15);
+            }
+            marker.setLatLng([lat, lon]);
+        }
+        
+        // Draw Boundary
+        if (currentBoundaryGeoJSON) {
+            if (polygonLayer) {
+                map.removeLayer(polygonLayer);
+            }
+            polygonLayer = L.geoJSON(currentBoundaryGeoJSON, {
+                style: {
+                    color: '#006e1c',
+                    weight: 2,
+                    opacity: 0.6,
+                    fillOpacity: 0.1
+                }
+            }).addTo(map);
+            
+            if (autoFitBoundary) {
+                map.fitBounds(polygonLayer.getBounds());
+            }
+        }
+        
+        // Only set coords if it's valid
+        if (validateMarkerPosition(lat, lon)) {
+            currentCustomerCoords = { lat: lat, lon: lon };
+            document.getElementById('input_delivery_lat').value = lat;
+            document.getElementById('input_delivery_lon').value = lon;
+        } else {
+            showShippingError('Vị trí mặc định nằm ngoài xã/phường. Vui lòng chọn lại trên bản đồ.');
+        }
+    }
+
+    document.getElementById('btn_find_location').addEventListener('click', async function() {
+        const p = tsProvince.getValue();
+        const d = tsDistrict.getValue();
+        const w = tsWard.getValue();
+        const specific = document.getElementById('specific_address').value;
+
+        if (!p || !d || !w) {
+            showShippingWarning('Vui lòng chọn đầy đủ Tỉnh, Huyện, Xã trước khi tìm vị trí.');
+            return;
+        }
+
+        const btn = this;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = 'Đang tìm...';
+        btn.disabled = true;
+
+        const coords = await getCoordinatesWithFallback(specific, w, d, p);
+        if (coords) {
+            initMap(coords.lat, coords.lon);
+            await calculateShippingWithCoords();
+        } else {
+            showShippingError('Không thể tìm thấy vị trí. Vui lòng thử lại.');
+        }
+
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
+
+    document.getElementById('btn_current_location').addEventListener('click', function() {
+        if (!navigator.geolocation) {
+            showShippingError('Trình duyệt của bạn không hỗ trợ định vị.');
+            return;
+        }
+
+        const btn = this;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span>';
+        btn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            async function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                initMap(lat, lon);
+                await calculateShippingWithCoords();
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            },
+            function(error) {
+                showShippingError('Không thể lấy vị trí. Vui lòng cho phép quyền truy cập vị trí trên trình duyệt.');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    });
 
     function cleanAddress(addr) {
         if (!addr) return '';
@@ -394,11 +745,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function geocode(address) {
         try {
-            console.log("Geocoding:", address);
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&email=contact@cozyhna.com&countrycodes=vn`;
             const response = await fetch(url, { headers: { 'Accept-Language': 'vi' } });
             const data = await response.json();
-            console.log("Nominatim response for", address, ":", data);
             if (data && data.length > 0) {
                 return { lat: data[0].lat, lon: data[0].lon, address: address };
             }
@@ -416,16 +765,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (specific) {
             let coords = await geocode(`${specific}, ${cWard}, ${cDist}, ${cProv}`);
-            if (coords) return coords;
+            if (coords) {
+                document.getElementById('map_helper_text').innerText = "Vị trí đã được tìm thấy. Bạn có thể kéo ghim (marker) nếu chưa hoàn toàn chính xác.";
+                return coords;
+            }
         }
         
         let coords = await geocode(`${cWard}, ${cDist}, ${cProv}`);
-        if (coords) return coords;
+        if (coords) {
+            document.getElementById('map_helper_text').innerText = "Chỉ tìm được vị trí tương đối của Xã/Phường. Vui lòng KÉO GHIM đến ĐÚNG nhà bạn để tính phí chính xác.";
+            return coords;
+        }
         
         coords = await geocode(`${cDist}, ${cProv}`);
-        if (coords) return coords;
-
-        coords = await geocode(`${cProv}`);
         return coords;
     }
 
@@ -445,93 +797,83 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let isCalculating = false;
 
-    async function calculateMockShipping() {
-        if (isCalculating) return;
+    async function calculateShippingWithCoords() {
+        if (isCalculating || !currentCustomerCoords) return;
+        isCalculating = true;
         
-        const p = tsProvince.getValue();
-        const d = tsDistrict.getValue();
-        const w = tsWard.getValue();
-        const specific = document.getElementById('specific_address').value;
+        document.getElementById('display_distance').innerText = 'Đang tính toán...';
+        document.getElementById('display_shipping_fee').innerText = '...';
 
-        if (p && d && w) {
-            isCalculating = true;
-            document.getElementById('display_distance').innerText = 'Đang tính toán...';
-            document.getElementById('display_shipping_fee').innerText = '...';
-
-            if (!storeCoords) {
-                const storeProvince = "{{ $storeProvince ?? 'Hà Nội' }}";
-                const storeDistrict = "{{ $storeDistrict ?? '' }}";
-                const storeWard = "{{ $storeWard ?? '' }}";
-                const storeSpecific = "{{ $storeSpecificAddress ?? '' }}";
-                const storeLat = "{{ $storeLat ?? '' }}";
-                const storeLon = "{{ $storeLon ?? '' }}";
-                
-                if (storeLat && storeLon) {
-                    storeCoords = { lat: parseFloat(storeLat), lon: parseFloat(storeLon), address: 'Cửa hàng' };
-                } else {
-                    storeCoords = await getCoordinatesWithFallback(storeSpecific, storeWard, storeDistrict, storeProvince);
-                }
-            }
-
-            const customerCoords = await getCoordinatesWithFallback(specific, w, d, p);
-            let distanceKm = null;
-
-            if (storeCoords && customerCoords) {
-                if (storeCoords.lat === customerCoords.lat && storeCoords.lon === customerCoords.lon) {
-                    distanceKm = 0.1;
-                } else {
-                    const distance = await getDistanceOSRM(storeCoords.lon, storeCoords.lat, customerCoords.lon, customerCoords.lat);
-                    if (distance !== null) {
-                        distanceKm = parseFloat(distance.toFixed(1));
-                    }
-                }
-            }
+        if (!storeCoords) {
+            const storeLat = "{{ $storeLat ?? '' }}";
+            const storeLon = "{{ $storeLon ?? '' }}";
             
-            isCalculating = false;
-            
-            const feePerKm = {{ $feePerKm ?? 0 }};
-            const maxRadius = {{ $maxRadius ?? 0 }};
-            const baseFee = {{ $baseFee ?? 15000 }}; // Phí ship tối thiểu khi không tính được khoảng cách
-
-            if (distanceKm === null) {
-                // Không tính được khoảng cách → dùng phí ship tối thiểu
-                showShippingWarning('Không thể tính khoảng cách tự động. Phí ship tạm tính là ' + new Intl.NumberFormat('vi-VN').format(baseFee) + 'đ. Cửa hàng sẽ xác nhận lại sau.');
-                distanceKm = 0;
-                const fallbackFee = baseFee;
-                document.getElementById('input_distance_km').value = 0;
-                document.getElementById('input_shipping_fee').value = fallbackFee;
-                document.getElementById('display_distance').innerText = 'Không xác định';
-                document.getElementById('display_shipping_fee').innerText = new Intl.NumberFormat('vi-VN').format(fallbackFee) + ' đ *';
-                updateTotal(fallbackFee);
-                return;
+            if (storeLat && storeLon) {
+                storeCoords = { lat: parseFloat(storeLat), lon: parseFloat(storeLon) };
+            } else {
+                // Tọa độ CozyHNA giả định nếu admin quên set
+                storeCoords = { lat: 21.0285, lon: 105.8542 }; 
             }
-
-            // Kiểm tra bán kính tối đa
-            if (maxRadius > 0 && distanceKm > maxRadius) {
-                showShippingError(`Khoảng cách giao hàng (${distanceKm} km) vượt quá bán kính cho phép (${maxRadius} km). Vui lòng chọn địa chỉ khác.`);
-                document.getElementById('input_distance_km').value = 0;
-                document.getElementById('input_shipping_fee').value = 0;
-                document.getElementById('display_distance').innerText = distanceKm + ' km ❌';
-                document.getElementById('display_shipping_fee').innerText = 'Ngoài vùng giao hàng';
-                updateTotal(0);
-                return;
-            }
-
-            let shippingFee = Math.max(feePerKm > 0 ? distanceKm * feePerKm : baseFee, baseFee);
-            shippingFee = Math.round(shippingFee / 1000) * 1000; // Làm tròn đến 1000đ
-
-            document.getElementById('input_distance_km').value = distanceKm;
-            document.getElementById('input_shipping_fee').value = shippingFee;
-            document.getElementById('display_distance').innerText = distanceKm + ' km';
-            document.getElementById('display_shipping_fee').innerText = new Intl.NumberFormat('vi-VN').format(shippingFee) + ' đ';
-            updateTotal(shippingFee);
-        } else {
-            document.getElementById('input_distance_km').value = 0;
-            document.getElementById('input_shipping_fee').value = 0;
-            document.getElementById('display_distance').innerText = '— km';
-            document.getElementById('display_shipping_fee').innerText = 'Chọn địa chỉ để tính';
-            updateTotal(0);
         }
+
+        let distanceKm = null;
+        if (storeCoords && currentCustomerCoords) {
+            const distance = await getDistanceOSRM(storeCoords.lon, storeCoords.lat, currentCustomerCoords.lon, currentCustomerCoords.lat);
+            if (distance !== null) {
+                distanceKm = parseFloat(distance.toFixed(1));
+            }
+        }
+        
+        isCalculating = false;
+        
+        const baseFee = {{ $baseFee ?? 15000 }};
+        const feePerKm = {{ $feePerKm ?? 5000 }};
+        const maxRadius = {{ $maxRadius ?? 0 }};
+
+        if (distanceKm === null) {
+            showShippingWarning('Không thể tính khoảng cách tự động. Phí ship tạm tính là ' + new Intl.NumberFormat('vi-VN').format(baseFee) + 'đ.');
+            updateCheckoutUI(0, baseFee, 'Không xác định', new Intl.NumberFormat('vi-VN').format(baseFee) + ' đ *');
+            return;
+        }
+
+        if (maxRadius > 0 && distanceKm > maxRadius) {
+            showShippingError(`Khoảng cách giao hàng (${distanceKm} km) vượt quá giới hạn (${maxRadius} km).`);
+            updateCheckoutUI(0, 0, distanceKm + ' km ❌', 'Ngoài vùng giao hàng');
+            return;
+        }
+
+        // Tính phí ship theo bảng giá (Tiered Pricing)
+        let shippingFee = null;
+        
+        if (shippingTiers.length > 0) {
+            for (let i = 0; i < shippingTiers.length; i++) {
+                if (distanceKm <= shippingTiers[i].max_km) {
+                    shippingFee = shippingTiers[i].fee;
+                    break;
+                }
+            }
+            if (shippingFee === null) {
+                // Vượt mốc cao nhất
+                const highestTier = shippingTiers[shippingTiers.length - 1];
+                const extraKm = distanceKm - highestTier.max_km;
+                shippingFee = highestTier.fee + Math.round(extraKm * feePerKm);
+            }
+        } else {
+            // Cũ (không có bảng giá)
+            shippingFee = Math.max(feePerKm > 0 ? distanceKm * feePerKm : baseFee, baseFee);
+        }
+
+        shippingFee = Math.round(shippingFee / 1000) * 1000;
+        
+        updateCheckoutUI(distanceKm, shippingFee, distanceKm + ' km', new Intl.NumberFormat('vi-VN').format(shippingFee) + ' đ');
+    }
+
+    function updateCheckoutUI(distanceKm, fee, distText, feeText) {
+        document.getElementById('input_distance_km').value = distanceKm;
+        document.getElementById('input_shipping_fee').value = fee;
+        document.getElementById('display_distance').innerText = distText;
+        document.getElementById('display_shipping_fee').innerText = feeText;
+        updateTotal(fee);
     }
 
     function showShippingWarning(msg) {
@@ -549,6 +891,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('display_total').innerText = new Intl.NumberFormat('vi-VN').format(total) + ' đ';
     }
 
+    // Initialize address auto-find on blur if they typed a specific address
+    document.getElementById('specific_address').addEventListener('blur', function() {
+        if (this.value.length > 5 && tsProvince.getValue()) {
+            document.getElementById('btn_find_location').click();
+        }
+    });
+
     if (tsSaved) {
         tsSaved.on('change', function(value) {
             const el = tsSaved.getItem(value);
@@ -559,6 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('receiver_phone').value = '';
                 document.getElementById('specific_address').value = '';
                 tsProvince.setValue('');
+                document.getElementById('map_container').style.display = 'none';
                 return;
             }
             

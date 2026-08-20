@@ -67,10 +67,22 @@
                             {{ $permissionCount }} quyền được gán
                         </div>
                         
-                        <button type="button" onclick="openModal('modal-{{ $role->id }}')" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">settings</span>
-                            Cấu hình quyền {{ $role->name }}
-                        </button>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="openModal('modal-{{ $role->id }}')" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">settings</span>
+                                Cấu hình quyền {{ $role->name }}
+                            </button>
+                            @if(!in_array($role->code, ['admin', 'customer']))
+                            <form action="/admin/roles/{{ $role->id }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chức vụ này không?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-error hover:bg-error/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    Xóa
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto rounded-lg border border-outline-variant/30">

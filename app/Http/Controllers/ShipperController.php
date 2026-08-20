@@ -155,15 +155,29 @@ class ShipperController extends Controller
         $request->merge(['status' => strtoupper($request->status)]);
 
         $request->validate([
-            'status' => ['required', 'in:PICKED_UP,DELIVERING,COMPLETED,FAILED'],
-            'note'   => ['nullable', 'string', 'max:500'],
+            'status'      => ['required', 'in:PICKED_UP,DELIVERING,COMPLETED,FAILED'],
+            'note'        => ['nullable', 'string', 'max:500'],
+            'proof_image' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        if (in_array($request->status, ['COMPLETED', 'FAILED']) && !$request->hasFile('proof_image')) {
+            return response()->json(['error' => 'Vui lòng cung cấp ảnh chụp xác nhận.'], 422);
+        }
+
+        if ($request->status === 'FAILED' && empty($request->note)) {
+            return response()->json(['error' => 'Vui lòng nhập lý do hủy đơn.'], 422);
+        }
 
         $order = Order::where('id', $orderId)
             ->where('shipper_id', $shipper->id)
             ->firstOrFail();
 
-        DB::transaction(function () use ($request, $order, $shipper) {
+        $proofImagePath = null;
+        if ($request->hasFile('proof_image')) {
+            $proofImagePath = $request->file('proof_image')->store('shipper_proofs', 'public');
+        }
+
+        DB::transaction(function () use ($request, $order, $shipper, $proofImagePath) {
             if ($request->status === 'COMPLETED') {
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
@@ -176,6 +190,7 @@ class ShipperController extends Controller
                 $order->order_status = 'COMPLETED';
                 $order->status = 'completed';
                 $order->completed_at = now();
+                $order->shipper_proof_image = $proofImagePath;
                 $order->save();
 
                 \App\Models\Payment::where('order_id', $order->id)
@@ -195,6 +210,8 @@ class ShipperController extends Controller
                 $order->order_status = 'PREPARING';
                 $order->status = 'preparing';
                 $order->shipper_id = null;
+                $order->cancel_reason = $request->note;
+                $order->shipper_proof_image = $proofImagePath;
                 $order->save();
             }
             elseif ($request->status === 'PICKED_UP') {

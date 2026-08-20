@@ -88,8 +88,26 @@ class Order extends Model
                 if ($recipe) {
                     $recipeIngredients = \App\Models\RecipeIngredient::where('recipe_id', $recipe->id)->get();
                     foreach ($recipeIngredients as $ri) {
-                        \App\Models\Ingredient::where('id', $ri->ingredient_id)
-                            ->decrement('current_stock', $ri->quantity * $item->quantity);
+                        $ingredient = \App\Models\Ingredient::find($ri->ingredient_id);
+                        if ($ingredient) {
+                            $quantityToDeduct = $ri->quantity * $item->quantity;
+                            $beforeQuantity = $ingredient->current_stock;
+                            
+                            $ingredient->decrement('current_stock', $quantityToDeduct);
+                            
+                            \App\Models\InventoryTransaction::create([
+                                'ingredient_id' => $ingredient->id,
+                                'transaction_type' => 'EXPORT',
+                                'quantity' => $quantityToDeduct,
+                                'unit_id' => $ingredient->unit_id ?? null,
+                                'before_quantity' => $beforeQuantity,
+                                'after_quantity' => $beforeQuantity - $quantityToDeduct,
+                                'reference_type' => self::class,
+                                'reference_id' => $this->id,
+                                'note' => "Xuất kho tự động cho Đơn hàng #{$this->order_code}",
+                                'created_by' => auth()->id() ?? null,
+                            ]);
+                        }
                     }
                 }
             }
@@ -105,8 +123,26 @@ class Order extends Model
                 if ($recipe) {
                     $recipeIngredients = \App\Models\RecipeIngredient::where('recipe_id', $recipe->id)->get();
                     foreach ($recipeIngredients as $ri) {
-                        \App\Models\Ingredient::where('id', $ri->ingredient_id)
-                            ->increment('current_stock', $ri->quantity * $item->quantity);
+                        $ingredient = \App\Models\Ingredient::find($ri->ingredient_id);
+                        if ($ingredient) {
+                            $quantityToRestore = $ri->quantity * $item->quantity;
+                            $beforeQuantity = $ingredient->current_stock;
+                            
+                            $ingredient->increment('current_stock', $quantityToRestore);
+                            
+                            \App\Models\InventoryTransaction::create([
+                                'ingredient_id' => $ingredient->id,
+                                'transaction_type' => 'IMPORT',
+                                'quantity' => $quantityToRestore,
+                                'unit_id' => $ingredient->unit_id ?? null,
+                                'before_quantity' => $beforeQuantity,
+                                'after_quantity' => $beforeQuantity + $quantityToRestore,
+                                'reference_type' => self::class,
+                                'reference_id' => $this->id,
+                                'note' => "Hoàn kho do hủy Đơn hàng #{$this->order_code}",
+                                'created_by' => auth()->id() ?? null,
+                            ]);
+                        }
                     }
                 }
             }

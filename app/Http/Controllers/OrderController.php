@@ -202,25 +202,44 @@ class OrderController extends Controller
             }
 
             // ---- Tính phí ship theo khoảng cách thực tế ----
-            $distanceKm   = (float) $request->input('distance_km', 0);
-            $clientFee    = (float) $request->input('shipping_fee', 0);
-            $feePerKm     = (float) \App\Models\Setting::get('fee_per_km', 0);
-            $maxRadius    = (float) \App\Models\Setting::get('max_delivery_radius', 0);
-
-            if ($distanceKm > 0 && $feePerKm > 0) {
-                // Tính lại server-side để chống gian lận
-                $calculatedFee = round($distanceKm * $feePerKm);
-                // Cho phép sai lệch tối đa 500đ (làm tròn) so với client
-                if (abs($calculatedFee - $clientFee) <= 500) {
+            $clientDistance = (float) $request->input('distance_km', 0);
+            $clientFee      = (float) $request->input('shipping_fee', 0);
+            
+            $deliveryLat = $request->input('delivery_latitude');
+            $deliveryLon = $request->input('delivery_longitude');
+            
+            $deliveryService = app(\App\Services\DeliveryService::class);
+            $storeLat = \App\Models\Setting::get('store_lat');
+            $storeLon = \App\Models\Setting::get('store_lon');
+            
+            $distanceKm = $clientDistance;
+            $shippingFee = $clientFee;
+            $routeDurationMinutes = null;
+            $distanceMethod = null;
+            
+            if ($storeLat && $storeLon && $deliveryLat && $deliveryLon) {
+                // Tái tính toán khoảng cách
+                $calculatedRoute = $deliveryService->calculateRoute($storeLon, $storeLat, $deliveryLon, $deliveryLat);
+                if (isset($calculatedRoute['distance_km'])) {
+                    $distanceKm = $calculatedRoute['distance_km'];
+                    $routeDurationMinutes = $calculatedRoute['duration_minutes'] ?? null;
+                    $distanceMethod = $calculatedRoute['method'] ?? null;
+                }
+            }
+            
+            // Tái tính toán phí dựa trên khoảng cách (chống gian lận)
+            if ($distanceKm > 0) {
+                $calculatedFee = $deliveryService->calculateShippingFee($distanceKm);
+                // Cho phép sai số do làm tròn (VD: 1000đ)
+                if (abs($calculatedFee - $clientFee) <= 2000) {
                     $shippingFee = $clientFee;
                 } else {
                     $shippingFee = $calculatedFee;
                 }
-            } elseif ($clientFee > 0) {
-                // Nếu không có feePerKm config, tin tưởng client
-                $shippingFee = $clientFee;
             } else {
-                $shippingFee = $subtotal > 0 ? 15000 : 0;
+                if ($clientFee == 0) {
+                     $shippingFee = \App\Models\Setting::get('base_shipping_fee', 15000);
+                }
             }
             // ------------------------------------------------
 
@@ -260,12 +279,16 @@ class OrderController extends Controller
                 'receiver_phone'  => $request->receiver_phone,
                 'address_id'      => $customerAddress->id,
                 'delivery_address'=> $fullAddress,
+                'delivery_latitude' => $deliveryLat,
+                'delivery_longitude' => $deliveryLon,
                 'customer_note'   => $request->note,
                 'subtotal'        => $subtotal,
                 'discount_amount' => $discount,
                 'shipping_fee'    => $shippingFee,
                 'tax_amount'      => $tax,
                 'distance_km'     => $distanceKm,
+                'route_duration_minutes' => $routeDurationMinutes,
+                'distance_method' => $distanceMethod,
                 'total_amount'    => $total,
                 'voucher_id'      => $voucherId,
                 'created_by'      => $userId

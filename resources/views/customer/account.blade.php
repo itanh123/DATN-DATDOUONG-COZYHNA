@@ -766,16 +766,22 @@
             <div class="grid grid-cols-1 gap-4">
                 <div>
                     <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tỉnh / Thành phố <span class="text-error">*</span></label>
-                    <input name="province" type="text" required class="premium-input" placeholder="VD: Hà Nội"/>
+                    <select id="province_select" name="province" required class="no-choices premium-input bg-white cursor-pointer">
+                        <option value="">Chọn Tỉnh/Thành phố</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Quận / Huyện <span class="text-error">*</span></label>
-                        <input name="district" type="text" required class="premium-input" placeholder="VD: Cầu Giấy"/>
+                        <select id="district_select" name="district" required disabled class="no-choices premium-input bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed">
+                            <option value="">Chọn Quận/Huyện</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Phường / Xã <span class="text-error">*</span></label>
-                        <input name="ward" type="text" required class="premium-input" placeholder="VD: Dịch Vọng"/>
+                        <select id="ward_select" name="ward" required disabled class="no-choices premium-input bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed">
+                            <option value="">Chọn Phường/Xã</option>
+                        </select>
                     </div>
                 </div>
                 <div>
@@ -974,15 +980,90 @@ window.addEventListener('DOMContentLoaded', () => {
     @endif
 });
 
-// Avatar preview
+// Avatar preview and compression
+function compressImage(file, maxSize, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // max dimensions for avatar
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            let quality = 0.9;
+            function tryCompress() {
+                canvas.toBlob(function(blob) {
+                    if (blob.size > maxSize && quality > 0.1) {
+                        quality -= 0.1;
+                        tryCompress();
+                    } else {
+                        // create a new File from the compressed blob
+                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                            type: 'image/webp',
+                            lastModified: Date.now()
+                        });
+                        callback(newFile);
+                    }
+                }, 'image/webp', quality);
+            }
+            tryCompress();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 function previewAvatar(input) {
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('avatar-preview').src = e.target.result;
-            document.getElementById('sidebar-avatar').src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
+        const file = input.files[0];
+        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+        
+        // Show loading state
+        const originalOverlayHTML = document.querySelector('.avatar-upload-overlay').innerHTML;
+        document.querySelector('.avatar-upload-overlay').innerHTML = '<span class="material-symbols-outlined animate-spin text-[22px]">progress_activity</span><span class="text-[10px] font-semibold mt-1">Đang xử lý</span>';
+        
+        if (file.size > MAX_SIZE) {
+            compressImage(file, MAX_SIZE, function(compressedFile) {
+                const url = URL.createObjectURL(compressedFile);
+                document.getElementById('avatar-preview').src = url;
+                document.getElementById('sidebar-avatar').src = url;
+                
+                // Replace file in input
+                const dt = new DataTransfer();
+                dt.items.add(compressedFile);
+                input.files = dt.files;
+                
+                document.querySelector('.avatar-upload-overlay').innerHTML = originalOverlayHTML;
+            });
+        } else {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('avatar-preview').src = e.target.result;
+                document.getElementById('sidebar-avatar').src = e.target.result;
+                document.querySelector('.avatar-upload-overlay').innerHTML = originalOverlayHTML;
+            };
+            reader.readAsDataURL(file);
+        }
     }
 }
 
@@ -1033,5 +1114,89 @@ function closeAddressModal() {
     document.getElementById('address-modal').classList.remove('open');
     document.body.style.overflow = '';
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const selectProvince = document.getElementById('province_select');
+    const selectDistrict = document.getElementById('district_select');
+    const selectWard = document.getElementById('ward_select');
+    
+    if (selectProvince) {
+        fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
+            .then(res => res.json())
+            .then(data => {
+                if (data.error === 0) {
+                    data.data.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.full_name;
+                        option.text = p.full_name;
+                        option.dataset.code = p.id;
+                        selectProvince.appendChild(option);
+                    });
+                }
+            })
+            .catch(err => console.error('Lỗi khi tải tỉnh/thành phố:', err));
+
+        selectProvince.addEventListener('change', function() {
+            selectDistrict.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+            selectWard.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            selectDistrict.disabled = true;
+            selectWard.disabled = true;
+            
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (this.value && selectedOption && selectedOption.dataset.code) {
+                selectDistrict.disabled = false;
+                selectDistrict.options[0].text = 'Đang tải...';
+                
+                fetch(`https://esgoo.net/api-tinhthanh/2/${selectedOption.dataset.code}.htm`)
+                    .then(res => res.json())
+                    .then(data => {
+                        selectDistrict.options[0].text = 'Chọn Quận/Huyện';
+                        if (data.error === 0) {
+                            data.data.forEach(d => {
+                                const option = document.createElement('option');
+                                option.value = d.full_name;
+                                option.text = d.full_name;
+                                option.dataset.code = d.id;
+                                selectDistrict.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        selectDistrict.options[0].text = 'Lỗi kết nối';
+                    });
+            }
+        });
+
+        selectDistrict.addEventListener('change', function() {
+            selectWard.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+            selectWard.disabled = true;
+            
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (this.value && selectedOption && selectedOption.dataset.code) {
+                selectWard.disabled = false;
+                selectWard.options[0].text = 'Đang tải...';
+                
+                fetch(`https://esgoo.net/api-tinhthanh/3/${selectedOption.dataset.code}.htm`)
+                    .then(res => res.json())
+                    .then(data => {
+                        selectWard.options[0].text = 'Chọn Phường/Xã';
+                        if (data.error === 0) {
+                            data.data.forEach(w => {
+                                const option = document.createElement('option');
+                                option.value = w.full_name;
+                                option.text = w.full_name;
+                                selectWard.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        selectWard.options[0].text = 'Lỗi kết nối';
+                    });
+            }
+        });
+    }
+});
 </script>
 @endpush

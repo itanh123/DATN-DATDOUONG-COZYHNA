@@ -56,15 +56,15 @@
                     </div>
                     <div>
                         <h2 class="font-title-lg text-title-lg text-on-surface">Khôi phục từ file</h2>
-                        <p class="text-on-surface-variant text-body-md">Upload file .sqlite từ máy tính</p>
+                        <p class="text-on-surface-variant text-body-md">Upload file .sql từ máy tính</p>
                     </div>
                 </div>
                 <form action="/admin/backup/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
                     @csrf
                     <label for="backup_file" class="block w-full border-2 border-dashed border-outline-variant/50 rounded-xl p-lg text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all mb-md" id="dropZone">
                         <span class="material-symbols-outlined text-3xl text-outline mb-sm block">cloud_upload</span>
-                        <span class="text-on-surface-variant text-body-md block" id="fileLabel">Kéo thả hoặc click để chọn file .sqlite</span>
-                        <input type="file" name="backup_file" id="backup_file" accept=".sqlite" class="hidden" onchange="updateFileLabel(this)">
+                        <span class="text-on-surface-variant text-body-md block" id="fileLabel">Kéo thả hoặc click để chọn file .sql</span>
+                        <input type="file" name="backup_file" id="backup_file" accept=".sql" class="hidden" onchange="updateFileLabel(this)">
                     </label>
                     <button type="submit" id="uploadBtn" disabled class="w-full bg-tertiary text-on-tertiary py-md rounded-xl font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg">
                         <span class="material-symbols-outlined">restore</span>
@@ -197,7 +197,7 @@ function updateFileLabel(input) {
         label.textContent = input.files[0].name;
         btn.disabled = false;
     } else {
-        label.textContent = 'Kéo thả hoặc click để chọn file .sqlite';
+        label.textContent = 'Kéo thả hoặc click để chọn file .sql';
         btn.disabled = true;
     }
 }
