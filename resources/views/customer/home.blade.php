@@ -21,11 +21,23 @@
 </section>
 <div class="max-w-container-max mx-auto px-lg">
 <!-- Category Chips -->
-<div class="flex gap-md overflow-x-auto no-scrollbar py-xl -mx-lg px-lg">
-<a href="/" class="{{ !$isFiltered ? 'bg-primary text-on-primary' : 'bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary' }} px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Tất Cả</a>
-@foreach($categories as $cat)
-<a href="/?category_id={{ $cat->id }}" class="{{ request('category_id') == $cat->id ? 'bg-primary text-on-primary' : 'bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary' }} px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ $cat->name }}</a>
-@endforeach
+<div class="relative py-xl md:px-12">
+    <!-- Left button -->
+    <button onclick="document.getElementById('category-scroll').scrollBy({left: -300, behavior: 'smooth'})" class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md border border-outline-variant/30 rounded-full w-10 h-10 items-center justify-center z-10 text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors active:scale-95">
+        <span class="material-symbols-outlined text-[24px]">chevron_left</span>
+    </button>
+
+    <div id="category-scroll" class="flex gap-md overflow-x-auto no-scrollbar -mx-lg px-lg md:mx-0 md:px-0 cursor-grab active:cursor-grabbing select-none">
+        <a href="/" class="{{ !$isFiltered ? 'bg-primary text-on-primary' : 'bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary' }} px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform shrink-0">Tất Cả</a>
+        @foreach($categories as $cat)
+        <a href="/?category_id={{ $cat->id }}" class="{{ request('category_id') == $cat->id ? 'bg-primary text-on-primary' : 'bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary' }} px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform shrink-0">{{ $cat->name }}</a>
+        @endforeach
+    </div>
+
+    <!-- Right button -->
+    <button onclick="document.getElementById('category-scroll').scrollBy({left: 300, behavior: 'smooth'})" class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md border border-outline-variant/30 rounded-full w-10 h-10 items-center justify-center z-10 text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors active:scale-95">
+        <span class="material-symbols-outlined text-[24px]">chevron_right</span>
+    </button>
 </div>
 
 <!-- Danh Mục Sản Phẩm -->
@@ -159,6 +171,48 @@
                 setTimeout(() => this.classList.remove('scale-95'), 100);
             });
         });
+        
+        // Drag to scroll for category list
+        const slider = document.getElementById('category-scroll');
+        if (slider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            let isDragging = false;
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                isDragging = false;
+                slider.classList.add('cursor-grabbing');
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+            slider.addEventListener('mouseleave', () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            });
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            });
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                isDragging = true;
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2; // Scroll-fast
+                slider.scrollLeft = scrollLeft - walk;
+            });
+            
+            // Ngăn chặn việc click vào link (a tag) nếu người dùng vừa mới drag xong
+            slider.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if(isDragging) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
     
 </script>
 @endpush

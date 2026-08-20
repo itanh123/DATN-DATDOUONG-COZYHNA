@@ -188,12 +188,65 @@
             },
         }
 </script>
+<style>
+    @keyframes slideInRightFadeOut {
+        0% { transform: translateX(100%); opacity: 0; }
+        10% { transform: translateX(0); opacity: 1; }
+        80% { transform: translateX(0); opacity: 1; }
+        100% { transform: translateX(-20px); opacity: 0; pointer-events: none; }
+    }
+    .animate-slide-in-right-once {
+        animation: slideInRightFadeOut 5s ease-out forwards;
+    }
+</style>
 </head>
 <body class="bg-surface text-on-surface">
 <!-- Top Navigation Bar -->
-<header class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm">
-<div class="flex items-center gap-xl">
-<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain">
+<header id="main-header" class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm transition-transform duration-300">
+<div class="flex items-center gap-xl relative">
+    @php
+        $showGreeting = !session()->has('greeting_shown');
+        if ($showGreeting) {
+            session()->put('greeting_shown', true);
+        }
+
+        $hour = (int) now()->timezone('Asia/Ho_Chi_Minh')->format('H');
+        $timeStr = '';
+        $icon = '';
+        if ($hour >= 5 && $hour < 12) {
+            $timeStr = 'buổi sáng';
+            $icon = 'routine';
+        } elseif ($hour >= 12 && $hour < 18) {
+            $timeStr = 'buổi chiều';
+            $icon = 'wb_sunny';
+        } else {
+            $timeStr = 'buổi tối';
+            $icon = 'dark_mode';
+        }
+        
+        $greeting = 'Chào mừng ' . $timeStr . '!';
+        if (session()->has('user_id')) {
+            $userGreeting = \App\Models\User::find(session('user_id'));
+            if ($userGreeting) {
+                $name = $userGreeting->name ?: $userGreeting->username;
+                $greeting = 'Chào ' . $timeStr . ', ' . mb_convert_case($name, MB_CASE_TITLE, "UTF-8") . '!';
+            }
+        } elseif (session('is_table_order') && session('table_name')) {
+            $greeting = 'Chào mừng ' . $timeStr . ', Bàn ' . session('table_name') . '!';
+        }
+    @endphp
+    
+    @if($showGreeting)
+    <!-- Greeting Box -->
+    <div class="hidden md:flex shrink-0 items-center">
+        <div class="animate-slide-in-right-once flex items-center gap-1 text-primary whitespace-nowrap font-label-md bg-surface-container-low px-4 py-2 rounded-full border border-primary/20 shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">{{ $icon }}</span>
+            <span>{{ $greeting }}</span>
+        </div>
+    </div>
+    @endif
+
+<img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-10 object-contain shrink-0">
 <nav class="hidden md:flex gap-lg">
 <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface-variant hover:text-primary transition-colors' }}" href="/">Thực đơn</a>
 @if(!session('is_table_order'))
@@ -220,7 +273,18 @@
         <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
         <span id="favorite-badge" class="absolute -top-1 -right-1 bg-error text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full" style="display: none;">0</span>
     </a>
-    <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
+    
+    @if(isset($userGreeting) && $userGreeting->avatar)
+        @php
+            $avatarUrl = str_starts_with($userGreeting->avatar, 'http') ? $userGreeting->avatar : asset('storage/' . $userGreeting->avatar);
+        @endphp
+        <a href="/customer/account" class="relative flex items-center justify-center p-1 rounded-full transition-transform active:scale-95 hover:opacity-80" title="Tài khoản">
+            <img src="{{ $avatarUrl }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover border border-primary/30 shadow-sm">
+        </a>
+    @else
+        <a href="/customer/account" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="account_circle" title="Tài khoản">account_circle</a>
+    @endif
+    
     <a href="/logout" class="material-symbols-outlined text-error p-2 hover:bg-error-container rounded-full transition-colors active:scale-95" data-icon="logout" title="Đăng xuất">logout</a>
 
 @else
@@ -487,5 +551,25 @@ function callStaff() {
     })();
 </script>
 @endif
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let lastScrollY = window.scrollY;
+        const header = document.getElementById('main-header');
+        
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            // Ẩn khi scroll xuống hơn 100px, hiện khi cuộn lên
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                header.style.transform = 'translateY(0)';
+            }
+            
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+    });
+</script>
 </body>
 </html>

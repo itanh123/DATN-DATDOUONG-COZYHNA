@@ -122,8 +122,34 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return redirect('/admin/product')->with('success', 'Xóa sản phẩm thành công.');
+        try {
+            // Kiểm tra xem sản phẩm đã có trong đơn hàng nào chưa
+            $hasOrders = \App\Models\OrderItem::whereIn('product_size_id', $product->productSizes->pluck('id'))->exists();
+            if ($hasOrders) {
+                return redirect()->back()->with('error', 'Không thể xóa sản phẩm này vì đã có đơn hàng liên quan. Vui lòng chuyển trạng thái sang "Ngừng bán".');
+            }
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($product) {
+                // Xóa các sản phẩm trong giỏ hàng
+                \App\Models\CartItem::whereIn('product_size_id', $product->productSizes->pluck('id'))->delete();
+                
+                // Gỡ bỏ quan hệ
+                $product->favoritedBy()->detach();
+                $product->toppings()->detach();
+                
+                // Xóa các bản ghi con
+                $product->reviews()->delete();
+                \App\Models\ProductImage::where('product_id', $product->id)->delete();
+                $product->productSizes()->delete();
+                
+                // Xóa sản phẩm
+                $product->delete();
+            });
+
+            return redirect('/admin/product')->with('success', 'Xóa sản phẩm thành công.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa: ' . $e->getMessage());
+        }
     }
 
     public function storeSize(Request $request)
