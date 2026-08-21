@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Topping;
+use App\Models\Voucher;
+use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -13,12 +15,42 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::all();
-        $toppings = Topping::where('status', true)->get();
+        $vouchers = Voucher::where('status', 1)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->whereRaw('used_count < quantity')
+            ->orderBy('used_count', 'desc')
+            ->orderBy('discount_value', 'desc')
+            ->get();
+            
+        $banners = Banner::where('status', 1)
+            ->where('position', 'sidebar')
+            ->where(function($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->orderBy('priority', 'asc')
+            ->get();
+        $categories = Category::where('status', true)->get();
+        $toppings = Topping::where('status', true)
+            ->where(function($q) {
+                $q->whereNull('ingredient_id')
+                  ->orWhereHas('ingredient', function($subQ) {
+                      $subQ->where('current_stock', '>', 0);
+                  });
+            })
+            ->get();
 
         $query = Product::query()
             ->whereNull('deleted_at')
             ->where('status', true)
+            ->where(function($q) {
+                $q->whereHas('category', function($subQ) {
+                    $subQ->where('status', true);
+                })->orWhereNull('category_id');
+            })
             ->with(['productSizes.size', 'productSizes.recipes.ingredients.ingredient', 'category', 'reviews.user']);
 
         if ($request->has('category_id')) {
@@ -77,6 +109,6 @@ class HomeController extends Controller
 
         $isFiltered = $request->has('category_id');
 
-        return view('customer.home', compact('products', 'categories', 'isFiltered', 'toppings'));
+        return view('customer.home', compact('products', 'categories', 'isFiltered', 'toppings', 'vouchers', 'banners'));
     }
 }

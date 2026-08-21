@@ -43,15 +43,41 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/10">
-                    @forelse($ingredients as $item)
-                    <tr class="hover:bg-surface-container-low transition-colors">
+                    @forelse($ingredientsByCategory as $category => $items)
+                        @php
+                            $hasWarning = false;
+                            foreach($items as $item) {
+                                if ($item->current_stock <= $item->minimum_stock) {
+                                    $hasWarning = true;
+                                    break;
+                                }
+                                if ($item->expiration_date) {
+                                    $daysLeft = now()->diffInDays($item->expiration_date, false);
+                                    $isExpiring = $item->is_fresh ? now()->diffInHours($item->expiration_date, false) <= 2 : $daysLeft <= 2;
+                                    if ($isExpiring) {
+                                        $hasWarning = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        @endphp
+                        <tr class="{{ $hasWarning ? 'bg-error-container/50 hover:bg-error-container/70 text-error' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }} transition-colors cursor-pointer" onclick="toggleCategory('cat-{{ Str::slug($category) }}')">
+                            <td colspan="7" class="px-xl py-md font-label-lg font-bold">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined transition-transform duration-300 transform -rotate-90" id="icon-cat-{{ Str::slug($category) }}">expand_more</span>
+                                    {{ $category }} ({{ $items->count() }})
+                                </div>
+                            </td>
+                        </tr>
+                        @foreach($items as $item)
+                        <tr class="hover:bg-surface-container-low transition-colors hidden category-row cat-{{ Str::slug($category) }}">
                         <td class="px-xl py-md font-body-md font-bold">{{ $item->code }}</td>
                         <td class="px-xl py-md font-body-md">{{ $item->name }}</td>
                         <td class="px-xl py-md font-body-md">
                             @if($item->is_fresh)
-                            <span class="px-2 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-[10px]">Đồ tươi</span>
+                            <span class="px-2 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-[10px] whitespace-nowrap">Đồ tươi</span>
                             @else
-                            <span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-full text-[10px]">Thường</span>
+                            <span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-full text-[10px] whitespace-nowrap">Thường</span>
                             @endif
                         </td>
                         <td class="px-xl py-md font-body-md">
@@ -77,15 +103,12 @@
                             <button onclick="editItem({{ json_encode($item) }})" class="p-xs text-outline hover:text-primary transition-colors">
                                 <span class="material-symbols-outlined">edit</span>
                             </button>
-                            <form action="/admin/ingredients/{{ $item->id }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="p-xs text-outline hover:text-error transition-colors">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </form>
+                            <button type="button" onclick="confirmDelete({{ $item->id }})" class="p-xs text-outline hover:text-error transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
                         </td>
                     </tr>
+                        @endforeach
                     @empty
                     <tr>
                         <td colspan="7" class="text-center py-xl text-on-surface-variant">Chưa có nguyên liệu nào.</td>
@@ -93,9 +116,6 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        <div class="p-md">
-            {{ $ingredients->links() }}
         </div>
     </div>
 </main>
@@ -108,11 +128,16 @@
             @csrf
             <div>
                 <label class="block font-label-md mb-1">Mã NL</label>
-                <input type="text" name="code" required class="w-full rounded-lg border-outline-variant px-3 py-2">
+                <input type="text" name="code" id="add_code" required class="w-full rounded-lg border-outline-variant px-3 py-2" onkeyup="checkDuplicateCode(this.value)">
+                <span id="code_error" class="text-error font-label-sm hidden mt-1">Mã nguyên liệu đã được sử dụng!</span>
             </div>
             <div>
                 <label class="block font-label-md mb-1">Tên NL</label>
                 <input type="text" name="name" required class="w-full rounded-lg border-outline-variant px-3 py-2">
+            </div>
+            <div>
+                <label class="block font-label-md mb-1">Nhóm nguyên liệu</label>
+                <input type="text" name="category" list="category-list" class="w-full rounded-lg border-outline-variant px-3 py-2" placeholder="Ví dụ: Trà, Sữa, Trái cây...">
             </div>
             <div>
                 <label class="block font-label-md mb-1">Đơn vị</label>
@@ -142,7 +167,7 @@
             </div>
             <div class="flex justify-end gap-2 mt-4">
                 <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 font-label-md text-on-surface-variant">Hủy</button>
-                <button type="submit" class="px-4 py-2 font-label-md bg-primary text-on-primary rounded-lg">Lưu</button>
+                <button type="submit" id="btn_add_save" class="px-4 py-2 font-label-md bg-primary text-on-primary rounded-lg">Lưu</button>
             </div>
         </form>
     </div>
@@ -162,6 +187,10 @@
             <div>
                 <label class="block font-label-md mb-1">Tên NL</label>
                 <input type="text" name="name" id="edit_name" required class="w-full rounded-lg border-outline-variant px-3 py-2">
+            </div>
+            <div>
+                <label class="block font-label-md mb-1">Nhóm nguyên liệu</label>
+                <input type="text" name="category" id="edit_category" list="category-list" class="w-full rounded-lg border-outline-variant px-3 py-2" placeholder="Ví dụ: Trà, Sữa, Trái cây...">
             </div>
             <div>
                 <label class="block font-label-md mb-1">Đơn vị</label>
@@ -199,10 +228,20 @@
         <form action="/admin/ingredients/import" method="POST" class="flex flex-col gap-4">
             @csrf
             <div>
+                <label class="block font-label-md mb-1">Lọc theo nhóm nguyên liệu</label>
+                <select id="import_category_filter" class="no-choices w-full rounded-lg border-outline-variant px-3 py-2 mb-2" onchange="filterImportIngredients()">
+                    <option value="all">-- Tất cả nhóm --</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat }}">{{ $cat }}</option>
+                    @endforeach
+                    <option value="Khác">Khác</option>
+                </select>
+            </div>
+            <div>
                 <label class="block font-label-md mb-1">Chọn nguyên liệu</label>
-                <select name="ingredient_id" required class="w-full rounded-lg border-outline-variant px-3 py-2">
-                    @foreach($ingredients as $ing)
-                        <option value="{{ $ing->id }}">{{ $ing->name }} ({{ $ing->code }})</option>
+                <select name="ingredient_id" id="import_ingredient_id" required class="no-choices w-full rounded-lg border-outline-variant px-3 py-2">
+                    @foreach($allIngredients as $ing)
+                        <option value="{{ $ing->id }}" data-category="{{ $ing->category ?: 'Khác' }}">{{ $ing->name }} ({{ $ing->code }})</option>
                     @endforeach
                 </select>
             </div>
@@ -214,6 +253,11 @@
                 <label class="block font-label-md mb-1">Ghi chú (Tùy chọn)</label>
                 <input type="text" name="note" class="w-full rounded-lg border-outline-variant px-3 py-2" placeholder="Ví dụ: Nhập hàng từ nhà cung cấp">
             </div>
+            <div>
+                <label class="block font-label-md mb-1">Hạn sử dụng mới (Nếu có)</label>
+                <input type="datetime-local" name="expiration_date" class="w-full rounded-lg border-outline-variant px-3 py-2">
+                <span class="text-on-surface-variant text-sm mt-1 block">Ngày hết hạn này sẽ áp dụng cho toàn bộ số lượng tồn kho của nguyên liệu.</span>
+            </div>
             <div class="flex justify-end gap-2 mt-4">
                 <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 font-label-md text-on-surface-variant">Hủy</button>
                 <button type="submit" class="px-4 py-2 font-label-md bg-secondary text-on-secondary rounded-lg">Xác nhận nhập kho</button>
@@ -222,11 +266,113 @@
     </div>
 </div>
 
+<!-- Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+    <div class="bg-surface p-xl rounded-2xl w-[400px] max-w-full text-center">
+        <span class="material-symbols-outlined text-5xl text-error mb-4">warning</span>
+        <h3 class="font-title-lg mb-2 text-on-surface">Xác nhận xóa</h3>
+        <p class="font-body-md text-on-surface-variant mb-6">Bạn có chắc chắn muốn xóa nguyên liệu này không? Hành động này không thể hoàn tác.</p>
+        <div class="flex justify-center gap-4">
+            <button type="button" onclick="document.getElementById('deleteModal').classList.add('hidden')" class="px-6 py-2 font-label-md text-on-surface-variant bg-surface-container hover:bg-surface-container-high rounded-lg transition-colors">Hủy</button>
+            <form id="deleteForm" method="POST" class="inline">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="px-6 py-2 font-label-md bg-error text-on-error rounded-lg hover:bg-error/90 transition-colors">Xóa</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<datalist id="category-list">
+    @foreach($categories as $cat)
+        <option value="{{ $cat }}">
+    @endforeach
+</datalist>
+
 <script>
+    let codeCheckTimeout;
+    function checkDuplicateCode(code) {
+        clearTimeout(codeCheckTimeout);
+        const errorSpan = document.getElementById('code_error');
+        const saveBtn = document.getElementById('btn_add_save');
+        const input = document.getElementById('add_code');
+        
+        if (!code.trim()) {
+            errorSpan.classList.add('hidden');
+            input.classList.remove('border-error');
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        codeCheckTimeout = setTimeout(() => {
+            fetch(`/admin/ingredients/check-code?code=${encodeURIComponent(code)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        errorSpan.classList.remove('hidden');
+                        input.classList.add('border-error');
+                        saveBtn.disabled = true;
+                        saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        errorSpan.classList.add('hidden');
+                        input.classList.remove('border-error');
+                        saveBtn.disabled = false;
+                        saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+        }, 500); // 500ms debounce
+    }
+
+    function confirmDelete(id) {
+        document.getElementById('deleteForm').action = '/admin/ingredients/' + id;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function toggleCategory(catClass) {
+        const rows = document.querySelectorAll('.' + catClass);
+        const icon = document.getElementById('icon-' + catClass);
+        let isHidden = false;
+        
+        rows.forEach(row => {
+            row.classList.toggle('hidden');
+            if(row.classList.contains('hidden')) isHidden = true;
+        });
+        
+        if (isHidden) {
+            icon.classList.add('-rotate-90');
+        } else {
+            icon.classList.remove('-rotate-90');
+        }
+    }
+
+    function filterImportIngredients() {
+        const category = document.getElementById('import_category_filter').value;
+        const select = document.getElementById('import_ingredient_id');
+        const options = select.querySelectorAll('option');
+        
+        let firstVisible = null;
+
+        options.forEach(option => {
+            const optCat = option.getAttribute('data-category');
+            if (category === 'all' || optCat === category) {
+                option.style.display = '';
+                if (!firstVisible) firstVisible = option;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+
+        if (firstVisible) {
+            select.value = firstVisible.value;
+        }
+    }
+
     function editItem(item) {
         document.getElementById('editForm').action = '/admin/ingredients/' + item.id;
         document.getElementById('edit_code').value = item.code;
         document.getElementById('edit_name').value = item.name;
+        document.getElementById('edit_category').value = item.category || '';
         document.getElementById('edit_unit_id').value = item.unit_id;
         document.getElementById('edit_minimum_stock').value = item.minimum_stock;
         if(item.expiration_date) {

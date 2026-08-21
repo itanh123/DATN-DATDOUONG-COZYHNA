@@ -256,7 +256,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
                 @forelse($categories as $category)
                     <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm overflow-visible flex flex-col group hover:shadow-md transition-shadow relative">
-                        <div class="h-32 bg-surface-container-high overflow-hidden rounded-t-2xl">
+                        <div class="h-32 bg-surface-container-high overflow-hidden rounded-t-2xl relative">
+                            @if($category->display_order)
+                            <div class="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded-lg shadow-sm z-10">
+                                Ưu tiên: {{ $category->display_order }}
+                            </div>
+                            @endif
                             @if($category->image)
                                 <img src="{{ $category->image }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             @else
@@ -282,6 +287,7 @@
                                             data-description="{{ $category->description }}"
                                             data-image="{{ $category->image }}"
                                             data-status="{{ $category->status }}"
+                                            data-display-order="{{ $category->display_order }}"
                                         >Edit</button>
                                         @endif
                                         @if(check_permission('delete_categories'))
@@ -668,6 +674,10 @@
                         <input name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="E.g. Coffee">
                     </div>
                     <div>
+                        <label class="block font-label-md mb-2">Thứ tự hiển thị (Priority)</label>
+                        <input name="display_order" type="number" min="1" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="Ví dụ: 1">
+                    </div>
+                    <div>
                         <label class="block font-label-md mb-2">Category Image</label>
                         <input name="image" type="file" accept="image/*" class="block w-full border border-outline-variant/50 rounded-xl p-2">
                     </div>
@@ -703,6 +713,10 @@
                     <div>
                         <label class="block font-label-md mb-2">Category Name *</label>
                         <input id="edit_category_name" name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-label-md mb-2">Thứ tự hiển thị (Priority)</label>
+                        <input id="edit_category_display_order" name="display_order" type="number" min="1" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="Ví dụ: 1">
                     </div>
                     <div>
                         <label class="block font-label-md mb-2">Current Image</label>
@@ -916,10 +930,14 @@
             const description = button.getAttribute('data-description');
             const image = button.getAttribute('data-image');
             const status = button.getAttribute('data-status');
+            const displayOrder = button.getAttribute('data-display-order');
 
             document.getElementById('categoryEditForm').action = '/admin/category/' + id + '/update';
             document.getElementById('edit_category_name').value = name || '';
             document.getElementById('edit_category_description').value = description || '';
+            if(document.getElementById('edit_category_display_order')) {
+                document.getElementById('edit_category_display_order').value = displayOrder || '';
+            }
             
             const previewContainer = document.getElementById('edit_current_category_image_preview');
             if (image && image !== 'null' && image !== '') {
@@ -1059,6 +1077,8 @@
         function toggleToppingModal() {
             document.getElementById('toppingForm').reset();
             document.getElementById('toppingForm').action = '/admin/toppings';
+            document.getElementById('toppingIngredientId').value = '';
+            document.getElementById('toppingIngredientQuantity').value = '1';
             document.getElementById('toppingModalTitle').innerText = 'Thêm Mới Topping';
             toggleModal('toppingModal');
         }
@@ -1068,8 +1088,36 @@
             document.getElementById('toppingName').value = topping.name;
             document.getElementById('toppingPrice').value = topping.price;
             document.getElementById('toppingStatus').checked = topping.status ? true : false;
+            document.getElementById('toppingIngredientId').value = topping.ingredient_id || '';
+            document.getElementById('toppingIngredientQuantity').value = topping.ingredient_quantity || '1';
             document.getElementById('toppingModalTitle').innerText = 'Chỉnh Sửa Topping';
             toggleModal('toppingModal');
+        }
+
+        function filterToppingIngredients() {
+            const category = document.getElementById('toppingCategoryFilter').value;
+            const select = document.getElementById('toppingIngredientId');
+            const options = select.querySelectorAll('option');
+            
+            let firstVisible = null;
+
+            options.forEach(option => {
+                const optCat = option.getAttribute('data-category');
+                if (category === 'all' || optCat === category || option.value === '') {
+                    option.style.display = '';
+                    if (!firstVisible && option.value !== '') firstVisible = option;
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            if (firstVisible && select.value !== '') {
+                // Keep the current selection if it's still visible
+                const currentOption = select.querySelector(`option[value="${select.value}"]`);
+                if (currentOption && currentOption.style.display === 'none') {
+                    select.value = firstVisible.value;
+                }
+            }
         }
     </script>
 </main>
@@ -1094,6 +1142,31 @@
                     <div>
                         <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Giá tiền (VNĐ) <span class="text-error">*</span></label>
                         <input name="price" id="toppingPrice" type="number" min="0" class="w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Lọc theo nhóm nguyên liệu</label>
+                        <select id="toppingCategoryFilter" class="no-choices w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4" onchange="filterToppingIngredients()">
+                            <option value="all">-- Tất cả nhóm --</option>
+                            @php
+                                $toppingCats = collect($ingredients)->pluck('category')->filter()->unique();
+                            @endphp
+                            @foreach($toppingCats as $cat)
+                                <option value="{{ $cat }}">{{ $cat }}</option>
+                            @endforeach
+                            <option value="Khác">Khác</option>
+                        </select>
+                        <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Liên kết Kho Nguyên Liệu (Tùy chọn)</label>
+                        <select name="ingredient_id" id="toppingIngredientId" class="no-choices w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                            <option value="" data-category="all">-- Không liên kết --</option>
+                            @foreach($ingredients as $ing)
+                                <option value="{{ $ing->id }}" data-category="{{ $ing->category ?: 'Khác' }}">{{ $ing->name }} ({{ $ing->unit->name ?? 'đơn vị' }}) - Tồn: {{ $ing->current_stock }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div id="toppingQuantityContainer">
+                        <label class="block text-label-md text-on-surface-variant mb-2 font-medium">Số lượng trừ kho quy ước (mỗi lượt)</label>
+                        <input name="ingredient_quantity" id="toppingIngredientQuantity" type="number" step="0.01" min="0.01" value="1" class="w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        <p class="text-xs text-on-surface-variant mt-1">Khi khách thêm 1 lượt Topping này, hệ thống sẽ trừ số lượng này trong kho nguyên liệu.</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <input type="checkbox" name="status" id="toppingStatus" value="1" class="w-5 h-5 rounded text-primary focus:ring-primary border-outline-variant" checked>

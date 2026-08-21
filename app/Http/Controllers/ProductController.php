@@ -215,9 +215,13 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'status' => ['boolean'],
+            'display_order' => ['nullable', 'numeric', 'min:1'],
         ]);
 
         $validated['status'] = $request->has('status');
+        if (isset($validated['display_order'])) {
+            $validated['display_order'] = (int) $validated['display_order'];
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('categories', 'public');
@@ -238,9 +242,13 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'status' => ['boolean'],
+            'display_order' => ['nullable', 'numeric', 'min:1'],
         ]);
 
         $validated['status'] = $request->has('status');
+        if (isset($validated['display_order'])) {
+            $validated['display_order'] = (int) $validated['display_order'];
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('categories', 'public');

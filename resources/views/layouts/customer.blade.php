@@ -202,7 +202,8 @@
 </head>
 <body class="bg-surface text-on-surface">
 <!-- Top Navigation Bar -->
-<header id="main-header" class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm transition-transform duration-300">
+<header id="main-header" class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 left-0 right-0 shadow-sm transition-transform duration-300">
+<div class="w-full max-w-container-max mx-auto h-full flex justify-between items-center px-4 md:px-lg">
 <div class="flex items-center gap-xl relative">
     @php
         $showGreeting = !session()->has('greeting_shown');
@@ -293,6 +294,7 @@
 @else
     <a href="/" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="table_restaurant" title="Đang ở bàn {{ session('table_name') }}">table_restaurant</a>
 @endif
+</div>
 </div>
 </header>
 
