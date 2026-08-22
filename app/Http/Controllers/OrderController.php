@@ -159,8 +159,13 @@ class OrderController extends Controller
             // Format full address
             $fullAddress = trim("{$request->address}, {$request->ward}, {$request->district}, {$request->province}", ", ");
 
-            $isSaved = $request->has('save_address') ? 1 : 0;
+            $isDefault = $request->has('set_default') ? 1 : 0;
             
+            if ($isDefault) {
+                CustomerAddress::where('customer_id', $profile->id)
+                    ->update(['is_default' => 0]);
+            }
+
             // Check if exact address already exists for this user
             $existingAddress = CustomerAddress::where('customer_id', $profile->id)
                 ->where('address', $request->address)
@@ -170,14 +175,24 @@ class OrderController extends Controller
                 ->where('receiver_phone', $request->receiver_phone)
                 ->first();
 
+            $deliveryLat = $request->input('delivery_latitude');
+            $deliveryLon = $request->input('delivery_longitude');
+
             if ($existingAddress) {
                 $customerAddress = $existingAddress;
                 $updateData = [];
-                if ($isSaved && !$existingAddress->is_saved) {
-                    $updateData['is_saved'] = 1;
+                if (!$existingAddress->is_saved) {
+                    $updateData['is_saved'] = 1; // Always save to history
+                }
+                if ($isDefault && !$existingAddress->is_default) {
+                    $updateData['is_default'] = 1;
                 }
                 if ($existingAddress->receiver_name !== $request->receiver_name) {
                     $updateData['receiver_name'] = $request->receiver_name;
+                }
+                if ($deliveryLat && $deliveryLon && ($existingAddress->latitude != $deliveryLat || $existingAddress->longitude != $deliveryLon)) {
+                    $updateData['latitude'] = $deliveryLat;
+                    $updateData['longitude'] = $deliveryLon;
                 }
                 if (!empty($updateData)) {
                     $existingAddress->update($updateData);
@@ -191,8 +206,10 @@ class OrderController extends Controller
                     'ward'           => $request->ward,
                     'district'       => $request->district,
                     'province'       => $request->province,
-                    'is_default'     => false,
-                    'is_saved'       => $isSaved,
+                    'latitude'       => $deliveryLat,
+                    'longitude'      => $deliveryLon,
+                    'is_default'     => $isDefault,
+                    'is_saved'       => 1, // Always save
                 ]);
             }
 
@@ -347,6 +364,7 @@ class OrderController extends Controller
             }
             session(['cart' => $currentCart]);
             session()->forget('checkout_items');
+            session()->forget('applied_voucher');
         });
 
         if ($request->payment_method === 'vnpay') {

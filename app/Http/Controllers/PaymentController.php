@@ -73,13 +73,18 @@ class PaymentController extends Controller
 
             $oldStatus = $order->order_status;
             if ($oldStatus === 'PENDING') {
-                // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
+                $order->order_status = 'PREPARING';
+                $order->status = 'preparing';
+                $order->save();
+                
+                $order->deductInventory();
+
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
                     'old_status' => $oldStatus,
-                    'new_status' => $oldStatus,
+                    'new_status' => 'PREPARING',
                     'changed_by' => session('user_id'),
-                    'note'       => 'Khách hàng đã thanh toán VietQR thành công',
+                    'note'       => 'Hệ thống tự động xác nhận đơn hàng sau khi thanh toán VietQR thành công',
                 ]);
             }
         });
@@ -131,13 +136,18 @@ class PaymentController extends Controller
 
                 $oldStatus = $order->order_status;
                 if ($oldStatus === 'PENDING') {
-                    // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
+                    $order->order_status = 'PREPARING';
+                    $order->status = 'preparing';
+                    $order->save();
+                    
+                    $order->deductInventory();
+
                     OrderStatusHistory::create([
                         'order_id'   => $order->id,
                         'old_status' => $oldStatus,
-                        'new_status' => $oldStatus,
+                        'new_status' => 'PREPARING',
                         'changed_by' => session('user_id'),
-                        'note'       => 'Khách hàng đã thanh toán online thành công (giả lập)',
+                        'note'       => 'Hệ thống tự động xác nhận đơn hàng sau khi thanh toán online thành công (giả lập)',
                     ]);
                 }
             });
@@ -279,13 +289,18 @@ class PaymentController extends Controller
 
                     $oldStatus = $order->order_status;
                     if ($oldStatus === 'PENDING') {
-                        // Giữ nguyên PENDING, chỉ ghi lịch sử thanh toán
+                        $order->order_status = 'PREPARING';
+                        $order->status = 'preparing';
+                        $order->save();
+                        
+                        $order->deductInventory();
+
                         OrderStatusHistory::create([
                             'order_id'   => $order->id,
                             'old_status' => $oldStatus,
-                            'new_status' => $oldStatus,
+                            'new_status' => 'PREPARING',
                             'changed_by' => session('user_id'),
-                            'note'       => 'Khách hàng đã thanh toán VNPAY thành công',
+                            'note'       => 'Hệ thống tự động xác nhận đơn hàng sau khi thanh toán VNPAY thành công',
                         ]);
                     }
                 });
