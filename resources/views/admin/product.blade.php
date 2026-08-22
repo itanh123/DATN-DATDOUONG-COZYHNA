@@ -86,9 +86,9 @@
                     <div class="flex items-center gap-2 px-3 py-1 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md hover:bg-surface-container-low transition-colors" style="width: 260px;">
                         <span class="material-symbols-outlined text-body-md shrink-0">category</span>
                         <div class="flex-1">
-                            <select name="category_id" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
+                            <select name="category_id" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface no-choices">
                                 <option value="">Category: All</option>
-                                @foreach($categories as $category)
+                                @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                 @endforeach
                             </select>
@@ -111,7 +111,7 @@
             </div>
 
 
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
@@ -173,7 +173,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                <td class="p-4 text-right">
                                     <button
                                         class="p-1 hover:bg-surface-container rounded transition-colors action-more"
                                         type="button"
@@ -323,7 +323,7 @@
                     <span class="material-symbols-outlined">add</span> Thêm Topping
                 </button>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-visible">
             <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
             <tr class="bg-surface-container-low border-b border-outline-variant/30">
@@ -374,7 +374,7 @@
                 @endif
             </div>
             
-            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
+            <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-visible">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
@@ -392,7 +392,7 @@
                                 <td class="p-4 font-semibold text-on-surface">{{ $size->name }}</td>
                                 <td class="p-4 text-on-surface">{{ $size->volume_ml ?? 'N/A' }}</td>
                                 <td class="p-4 text-on-surface-variant">{{ $size->description }}</td>
-                                <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                <td class="p-4 text-right">
                                     @if(check_permission('edit_sizes') || check_permission('delete_sizes'))
                                     <button
                                         class="p-1 hover:bg-surface-container rounded transition-colors action-more-size"
@@ -471,9 +471,9 @@
 
                         <div>
                             <label class="block mb-2 font-medium">Category</label>
-                            <select id="edit_category_id" name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" {{ $isAdmin ? 'required' : 'disabled' }}>
+                            <select id="edit_category_id" name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant no-choices" {{ $isAdmin ? 'required' : 'disabled' }}>
                                 <option value="">Select category</option>
-                                @foreach($categories as $category)
+                                @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
@@ -547,9 +547,9 @@
 
                         <div>
                             <label class="block mb-2 font-medium">Category</label>
-                            <select name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" required>
+                            <select name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none no-choices" required>
                                 <option value="">Select category</option>
-                                @foreach($categories as $category)
+                                @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
@@ -617,7 +617,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($sizes as $s)
+                            @foreach($allSizes as $s)
                                 <tr class="border-b border-outline-variant/10 hover:bg-surface-container-lowest transition-colors">
                                     <td class="p-3 text-center">
                                         <input type="checkbox" id="ps_active_{{ $s->id }}" name="sizes[{{ $s->id }}][active]" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="toggleSizeRow({{ $s->id }})" {{ !check_permission('edit_products') ? 'disabled' : '' }} />

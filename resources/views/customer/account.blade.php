@@ -314,16 +314,7 @@
     {{ session('error') }}
 </div>
 @endif
-@if($errors->any())
-<div class="alert-error mb-4 mt-4">
-    <span class="material-symbols-outlined text-[20px]">error</span>
-    <div>
-        @foreach($errors->all() as $error)
-        <div>{{ $error }}</div>
-        @endforeach
-    </div>
-</div>
-@endif
+
 
 <div class="flex flex-col md:flex-row gap-6 pt-6">
 
@@ -391,7 +382,7 @@
 
         {{-- ====== PROFILE TAB ====== --}}
         <section id="content-profile" class="space-y-5">
-            <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data">
+            <form id="profile-form" action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data" novalidate onsubmit="return validateProfileForm(event)">
                 @csrf
 
                 {{-- Avatar + header --}}
@@ -435,10 +426,11 @@
                     {{-- Form fields --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tên đầy đủ</label>
-                            <input name="full_name" type="text"
+                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tên đầy đủ <span class="text-error">*</span></label>
+                            <input name="full_name" type="text" required
                                    value="{{ old('full_name', $user->full_name ?? '') }}"
                                    class="premium-input" placeholder="Nguyễn Văn A"/>
+                            <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng nhập tên đầy đủ</div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tên đăng nhập</label>
@@ -446,22 +438,25 @@
                                    class="premium-input opacity-60 cursor-not-allowed" readonly/>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Email</label>
-                            <input name="email" type="email"
+                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Email <span class="text-error">*</span></label>
+                            <input name="email" type="email" required
                                    value="{{ old('email', $user->email ?? '') }}"
                                    class="premium-input" placeholder="email@example.com"/>
+                            <div class="error-msg text-error text-[11px] mt-1 hidden">Email không hợp lệ</div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Số điện thoại</label>
-                            <input name="phone" type="tel"
+                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Số điện thoại <span class="text-error">*</span></label>
+                            <input name="phone" type="tel" required pattern="(84|0[3|5|7|8|9])[0-9]{8}"
                                    value="{{ old('phone', $user->phone ?? '') }}"
                                    class="premium-input" placeholder="09xxxxxxxx"/>
+                            <div class="error-msg text-error text-[11px] mt-1 hidden">Số điện thoại không hợp lệ</div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Ngày sinh</label>
                             <input name="birthday" type="date"
                                    value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}"
                                    class="premium-input"/>
+                            <div class="error-msg text-error text-[11px] mt-1 hidden">Ngày sinh không hợp lệ</div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Giới tính</label>
@@ -532,19 +527,30 @@
                                 <span class="material-symbols-outlined text-[20px]">{{ $addr->is_default ? 'home' : 'location_on' }}</span>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-[14px] font-semibold text-on-surface">{{ $addr->address }}</p>
+                                <p class="text-[14px] font-bold text-on-surface flex items-center gap-2">
+                                    {{ $addr->receiver_name ?? $user->name }}
+                                    @if($addr->receiver_phone || $user->phone)
+                                        <span class="text-on-surface-variant/50 text-[10px]">|</span>
+                                        <span class="text-[13px] font-medium text-on-surface-variant">{{ $addr->receiver_phone ?? $user->phone }}</span>
+                                    @endif
+                                </p>
+                                <p class="text-[14px] font-medium text-on-surface mt-1">{{ $addr->address }}</p>
                                 <p class="text-[12px] text-on-surface-variant mt-0.5">{{ $addr->ward }}, {{ $addr->district }}, {{ $addr->province }}</p>
                                 @if($addr->note)
-                                <p class="text-[11px] text-on-surface-variant/60 mt-1 italic">{{ $addr->note }}</p>
+                                <p class="text-[12px] text-on-surface-variant/70 mt-1 italic">Ghi chú: {{ $addr->note }}</p>
                                 @endif
                             </div>
                         </div>
-                        <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/15">
-                            <form action="{{ route('customer.address.delete.post', $addr->id) }}" method="POST" class="flex-1"
-                                  onsubmit="return confirm('Xóa địa chỉ này?')">
+                        <div class="mt-4 pt-3 border-t border-outline-variant/30 flex justify-end gap-2">
+                            <button onclick="editAddress({{ $addr->id }}, '{{ htmlspecialchars($addr->receiver_name ?? $user->name, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->receiver_phone ?? $user->phone, ENT_QUOTES) }}', '{{ $addr->province }}', '{{ $addr->district }}', '{{ $addr->ward }}', '{{ htmlspecialchars($addr->address, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->note ?? '', ENT_QUOTES) }}', {{ $addr->is_default ? 'true' : 'false' }})" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">edit</span>
+                                Sửa
+                            </button>
+                            <form action="{{ route('customer.address.delete.post', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');">
                                 @csrf
-                                <button type="submit" class="w-full text-[12px] text-error hover:bg-error-container rounded-lg py-1.5 px-3 transition-colors flex items-center gap-1 justify-center">
-                                    <span class="material-symbols-outlined text-[15px]">delete</span> Xóa
+                                <button type="submit" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-error hover:bg-error-container hover:text-on-error-container transition-colors flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                                    Xóa
                                 </button>
                             </form>
                         </div>
@@ -756,19 +762,33 @@
 <div id="address-modal" class="modal-backdrop" onclick="if(event.target===this)closeAddressModal()">
     <div class="modal-box mx-4">
         <div class="flex items-center justify-between mb-5">
-            <h3 class="text-[18px] font-bold text-on-surface">Thêm địa chỉ mới</h3>
+            <h3 id="address-modal-title" class="text-[18px] font-bold text-on-surface">Thêm địa chỉ mới</h3>
             <button onclick="closeAddressModal()" class="w-8 h-8 rounded-full hover:bg-surface flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
-        <form action="{{ route('customer.address.store') }}" method="POST" class="space-y-4">
+        <form id="address-form" action="{{ route('customer.address.store') }}" method="POST" class="space-y-4" novalidate onsubmit="return validateAddressForm(event)">
             @csrf
+            <input type="hidden" name="_method" id="address-method" value="POST">
             <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tên người nhận <span class="text-error">*</span></label>
+                        <input id="receiver_name_input" name="receiver_name" type="text" required class="premium-input" placeholder="Họ và tên"/>
+                        <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng nhập tên người nhận</div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Số điện thoại <span class="text-error">*</span></label>
+                        <input id="receiver_phone_input" name="receiver_phone" type="tel" required pattern="(84|0[3|5|7|8|9])[0-9]{8}" class="premium-input" placeholder="VD: 0912345678"/>
+                        <div class="error-msg text-error text-[11px] mt-1 hidden">Số điện thoại không hợp lệ</div>
+                    </div>
+                </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tỉnh / Thành phố <span class="text-error">*</span></label>
                     <select id="province_select" name="province" required class="no-choices premium-input bg-white cursor-pointer">
                         <option value="">Chọn Tỉnh/Thành phố</option>
                     </select>
+                    <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng chọn Tỉnh/Thành phố</div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -776,21 +796,24 @@
                         <select id="district_select" name="district" required disabled class="no-choices premium-input bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed">
                             <option value="">Chọn Quận/Huyện</option>
                         </select>
+                        <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng chọn Quận/Huyện</div>
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Phường / Xã <span class="text-error">*</span></label>
                         <select id="ward_select" name="ward" required disabled class="no-choices premium-input bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed">
                             <option value="">Chọn Phường/Xã</option>
                         </select>
+                        <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng chọn Phường/Xã</div>
                     </div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Địa chỉ cụ thể <span class="text-error">*</span></label>
-                    <input name="address" type="text" required class="premium-input" placeholder="Số nhà, tên đường..."/>
+                    <input id="address_input" name="address" type="text" required class="premium-input" placeholder="Số nhà, tên đường..."/>
+                    <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng nhập địa chỉ cụ thể</div>
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Ghi chú (tùy chọn)</label>
-                    <input name="note" type="text" class="premium-input" placeholder="VD: Cổng màu xanh, tầng 3"/>
+                    <input id="note_input" name="note" type="text" class="premium-input" placeholder="VD: Cổng màu xanh, tầng 3"/>
                 </div>
                 <label class="flex items-center gap-3 cursor-pointer select-none">
                     <div class="relative">
@@ -1107,12 +1130,323 @@ function checkPasswordStrength(value) {
 
 // Address modal
 function openAddressModal() {
+    document.getElementById('address-modal-title').innerText = 'Thêm địa chỉ mới';
+    document.getElementById('address-form').action = '{{ route("customer.address.store") }}';
+    document.getElementById('address-method').value = 'POST';
+    
+    document.getElementById('address-form').reset();
+    
+    // Clear validation UI
+    const inputs = document.getElementById('address-form').querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.classList.remove('border-error');
+        const errorMsg = input.nextElementSibling;
+        if (errorMsg && errorMsg.classList.contains('error-msg')) {
+            errorMsg.classList.add('hidden');
+        }
+    });
+    
+    // Suggest user's name and phone
+    document.getElementById('receiver_name_input').value = '{{ htmlspecialchars($user->name, ENT_QUOTES) }}';
+    document.getElementById('receiver_phone_input').value = '{{ htmlspecialchars($user->phone ?? "", ENT_QUOTES) }}';
+    
+    document.getElementById('district_select').innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+    document.getElementById('district_select').disabled = true;
+    document.getElementById('ward_select').innerHTML = '<option value="">Chọn Phường/Xã</option>';
+    document.getElementById('ward_select').disabled = true;
+
+    // Force Ninh Binh and load districts
+    const pSelect = document.getElementById('province_select');
+    if (pSelect) {
+        if (pSelect.tomselect) pSelect.tomselect.destroy();
+        pSelect.innerHTML = '<option value="Tỉnh Ninh Bình" data-code="37" selected>Tỉnh Ninh Bình</option>';
+        pSelect.dispatchEvent(new Event('change'));
+    }
+
     document.getElementById('address-modal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
+
+function editAddress(id, name, phone, province, district, ward, address, note, is_default) {
+    document.getElementById('address-modal-title').innerText = 'Sửa địa chỉ';
+    document.getElementById('address-form').action = '/customer/address/' + id;
+    document.getElementById('address-method').value = 'PUT';
+    
+    // Clear validation UI
+    const inputs = document.getElementById('address-form').querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.classList.remove('border-error');
+        const errorMsg = input.nextElementSibling;
+        if (errorMsg && errorMsg.classList.contains('error-msg')) {
+            errorMsg.classList.add('hidden');
+        }
+    });
+    
+    // Set values
+    document.getElementById('receiver_name_input').value = name;
+    document.getElementById('receiver_phone_input').value = phone;
+    document.getElementById('address_input').value = address;
+    document.getElementById('note_input').value = note;
+    document.getElementById('default-addr-check').checked = is_default;
+    
+    // Set selects (Force Ninh Binh)
+    const pSelect = document.getElementById('province_select');
+    if (pSelect.tomselect) pSelect.tomselect.destroy();
+    pSelect.innerHTML = '<option value="Tỉnh Ninh Bình" data-code="37" selected>Tỉnh Ninh Bình</option>';
+    // We don't dispatch change immediately because district/ward are set manually below.
+    // However, if we need districts loaded for TomSelect, we should fetch them.
+    // Since district and ward are injected below, it works visually.
+    
+    // To allow user to change district/ward later, we must trigger change.
+    pSelect.dispatchEvent(new Event('change'));
+    
+    const dSelect = document.getElementById('district_select');
+    dSelect.innerHTML = `<option value="${district}" selected>${district}</option>`;
+    dSelect.disabled = false;
+    
+    const wSelect = document.getElementById('ward_select');
+    wSelect.innerHTML = `<option value="${ward}" selected>${ward}</option>`;
+    wSelect.disabled = false;
+
+    document.getElementById('address-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
 function closeAddressModal() {
     document.getElementById('address-modal').classList.remove('open');
     document.body.style.overflow = '';
+}
+
+async function validateProfileForm(event) {
+    const form = event.target;
+    event.preventDefault(); // Always prevent default for AJAX
+    
+    // 1. Client-side validation
+    let isValid = form.checkValidity();
+    
+    // Clear previous UI errors
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const errorMsg = input.parentElement.querySelector('.error-msg');
+        if (errorMsg) {
+            errorMsg.classList.add('hidden');
+            input.classList.remove('border-error');
+            if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                input.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+            }
+        }
+    });
+
+    if (!isValid) {
+        // Show HTML5 validation errors
+        inputs.forEach(input => {
+            const errorMsg = input.parentElement.querySelector('.error-msg');
+            if (errorMsg && !input.validity.valid) {
+                errorMsg.classList.remove('hidden');
+                if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                    input.nextElementSibling.querySelector('.ts-control').classList.add('!border-error');
+                } else {
+                    input.classList.add('border-error');
+                }
+                
+                input.addEventListener('input', function() {
+                    if (this.validity.valid) {
+                        errorMsg.classList.add('hidden');
+                        this.classList.remove('border-error');
+                        if (this.tagName === 'SELECT' && this.nextElementSibling && this.nextElementSibling.classList.contains('ts-wrapper')) {
+                            this.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+                        }
+                    }
+                }, { once: true });
+                
+                input.addEventListener('change', function() {
+                    if (this.validity.valid) {
+                        errorMsg.classList.add('hidden');
+                        this.classList.remove('border-error');
+                        if (this.tagName === 'SELECT' && this.nextElementSibling && this.nextElementSibling.classList.contains('ts-wrapper')) {
+                            this.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+                        }
+                    }
+                }, { once: true });
+            }
+        });
+        return false;
+    }
+
+    // 2. AJAX Submission
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
+
+    try {
+        const formData = new FormData(form);
+        const url = form.action;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            // Success! Reload to show updated profile
+            window.location.reload();
+        } else if (response.status === 422) {
+            // Validation Error
+            const data = await response.json();
+            const errors = data.errors;
+            
+            for (let field in errors) {
+                // Find input by name
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input) {
+                    const errorMsg = input.parentElement.querySelector('.error-msg');
+                    if (errorMsg) {
+                        errorMsg.textContent = errors[field][0]; // Update text to server message
+                        errorMsg.classList.remove('hidden');
+                        
+                        if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                            input.nextElementSibling.querySelector('.ts-control').classList.add('!border-error');
+                        } else {
+                            input.classList.add('border-error');
+                        }
+                    }
+                }
+            }
+        } else {
+            console.error("Lỗi server");
+        }
+    } catch (error) {
+        console.error(error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+    }
+
+    return false;
+}
+
+async function validateAddressForm(event) {
+    const form = event.target;
+    event.preventDefault(); // Always prevent default for AJAX
+    
+    // 1. Client-side validation
+    let isValid = form.checkValidity();
+    
+    // Clear previous UI errors
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const errorMsg = input.parentElement.querySelector('.error-msg');
+        if (errorMsg) {
+            errorMsg.classList.add('hidden');
+            input.classList.remove('border-error');
+            if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                input.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+            }
+        }
+    });
+
+    if (!isValid) {
+        // Show HTML5 validation errors
+        inputs.forEach(input => {
+            const errorMsg = input.parentElement.querySelector('.error-msg');
+            if (errorMsg && !input.validity.valid) {
+                errorMsg.classList.remove('hidden');
+                // You can keep default messages or let HTML5 handle it. Since we have static messages, they show up.
+                if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                    input.nextElementSibling.querySelector('.ts-control').classList.add('!border-error');
+                } else {
+                    input.classList.add('border-error');
+                }
+                
+                input.addEventListener('input', function() {
+                    if (this.validity.valid) {
+                        errorMsg.classList.add('hidden');
+                        this.classList.remove('border-error');
+                        if (this.tagName === 'SELECT' && this.nextElementSibling && this.nextElementSibling.classList.contains('ts-wrapper')) {
+                            this.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+                        }
+                    }
+                }, { once: true });
+                
+                input.addEventListener('change', function() {
+                    if (this.validity.valid) {
+                        errorMsg.classList.add('hidden');
+                        this.classList.remove('border-error');
+                        if (this.tagName === 'SELECT' && this.nextElementSibling && this.nextElementSibling.classList.contains('ts-wrapper')) {
+                            this.nextElementSibling.querySelector('.ts-control').classList.remove('!border-error');
+                        }
+                    }
+                }, { once: true });
+            }
+        });
+        return false;
+    }
+
+    // 2. AJAX Submission
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang xử lý...';
+
+    try {
+        const formData = new FormData(form);
+        const url = form.action;
+        // Append _method if PUT
+        const methodInput = document.getElementById('address-method');
+        const submitMethod = methodInput ? methodInput.value : 'POST';
+
+        const response = await fetch(url, {
+            method: 'POST', // always POST for FormData, Laravel uses _method
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            // Success! Reload to show updated addresses
+            window.location.reload();
+        } else if (response.status === 422) {
+            // Validation Error
+            const data = await response.json();
+            const errors = data.errors;
+            
+            for (let field in errors) {
+                // Find input by name
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input) {
+                    const errorMsg = input.parentElement.querySelector('.error-msg');
+                    if (errorMsg) {
+                        errorMsg.textContent = errors[field][0]; // Update text to server message
+                        errorMsg.classList.remove('hidden');
+                        
+                        if (input.tagName === 'SELECT' && input.nextElementSibling && input.nextElementSibling.classList.contains('ts-wrapper')) {
+                            input.nextElementSibling.querySelector('.ts-control').classList.add('!border-error');
+                        } else {
+                            input.classList.add('border-error');
+                        }
+                    }
+                }
+            }
+        } else {
+            console.error("Lỗi server");
+        }
+    } catch (error) {
+        console.error(error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+    }
+
+    return false;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1121,21 +1455,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectWard = document.getElementById('ward_select');
     
     if (selectProvince) {
-        fetch('https://esgoo.net/api-tinhthanh/1/0.htm')
-            .then(res => res.json())
-            .then(data => {
-                if (data.error === 0) {
-                    data.data.forEach(p => {
-                        const option = document.createElement('option');
-                        option.value = p.full_name;
-                        option.text = p.full_name;
-                        option.dataset.code = p.id;
-                        selectProvince.appendChild(option);
-                    });
-                }
-            })
-            .catch(err => console.error('Lỗi khi tải tỉnh/thành phố:', err));
-
+        // Force Ninh Binh as province
+        selectProvince.innerHTML = '<option value="Tỉnh Ninh Bình" data-code="37" selected>Tỉnh Ninh Bình</option>';
+        selectProvince.classList.add('pointer-events-none', 'bg-surface-variant', 'text-on-surface-variant', 'opacity-80');
+        
         selectProvince.addEventListener('change', function() {
             selectDistrict.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
             selectWard.innerHTML = '<option value="">Chọn Phường/Xã</option>';
@@ -1144,29 +1467,42 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const selectedOption = this.options[this.selectedIndex];
             
-            if (this.value && selectedOption && selectedOption.dataset.code) {
+            if (this.value) {
                 selectDistrict.disabled = false;
                 selectDistrict.options[0].text = 'Đang tải...';
                 
-                fetch(`https://esgoo.net/api-tinhthanh/2/${selectedOption.dataset.code}.htm`)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectDistrict.options[0].text = 'Chọn Quận/Huyện';
-                        if (data.error === 0) {
-                            data.data.forEach(d => {
-                                const option = document.createElement('option');
-                                option.value = d.full_name;
-                                option.text = d.full_name;
-                                option.dataset.code = d.id;
-                                selectDistrict.appendChild(option);
-                            });
+                Promise.all([
+                    fetch(`https://esgoo.net/api-tinhthanh/2/35.htm`).then(r => r.json()),
+                    fetch(`https://esgoo.net/api-tinhthanh/2/36.htm`).then(r => r.json()),
+                    fetch(`https://esgoo.net/api-tinhthanh/2/37.htm`).then(r => r.json())
+                ]).then(results => {
+                    selectDistrict.options[0].text = 'Chọn Quận/Huyện';
+                    let allDistricts = [];
+                    results.forEach(res => {
+                        if (res.error === 0) {
+                            allDistricts = allDistricts.concat(res.data);
                         }
-                    })
-                    .catch(err => {
-                        selectDistrict.options[0].text = 'Lỗi kết nối';
                     });
+                    
+                    // Sort alphabetically
+                    allDistricts.sort((a, b) => a.full_name.localeCompare(b.full_name));
+                    
+                    allDistricts.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.full_name;
+                        option.text = d.full_name;
+                        option.dataset.code = d.id;
+                        selectDistrict.appendChild(option);
+                    });
+                }).catch(err => {
+                    console.error('Lỗi khi tải quận/huyện:', err);
+                    selectDistrict.options[0].text = 'Lỗi tải dữ liệu';
+                });
             }
         });
+        
+        // Trigger fetch districts for Ninh Binh
+        selectProvince.dispatchEvent(new Event('change'));
 
         selectDistrict.addEventListener('change', function() {
             selectWard.innerHTML = '<option value="">Chọn Phường/Xã</option>';

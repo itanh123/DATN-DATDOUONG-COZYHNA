@@ -53,7 +53,11 @@ class ProductController extends Controller
         }
         $toppings = $toppingsQuery->get();
 
-        return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients', 'toppings'));
+        $allCategories = Category::query()->whereNull('deleted_at')->get();
+        $allSizes = Size::orderBy('name')->get();
+        $allToppings = \App\Models\Topping::orderBy('name')->get();
+
+        return view('admin.product', compact('categories', 'products', 'sizes', 'ingredients', 'toppings', 'allCategories', 'allSizes', 'allToppings'));
     }
 
 
@@ -125,25 +129,27 @@ class ProductController extends Controller
         try {
             // Kiểm tra xem sản phẩm đã có trong đơn hàng nào chưa
             $hasOrders = \App\Models\OrderItem::whereIn('product_size_id', $product->productSizes->pluck('id'))->exists();
-            if ($hasOrders) {
-                return redirect()->back()->with('error', 'Không thể xóa sản phẩm này vì đã có đơn hàng liên quan. Vui lòng chuyển trạng thái sang "Ngừng bán".');
-            }
 
-            \Illuminate\Support\Facades\DB::transaction(function () use ($product) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($product, $hasOrders) {
                 // Xóa các sản phẩm trong giỏ hàng
                 \App\Models\CartItem::whereIn('product_size_id', $product->productSizes->pluck('id'))->delete();
                 
-                // Gỡ bỏ quan hệ
-                $product->favoritedBy()->detach();
-                $product->toppings()->detach();
-                
-                // Xóa các bản ghi con
-                $product->reviews()->delete();
-                \App\Models\ProductImage::where('product_id', $product->id)->delete();
-                $product->productSizes()->delete();
-                
-                // Xóa sản phẩm
-                $product->delete();
+                if ($hasOrders) {
+                    // Xóa mềm nếu có đơn hàng để không ảnh hưởng lịch sử
+                    $product->update(['deleted_at' => now(), 'status' => 0]);
+                } else {
+                    // Gỡ bỏ quan hệ
+                    $product->favoritedBy()->detach();
+                    $product->toppings()->detach();
+                    
+                    // Xóa các bản ghi con
+                    $product->reviews()->delete();
+                    \App\Models\ProductImage::where('product_id', $product->id)->delete();
+                    $product->productSizes()->delete();
+                    
+                    // Xóa sản phẩm
+                    $product->delete();
+                }
             });
 
             return redirect('/admin/product')->with('success', 'Xóa sản phẩm thành công.');

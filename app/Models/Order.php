@@ -37,6 +37,8 @@ class Order extends Model
         24 => 'cancel_reason',
         25 => 'created_by',
         26 => 'shipper_rating',
+        27 => 'delivery_latitude',
+        28 => 'delivery_longitude',
     );
 
     public function customer()

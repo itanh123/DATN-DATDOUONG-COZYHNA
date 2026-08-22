@@ -1,305 +1,4 @@
-@extends('layouts.customer')
 
-@section('title', 'Thanh Toán')
-
-@push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<style>
-    #map { height: 250px; width: 100%; border-radius: 0.75rem; z-index: 10; margin-bottom: 0.5rem; }
-</style>
-@endpush
-
-@section('content')
-
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet" />
-<style>
-    .ts-control {
-        min-height: 48px;
-        padding: 10px 12px;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(121, 116, 126, 0.2);
-        background-color: rgb(247, 243, 249);
-        font-family: inherit;
-        font-size: 14px;
-    }
-    .ts-control > input {
-        font-size: 14px;
-    }
-    .ts-wrapper.single .ts-control:after {
-        right: 15px;
-    }
-    .ts-dropdown .ts-dropdown-content {
-        max-height: 250px !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-</style>
-
-<main class="mt-24 pb-24 max-w-container-max mx-auto px-4 md:px-lg">
-
-{{-- Flash messages --}}
-@if(session('error'))
-    <div class="mb-md p-md bg-red-100 text-red-700 rounded-xl font-body-md">{{ session('error') }}</div>
-@endif
-
-<div class="mb-xl">
-    <h1 class="font-headline-lg text-headline-lg text-on-background">Thanh Toán</h1>
-    <p class="font-body-md text-body-md text-on-surface-variant">Kiểm tra đơn hàng và hoàn tất thanh toán.</p>
-</div>
-
-
-<form method="POST" action="{{ route('orders.place') }}" id="checkout-form">
-@csrf
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
-
-    {{-- Left Column --}}
-    <div class="lg:col-span-8 space-y-lg">
-
-        {{-- Cart Items --}}
-        <section class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
-            <div class="flex items-center justify-between mb-md">
-                <h2 class="font-title-lg text-title-lg flex items-center gap-xs">
-                    <span class="material-symbols-outlined text-primary">shopping_basket</span>
-                    Giỏ hàng của bạn
-                </h2>
-                <span class="font-label-md text-label-md text-on-surface-variant">{{ $cartItems->count() }} sản phẩm</span>
-            </div>
-            <div class="divide-y divide-outline-variant/20">
-                @foreach($cartItems as $item)
-                @php
-                    // Support both sized and no-size products
-                    $product = $item->productSize->product ?? $item->product;
-                    $size    = $item->productSize->size ?? null;
-                    $price   = $item->unit_price;  // always use stored unit_price
-                @endphp
-                <div class="py-md flex items-center gap-md">
-                    <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
-                        @if($product && $product->image)
-                            <img class="w-full h-full object-cover" src="{{ $product->image }}" alt="{{ $product->name }}"/>
-                        @else
-                            <div class="w-full h-full flex items-center justify-center">
-                                <span class="material-symbols-outlined text-outline-variant text-[36px]">local_cafe</span>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="flex-grow">
-                        <h3 class="font-body-lg text-body-lg font-semibold">{{ $product->name ?? 'Sản phẩm' }}</h3>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $size->name ?? 'Mặc định' }}</p>
-                        @if(isset($item->toppings) && count($item->toppings) > 0)
-                            <div class="mt-1">
-                                @foreach($item->toppings as $topping)
-                                    <p class="font-label-sm text-label-sm text-on-surface-variant">+ {{ $topping['name'] }}</p>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                    <div class="text-right flex-shrink-0">
-                        <p class="font-body-lg text-body-lg font-bold text-primary">{{ number_format($price * $item->quantity, 0, ',', '.') }} đ</p>
-                        <p class="font-label-md text-label-md text-on-surface-variant">SL: {{ $item->quantity }}</p>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div class="mt-md text-right">
-                <a href="{{ route('cart.index') }}" class="text-primary font-label-md hover:underline flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[18px]">arrow_back</span> Quay lại giỏ hàng</a>
-            </div>
-        </section>
-
-        {{-- Delivery Info Form --}}
-        <section class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
-            <h2 class="font-title-lg text-title-lg flex items-center gap-xs mb-md">
-                <span class="material-symbols-outlined text-primary">location_on</span>
-                Thông tin giao hàng
-            </h2>
-
-            @php $defaultAddr = $addresses->firstWhere('is_default', true) ?? $addresses->first(); @endphp
-
-            @if(count($addresses) > 0)
-            <div class="mb-md">
-                <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Chọn địa chỉ đã lưu</label>
-                <select id="saved_address_select" class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                    <option value="">-- Nhập địa chỉ mới --</option>
-                    @foreach($addresses as $addr)
-                        <option value="{{ $addr->id }}" 
-                                data-name="{{ $addr->receiver_name }}" 
-                                data-phone="{{ $addr->receiver_phone }}"
-                                data-province="{{ $addr->province }}"
-                                data-district="{{ $addr->district }}"
-                                data-ward="{{ $addr->ward }}"
-                                data-address="{{ $addr->address }}">{{ $addr->receiver_name }} - {{ $addr->receiver_phone }} ({{ $addr->address }}, {{ $addr->ward }}, {{ $addr->district }}, {{ $addr->province }})</option>
-                    @endforeach
-                </select>
-            </div>
-            @endif
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-                <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Tên người nhận *</label>
-                    <input type="text" id="receiver_name" name="receiver_name" required
-                        value="{{ old('receiver_name', optional($defaultAddr)->receiver_name ?? '') }}"
-                        class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                        placeholder="Nhập tên người nhận"/>
-                </div>
-                <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Số điện thoại *</label>
-                    <input type="text" id="receiver_phone" name="receiver_phone" required
-                        value="{{ old('receiver_phone', optional($defaultAddr)->receiver_phone ?? '') }}"
-                        class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                        placeholder="Số điện thoại"/>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-md mt-md">
-                <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Tỉnh/Thành phố *</label>
-                    <input type="hidden" name="province" value="Tỉnh Ninh Bình">
-                    <select id="province_select" required class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                        <option value="">Chọn Tỉnh/Thành phố</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Quận/Huyện *</label>
-                    <select id="district_select" name="district" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                        <option value="">Chọn Quận/Huyện</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Phường/Xã *</label>
-                    <select id="ward_select" name="ward" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                        <option value="">Chọn Phường/Xã</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-md">
-                <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Địa chỉ cụ thể *</label>
-                <div class="flex gap-2">
-                    <input type="text" id="specific_address" name="address" required
-                        value="{{ old('address', optional($defaultAddr)->address ?? '') }}"
-                        class="flex-1 p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                        placeholder="Số nhà, thôn, ngõ, ngách..."/>
-                    <button type="button" id="btn_find_location" class="px-4 bg-secondary text-on-secondary rounded-xl hover:bg-secondary/90 transition-colors flex items-center justify-center whitespace-nowrap" title="Tìm trên bản đồ">
-                        <span class="material-symbols-outlined mr-1">search</span> Tìm
-                    </button>
-                    <button type="button" id="btn_current_location" class="px-4 bg-surface-container-high text-on-surface rounded-xl hover:bg-surface-variant transition-colors flex items-center justify-center whitespace-nowrap border border-outline-variant/30" title="Lấy vị trí hiện tại">
-                        <span class="material-symbols-outlined">my_location</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="mt-md" id="map_container" style="display: none;">
-                <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs flex items-center gap-1">
-                    Xác nhận vị trí trên bản đồ <span class="text-error">*</span>
-                </label>
-                <p class="text-xs text-on-surface-variant mb-2" id="map_helper_text">Vui lòng kéo ghim (marker) đến chính xác vị trí nhận hàng của bạn.</p>
-                <div id="map" class="w-full border border-outline-variant shadow-inner"></div>
-                <input type="hidden" name="delivery_latitude" id="input_delivery_lat" value="">
-                <input type="hidden" name="delivery_longitude" id="input_delivery_lon" value="">
-            </div>
-
-            <div class="mt-sm flex items-center gap-xs">
-                <input type="checkbox" id="save_address" name="save_address" value="1" class="w-4 h-4 text-primary border-outline focus:ring-primary rounded">
-                <label for="save_address" class="font-label-md text-label-md text-on-surface-variant cursor-pointer select-none">Lưu thông tin giao hàng cho lần sau</label>
-            </div>
-
-            <div class="mt-md">
-                <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Ghi chú (tuỳ chọn)</label>
-                <textarea name="note" rows="2"
-                    class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                    placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao...">{{ old('note') }}</textarea>
-            </div>
-        </section>
-
-        {{-- Payment Method --}}
-        <section class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
-            <h2 class="font-title-lg text-title-lg flex items-center gap-xs mb-md">
-                <span class="material-symbols-outlined text-primary">payments</span>
-                Phương thức thanh toán
-            </h2>
-            <div class="space-y-sm">
-                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input checked name="payment_method" type="radio" value="vnpay" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
-                    <span class="material-symbols-outlined text-blue-600">account_balance</span>
-                    <div class="flex-grow">
-                        <span class="font-body-lg text-body-lg font-medium">VNPAY / Thẻ ATM</span>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Thanh toán trực tuyến an toàn qua Cổng VNPAY</p>
-                    </div>
-                </label>
-                <label class="flex items-center gap-md p-md rounded-xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input name="payment_method" type="radio" value="cash" class="w-5 h-5 text-primary border-outline focus:ring-primary"/>
-                    <span class="material-symbols-outlined text-on-surface-variant">payments</span>
-                    <div class="flex-grow">
-                        <span class="font-body-lg text-body-lg font-medium">Tiền mặt khi nhận hàng (COD)</span>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Thanh toán bằng tiền mặt khi shipper giao tới</p>
-                    </div>
-                </label>
-            </div>
-        </section>
-    </div>
-
-    {{-- Right Column: Sticky Summary --}}
-    <aside class="lg:col-span-4 lg:sticky lg:top-24 space-y-md">
-        <div class="bg-surface-container-lowest rounded-xl p-lg shadow-sm border border-outline-variant/10">
-            <h2 class="font-title-lg text-title-lg mb-md">Tóm tắt đơn hàng</h2>
-            <div class="space-y-sm mb-lg">
-                <div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
-                    <span>Tạm tính</span>
-                    <span>{{ number_format($subtotal, 0, ',', '.') }} đ</span>
-                </div>
-                <div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
-                    <span>Khoảng cách</span>
-                    <span id="display_distance">0 km</span>
-                </div>
-                <div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
-                    <span>Phí giao hàng</span>
-                    <span id="display_shipping_fee">0 đ</span>
-                </div>
-
-                @if(isset($discountAmount) && $discountAmount > 0)
-                <div class="flex justify-between font-body-md text-body-md text-error">
-                    <span>Giảm giá (Voucher)</span>
-                    <span id="display_discount">-{{ number_format($discountAmount, 0, ',', '.') }} đ</span>
-                </div>
-                @endif
-                <div class="pt-sm border-t border-outline-variant/20">
-                    <div class="flex justify-between font-headline-md text-headline-md text-on-background">
-                        <span>Tổng cộng</span>
-                        <span class="text-primary" id="display_total">{{ number_format($subtotal - ($discountAmount ?? 0), 0, ',', '.') }} đ</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hidden fields for backend -->
-            <input type="hidden" name="distance_km" id="input_distance_km" value="0">
-            <input type="hidden" name="shipping_fee" id="input_shipping_fee" value="0">
-
-            <button type="submit" class="w-full py-md bg-primary text-on-primary font-headline-md text-headline-md rounded-xl hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm">
-                Xác nhận đặt hàng
-                <span class="material-symbols-outlined">arrow_forward</span>
-            </button>
-            <p class="mt-md text-center font-label-md text-label-md text-on-surface-variant">
-                Bằng cách đặt hàng, bạn đồng ý với <a class="underline" href="#">Điều khoản dịch vụ</a> của CozyHNA.
-            </p>
-        </div>
-
-        <div class="p-md rounded-xl bg-secondary-container/20 flex items-center gap-md border border-secondary-container/30">
-            <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
-            <div>
-                <p class="font-label-md text-label-md font-bold text-secondary">Giao hàng thân thiện</p>
-                <p class="font-label-sm text-label-sm text-on-secondary-container">Đóng gói bằng vật liệu tái chế thân thiện môi trường.</p>
-            </div>
-        </div>
-    </aside>
-</div>
-</form>
-
-</main>
-
-@push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     // === Toast Notification ===
     function showToast(message, type = 'success') {
@@ -416,12 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const options = data.wards.map(w => ({value: w.name, text: w.name, code: w.code}));
                         tsWard.addOptions(options);
                         tsWard.refreshOptions(false);
-                        tsWard.on('change', async function(value) {
-                            // Chỉ lưu thông tin để check phí ship (nếu có), không ảnh hưởng đến bản đồ
-                            if (value) {
-                                calculateShippingWithCoords();
-                            }
-                        });
                     });
             } else {
                 tsWard.disable();
@@ -435,6 +128,44 @@ document.addEventListener('DOMContentLoaded', function() {
     tsProvince.setValue('Tỉnh Ninh Bình');
     tsProvince.disable();
 
+    let polygonLayer = null;
+    let currentBoundaryGeoJSON = null;
+
+    tsWard.on('change', async function(value) {
+        
+        const province = tsProvince.getValue();
+        const district = tsDistrict.getValue();
+        const ward = value;
+        
+        if (province && district && ward) {
+            // Fetch boundary
+            try {
+                const response = await fetch(`/api/boundary?province=${encodeURIComponent(province)}&district=${encodeURIComponent(district)}&ward=${encodeURIComponent(ward)}`);
+                const data = await response.json();
+                
+                if (data.success && data.geojson) {
+                    currentBoundaryGeoJSON = data.geojson;
+                    
+                    // Nếu map đang mở, chỉ vẽ lại ranh giới, không dịch chuyển marker hay tâm bản đồ
+                    if (map && document.getElementById('map_container').style.display !== 'none') {
+                        if (polygonLayer) map.removeLayer(polygonLayer);
+                        polygonLayer = L.geoJSON(currentBoundaryGeoJSON, {
+                            style: { color: '#006e1c', weight: 2, opacity: 0.6, fillOpacity: 0.1 }
+                        }).addTo(map);
+                    }
+                    // Bỏ tự động mở map/zoom về tâm xã ở đây để tránh map nhảy lung tung
+                } else {
+                    currentBoundaryGeoJSON = null;
+                    if(polygonLayer && map) {
+                        map.removeLayer(polygonLayer);
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi lấy ranh giới", e);
+            }
+        }
+    });
+
     // Leaflet Map Integration
     let map = null;
     let marker = null;
@@ -442,8 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let storeCoords = null;
     
     // Init store coords immediately
-    const sl = parseFloat("{{ \App\Models\Setting::get('store_lat', '') }}");
-    const slon = parseFloat("{{ \App\Models\Setting::get('store_lon', '') }}");
+    const sl = parseFloat("0");
+    const slon = parseFloat("0");
     if (!isNaN(sl) && !isNaN(slon)) {
         storeCoords = { lat: sl, lon: slon };
     }
@@ -451,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parse shipping tiers passed from backend
     let shippingTiers = [];
     try {
-        shippingTiers = {!! $shippingTiers ?? '[]' !!};
+        shippingTiers = null;
     } catch(e) { console.error('Lỗi parse shipping tiers'); }
 
     function validateMarkerPosition(lat, lng) {
@@ -794,8 +525,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('display_shipping_fee').innerText = '...';
 
         if (!storeCoords) {
-            const storeLat = "{{ $storeLat ?? '' }}";
-            const storeLon = "{{ $storeLon ?? '' }}";
+            const storeLat = "0";
+            const storeLon = "0";
             
             if (storeLat && storeLon) {
                 storeCoords = { lat: parseFloat(storeLat), lon: parseFloat(storeLon) };
@@ -815,9 +546,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         isCalculating = false;
         
-        const baseFee = {{ $baseFee ?? 15000 }};
-        const feePerKm = {{ $feePerKm ?? 5000 }};
-        const maxRadius = {{ $maxRadius ?? 0 }};
+        const baseFee = 0;
+        const feePerKm = 0;
+        const maxRadius = 0;
 
         if (distanceKm === null) {
             showShippingWarning('Không thể tính khoảng cách tự động. Phí ship tạm tính là ' + new Intl.NumberFormat('vi-VN').format(baseFee) + 'đ.');
@@ -874,8 +605,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateTotal(shippingFee) {
-        const subtotal = {{ $subtotal ?? 0 }};
-        const discount = {{ $discountAmount ?? 0 }};
+        const subtotal = 0;
+        const discount = 0;
         const total = subtotal - discount + shippingFee;
         document.getElementById('display_total').innerText = new Intl.NumberFormat('vi-VN').format(total) + ' đ';
     }
@@ -929,21 +660,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    document.getElementById('checkout-form').addEventListener('submit', async function(e) {
         const latInput = document.getElementById('input_delivery_lat');
         const lonInput = document.getElementById('input_delivery_lon');
         
         if (!latInput.value || !lonInput.value) {
             e.preventDefault();
-            showShippingError('Vui lòng ghim vị trí nhận hàng chính xác trên bản đồ trước khi đặt hàng.');
-            document.getElementById('map_container').style.display = 'block';
-            if (map) {
-                map.invalidateSize();
+            const btn = document.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Đang định vị...';
+            btn.disabled = true;
+            
+            const p = tsProvince.getValue();
+            const d = tsDistrict.getValue();
+            const w = tsWard.getValue();
+            const specific = document.getElementById('specific_address').value;
+            
+            if (!p || !d || !w || !specific) {
+                showShippingError('Vui lòng điền đầy đủ địa chỉ để lấy tọa độ giao hàng.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            const coords = await getCoordinatesWithFallback(specific, w, d, p);
+            if (coords) {
+                latInput.value = coords.lat;
+                lonInput.value = coords.lon;
+                this.submit(); // Nộp form
+            } else {
+                showShippingError('Không thể tự động tìm thấy tọa độ địa chỉ. Vui lòng kiểm tra lại địa chỉ hoặc chọn vị trí trên bản đồ.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
     });
 
 });
-</script>
-@endpush
-@endsection

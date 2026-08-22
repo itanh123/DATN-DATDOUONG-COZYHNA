@@ -97,6 +97,7 @@ Route::post('/customer/account/update', function (\Illuminate\Http\Request $requ
 Route::post('/profile/password/update', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 Route::post('/profile/password/verify-otp', [\App\Http\Controllers\ProfileController::class, 'verifyPasswordOtp'])->name('profile.password.verify');
 Route::post('/customer/address/store', [\App\Http\Controllers\ProfileController::class, 'storeAddress'])->name('customer.address.store');
+Route::put('/customer/address/{id}', [\App\Http\Controllers\ProfileController::class, 'updateAddress'])->name('customer.address.update');
 Route::delete('/customer/address/{id}', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete');
 Route::post('/customer/address/{id}/delete', [\App\Http\Controllers\ProfileController::class, 'deleteAddress'])->name('customer.address.delete.post');
 

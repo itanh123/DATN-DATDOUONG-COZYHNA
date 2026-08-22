@@ -132,6 +132,11 @@ class OrderController extends Controller
             'address'         => ['required', 'string'],
             'payment_method'  => ['required', 'in:cash,momo,vnpay,bank,vietqr'],
             'note'            => ['nullable', 'string'],
+            'delivery_latitude' => ['required', 'numeric'],
+            'delivery_longitude' => ['required', 'numeric'],
+        ], [
+            'delivery_latitude.required' => 'Hệ thống không lấy được tọa độ giao hàng. Vui lòng chọn địa chỉ trên bản đồ.',
+            'delivery_longitude.required' => 'Hệ thống không lấy được tọa độ giao hàng. Vui lòng chọn địa chỉ trên bản đồ.',
         ]);
 
         $profile = CustomerProfile::where('user_id', $userId)->first();

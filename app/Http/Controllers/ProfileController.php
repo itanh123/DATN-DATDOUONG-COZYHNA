@@ -44,10 +44,12 @@ class ProfileController extends Controller
         $request->validate([
             'full_name' => 'nullable|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $userId,
-            'phone'     => 'nullable|string|max:20|unique:users,phone,' . $userId,
+            'phone'     => ['nullable', 'string', 'max:20', 'regex:/^(84|0[3|5|7|8|9])[0-9]{8}$/', 'unique:users,phone,' . $userId],
             'birthday'  => 'nullable|date',
             'gender'    => 'nullable|in:male,female,other',
             'avatar'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'phone.regex' => 'Số điện thoại không hợp lệ.',
         ]);
 
         $user = User::find($userId);
@@ -73,6 +75,11 @@ class ProfileController extends Controller
 
         // Ensure a customer profile exists (create if first time)
         CustomerProfile::firstOrCreate(['user_id' => $userId]);
+
+        if ($request->wantsJson()) {
+            session()->flash('success', 'Cập nhật hồ sơ thành công!');
+            return response()->json(['success' => true]);
+        }
 
         return back()->with('success', 'Cập nhật hồ sơ thành công!');
     }
@@ -190,10 +197,14 @@ class ProfileController extends Controller
         if (!$userId) return response()->json(['error' => 'Unauthorized'], 401);
 
         $request->validate([
+            'receiver_name'  => 'required|string|max:100',
+            'receiver_phone' => ['required', 'string', 'regex:/^(84|0[3|5|7|8|9])[0-9]{8}$/'],
             'province' => 'required|string|max:100',
             'district' => 'required|string|max:100',
             'ward'     => 'required|string|max:100',
             'address'  => 'required|string',
+        ], [
+            'receiver_phone.regex' => 'Số điện thoại không hợp lệ.',
         ]);
 
         $profile = CustomerProfile::firstOrCreate(['user_id' => $userId]);
@@ -204,7 +215,55 @@ class ProfileController extends Controller
         }
 
         $address = CustomerAddress::create([
-            'customer_id' => $profile->id,
+            'customer_id'    => $profile->id,
+            'receiver_name'  => $request->receiver_name,
+            'receiver_phone' => $request->receiver_phone,
+            'province'       => $request->province,
+            'district'       => $request->district,
+            'ward'           => $request->ward,
+            'address'        => $request->address,
+            'note'           => $request->note,
+            'is_default'     => $request->boolean('is_default'),
+        ]);
+
+        if ($request->wantsJson()) {
+            session()->flash('success', 'Thêm địa chỉ thành công!');
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('success', 'Thêm địa chỉ thành công!');
+    }
+
+    public function updateAddress(Request $request, $id)
+    {
+        $userId = session('user_id');
+        if (!$userId) return response()->json(['error' => 'Unauthorized'], 401);
+
+        $request->validate([
+            'receiver_name'  => 'required|string|max:100',
+            'receiver_phone' => ['required', 'string', 'regex:/^(84|0[3|5|7|8|9])[0-9]{8}$/'],
+            'province' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'ward'     => 'required|string|max:100',
+            'address'  => 'required|string',
+        ], [
+            'receiver_phone.regex' => 'Số điện thoại không hợp lệ.',
+        ]);
+
+        $profile = CustomerProfile::where('user_id', $userId)->first();
+        if (!$profile) return back()->with('error', 'Không tìm thấy hồ sơ.');
+
+        $addressModel = CustomerAddress::where('id', $id)->where('customer_id', $profile->id)->first();
+        if (!$addressModel) return back()->with('error', 'Không tìm thấy địa chỉ.');
+
+        // If is_default, unset existing defaults
+        if ($request->boolean('is_default')) {
+            CustomerAddress::where('customer_id', $profile->id)->update(['is_default' => false]);
+        }
+
+        $addressModel->update([
+            'receiver_name'  => $request->receiver_name,
+            'receiver_phone' => $request->receiver_phone,
             'province'    => $request->province,
             'district'    => $request->district,
             'ward'        => $request->ward,
@@ -213,7 +272,12 @@ class ProfileController extends Controller
             'is_default'  => $request->boolean('is_default'),
         ]);
 
-        return back()->with('success', 'Thêm địa chỉ thành công!');
+        if ($request->wantsJson()) {
+            session()->flash('success', 'Cập nhật địa chỉ thành công!');
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('success', 'Cập nhật địa chỉ thành công!');
     }
 
     public function deleteAddress(Request $request, $addressId)

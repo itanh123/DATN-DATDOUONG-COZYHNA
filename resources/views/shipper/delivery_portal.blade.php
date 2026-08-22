@@ -178,7 +178,7 @@
                                 Khoảng cách: {{ $order->distance_km ?? 0 }} km ({{ $order->route_duration_minutes ?? '--' }} phút)
                             </p>
                             <div class="flex gap-sm">
-                                <a href="https://www.google.com/maps/dir/?api=1&origin={{ \App\Models\Setting::get('store_lat') }},{{ \App\Models\Setting::get('store_lon') }}&destination={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&travelmode=driving" 
+                                <a href="https://www.google.com/maps/dir/?api=1&destination={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&travelmode=driving" 
                                    target="_blank" 
                                    class="px-sm py-xs border border-blue-200 text-blue-600 rounded-lg text-label-sm hover:bg-blue-50 flex items-center gap-xs">
                                     <span class="material-symbols-outlined text-[14px]">directions</span> Google Maps
@@ -739,6 +739,11 @@
                 const map = L.map(containerId);
                 mapInstances[orderId] = map;
                 
+                // Đảm bảo map render đúng kích thước sau khi bỏ hidden
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+                
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
@@ -746,46 +751,103 @@
                 const storeLat = {{ \App\Models\Setting::get('store_lat', '0') }};
                 const storeLon = {{ \App\Models\Setting::get('store_lon', '0') }};
 
-                // Store marker (Cửa hàng)
-                const storeIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
-                L.marker([storeLat, storeLon], {icon: storeIcon}).addTo(map).bindPopup('<b>Cửa hàng</b>');
+                const initMap = (shipperLat, shipperLon) => {
+                    // 1. Store marker (Red)
+                    const storeIcon = L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    });
+                    L.marker([storeLat, storeLon], {icon: storeIcon}).addTo(map).bindPopup('<b>Cửa hàng</b>');
 
-                // Customer marker (Khách hàng)
-                const cusIcon = L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                });
-                L.marker([destLat, destLon], {icon: cusIcon}).addTo(map).bindPopup('<b>Khách hàng</b>');
+                    // 2. Customer marker (Green)
+                    const cusIcon = L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    });
+                    L.marker([destLat, destLon], {icon: cusIcon}).addTo(map).bindPopup('<b>Khách hàng</b>');
 
-                // Fit bounds
-                const bounds = L.latLngBounds([[storeLat, storeLon], [destLat, destLon]]);
-                map.fitBounds(bounds, {padding: [30, 30]});
+                    let routeStartLat = storeLat;
+                    let routeStartLon = storeLon;
 
-                // Lấy đường đi từ OSRM API (Frontend)
-                fetch(`https://router.project-osrm.org/route/v1/driving/${storeLon},${storeLat};${destLon},${destLat}?overview=full&geometries=geojson`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.routes && data.routes[0]) {
-                            L.geoJSON(data.routes[0].geometry, {
-                                style: { color: '#006e1c', weight: 4, opacity: 0.8 }
-                            }).addTo(map);
+                    // 3. Shipper marker (Blue) if available
+                    if (shipperLat !== null && shipperLon !== null) {
+                        const shipIcon = L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        });
+                        L.marker([shipperLat, shipperLon], {icon: shipIcon}).addTo(map).bindPopup('<b>Vị trí của bạn (Shipper)</b>');
+                        routeStartLat = shipperLat;
+                        routeStartLon = shipperLon;
+                    }
+
+                    // Fit bounds to include all markers
+                    setTimeout(() => {
+                        const bounds = L.latLngBounds([
+                            [storeLat, storeLon],
+                            [destLat, destLon]
+                        ]);
+                        if (shipperLat !== null && shipperLon !== null) {
+                            bounds.extend([shipperLat, shipperLon]);
                         }
-                    })
-                    .catch(e => console.error('Lỗi lấy đường đi:', e));
+                        map.fitBounds(bounds, {padding: [30, 30]});
+                    }, 200);
+
+                    // Fetch route from start (Shipper or Store) to Customer
+                    fetch(`https://router.project-osrm.org/route/v1/driving/${routeStartLon},${routeStartLat};${destLon},${destLat}?overview=full&geometries=geojson`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.routes && data.routes[0]) {
+                                L.geoJSON(data.routes[0].geometry, {
+                                    style: { color: '#006e1c', weight: 4, opacity: 0.8 }
+                                }).addTo(map);
+                            }
+                        })
+                        .catch(e => console.error('Lỗi lấy đường đi:', e));
+                };
+
+                // Lấy vị trí shipper nếu có thể
+                if (navigator.geolocation) {
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity';
+                    toast.innerText = 'Đang tìm vị trí GPS của bạn...';
+                    document.body.appendChild(toast);
+
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            toast.remove();
+                            initMap(position.coords.latitude, position.coords.longitude);
+                        },
+                        (error) => {
+                            toast.remove();
+                            let errorMsg = 'Không thể lấy vị trí shipper.';
+                            if(error.code === 1) errorMsg = 'Bạn đã từ chối quyền truy cập vị trí.';
+                            if(error.code === 2) errorMsg = 'Không có tín hiệu GPS/Vị trí.';
+                            if(error.code === 3) errorMsg = 'Quá thời gian tìm vị trí.';
+                            console.warn(errorMsg);
+                            initMap(null, null);
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                } else {
+                    initMap(null, null);
+                }
             } else {
                 // Resize map nếu container thay đổi
-                mapInstances[orderId].invalidateSize();
+                setTimeout(() => {
+                    mapInstances[orderId].invalidateSize();
+                }, 100);
             }
         } else {
             // Đóng bản đồ

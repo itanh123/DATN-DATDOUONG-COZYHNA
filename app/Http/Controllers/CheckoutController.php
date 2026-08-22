@@ -477,6 +477,10 @@ class CheckoutController extends Controller
                 'payment_method' => $paymentMethod,
                 'status' => 'pending',
                 'note' => $request->input('note', ''),
+                'delivery_latitude' => $request->input('delivery_latitude'),
+                'delivery_longitude' => $request->input('delivery_longitude'),
+                'route_duration_minutes' => $request->input('route_duration_minutes'),
+                'distance_km' => $distanceKm,
                 'ordered_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now()
