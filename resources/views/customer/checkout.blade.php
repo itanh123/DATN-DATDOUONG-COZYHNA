@@ -358,19 +358,40 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/data/provinces.json')
         .then(res => res.json())
         .then(data => {
+            // Nếu JSON mới là 1 Object (chỉ chứa 1 tỉnh) thay vì Array, tự bọc lại vào Array
+            if (!Array.isArray(data)) {
+                data = [data];
+            }
             localData = data;
             
-            // Lọc chỉ lấy Ninh Bình sau sáp nhập
-            const ninhBinh = data.find(p => p.Name.includes('Ninh Bình'));
+            // Tìm Ninh Bình với nhiều biến thể tên có thể có trong file JSON
+            const ninhBinh = data.find(p =>
+                p.Name === 'Ninh Bình' ||
+                p.Name === 'Tỉnh Ninh Bình' ||
+                p.Name.includes('Ninh B\u00ecnh') ||
+                p.Name.includes('Ninh Bình')
+            );
             
             if (ninhBinh) {
-                // Chỉ thêm Ninh Bình và khóa không cho chọn tỉnh khác
                 tsProvince.addOption({value: ninhBinh.Name, text: ninhBinh.Name, id: ninhBinh.Id});
                 tsProvince.setValue(ninhBinh.Name);
-                tsProvince.lock(); // Khóa dropdown nhưng vẫn gửi giá trị khi submit
-                
-                // Populate Districts
+                tsProvince.lock();
                 populateDistricts(ninhBinh.Name);
+            } else {
+                // Nếu không tìm thấy, load tất cả tỉnh để debug
+                const options = data.map(p => ({value: p.Name, text: p.Name, id: p.Id}));
+                tsProvince.addOptions(options);
+                console.warn('[Checkout] Không tìm thấy Ninh Bình trong provinces.json. Các tỉnh hiện có:', data.map(p => p.Name));
+            }
+
+            // Sau khi data đã load xong, trigger địa chỉ mặc định nếu có
+            if (tsSaved) {
+                const val = tsSaved.getValue();
+                if (val) {
+                    setTimeout(() => {
+                        tsSaved.trigger('change', val);
+                    }, 150);
+                }
             }
         });
 
@@ -405,13 +426,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const province = localData.find(p => p.Name === provinceName);
             if (province) {
                 const district = province.Districts.find(d => d.Name === value);
-                if (district && district.Wards) {
+                if (district && district.Wards && district.Wards.length > 0) {
                     tsWard.enable();
                     const options = district.Wards.map(w => ({value: w.Name, text: w.Name, id: w.Id}));
                     tsWard.addOptions(options);
                     tsWard.refreshOptions(false);
                 } else {
                     tsWard.disable();
+                    document.getElementById('ward_select').removeAttribute('required');
                 }
             }
         } else {
@@ -612,10 +634,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const p = tsProvince.getValue();
         const d = tsDistrict.getValue();
         const w = tsWard.getValue();
+        // Kiểm tra xem dropdown Thôn/Xóm có option nào không
+        const requiresWard = Object.keys(tsWard.options).length > 0;
+
         // Địa chỉ cụ thể chỉ để shipper đọc, KHÔNG dùng để tìm bản đồ.
 
-        if (!p || !d || !w) {
-            showShippingWarning('Vui lòng chọn đầy đủ Tỉnh, Xã/Phường và Thôn/Xóm/Tổ dân phố trước khi tìm vị trí.');
+        if (!p || !d || (requiresWard && !w)) {
+            showShippingWarning('Vui lòng chọn đầy đủ cấp địa chỉ hiện có trước khi tìm vị trí.');
             return;
         }
 
@@ -731,16 +756,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Xử lý tên tỉnh đặc biệt (do OSM có thể chưa cập nhật ranh giới 2025)
+        let provSearch1 = cProvince;
+        let provSearch2 = cProvince;
+        if (province.includes('Khu vực Hà Nam cũ') || province.includes('Ninh Bình')) {
+            provSearch1 = 'Ninh Bình';
+            provSearch2 = 'Hà Nam';
+        }
+
         // 3) Fallback bằng tên địa danh.
         const queries = [
-            ...configuredQueries,
-            `${residentialArea}, ${commune}, ${province}`,
-            `${cResidential}, ${cCommune}, ${cProvince}`,
-            `${residentialArea}, ${province}`,
-            `${cResidential}, ${cProvince}`,
-            `${commune}, ${province}`,
-            `${cCommune}, ${cProvince}`
+            ...configuredQueries
         ];
+
+        if (residentialArea) {
+            queries.push(
+                `${residentialArea}, ${commune}, ${provSearch1}`,
+                `${cResidential}, ${cCommune}, ${provSearch1}`,
+                `${residentialArea}, ${commune}, ${provSearch2}`,
+                `${cResidential}, ${cCommune}, ${provSearch2}`
+            );
+        }
 
         const uniqueQueries = [...new Set(
             queries.map(q => (q || '').trim()).filter(Boolean)
@@ -761,11 +797,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 4) Không tìm được TDP thì mới fallback về xã/phường.
         const communeQueries = [
-            `${commune}, ${province}`,
-            `${cCommune}, ${cProvince}`
+            `${commune}, ${provSearch1}`,
+            `${cCommune}, ${provSearch1}`,
+            `${commune}, ${provSearch2}`,
+            `${cCommune}, ${provSearch2}`
         ];
 
-        for (const query of communeQueries) {
+        const uniqueCommuneQueries = [...new Set(
+            communeQueries.map(q => (q || '').trim()).filter(Boolean)
+        )];
+
+        for (const query of uniqueCommuneQueries) {
             const coords = await geocode(query);
             if (coords) {
                 document.getElementById('map_helper_text').innerText =
@@ -918,7 +960,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('receiver_name').value = '';
                 document.getElementById('receiver_phone').value = '';
                 document.getElementById('specific_address').value = '';
-                tsProvince.setValue('');
+                // Không xóa tỉnh - giữ nguyên Ninh Bình mặc định
+                tsDistrict.clearOptions(); tsDistrict.clear(); tsDistrict.disable();
+                tsWard.clearOptions(); tsWard.clear(); tsWard.disable();
                 document.getElementById('map_container').style.display = 'none';
                 return;
             }
@@ -933,11 +977,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('receiver_phone').value = originalOption.dataset.phone || '';
                 document.getElementById('specific_address').value = originalOption.dataset.address || '';
                 
-                const pName = originalOption.dataset.province;
                 const dName = originalOption.dataset.district;
                 const wName = originalOption.dataset.ward;
                 
-                tsProvince.setValue(pName);
+                // Tỉnh luôn là Ninh Bình và đã được lock - không gọi setValue để tránh bị clear
+                // Chỉ cần populate districts từ giá trị hiện tại của tsProvince
+                const currentProvince = tsProvince.getValue();
+                if (currentProvince) {
+                    populateDistricts(currentProvince);
+                }
                 
                 const lat = originalOption.dataset.lat;
                 const lon = originalOption.dataset.lon;
@@ -957,13 +1005,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Tự động trigger để load dữ liệu của địa chỉ mặc định
-        setTimeout(() => {
-            const val = tsSaved.getValue();
-            if (val) {
-                tsSaved.trigger('change', val);
-            }
-        }, 100);
     }
 });
 </script>

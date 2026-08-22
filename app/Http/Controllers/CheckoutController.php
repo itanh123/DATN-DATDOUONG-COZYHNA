@@ -356,11 +356,15 @@ class CheckoutController extends Controller
         $ward = $request->input('ward');
         $specificAddress = $request->input('address');
 
-        if (!$receiverName || !$receiverPhone || !$province || !$district || !$ward || !$specificAddress) {
+        if (!$receiverName || !$receiverPhone || !$province || !$district || !$specificAddress) {
             return back()->with('error', 'Vui lòng nhập đầy đủ thông tin giao hàng.');
         }
 
-        $shippingAddress = "{$specificAddress}, {$ward}, {$district}, {$province}";
+        $shippingAddress = "{$specificAddress}";
+        if ($ward) {
+            $shippingAddress .= ", {$ward}";
+        }
+        $shippingAddress .= ", {$district}, {$province}";
         $distanceKm = (float) $request->input('distance_km', 0);
         $maxRadius = (float) \App\Models\Setting::get('max_delivery_radius', 0);
         

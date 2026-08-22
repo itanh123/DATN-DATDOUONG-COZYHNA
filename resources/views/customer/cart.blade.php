@@ -318,12 +318,12 @@
                         </div>
 
                         <div class="mb-5 relative">
-                            <div class="flex gap-2">
-                                <input type="text" id="voucherCode" name="voucher_code" class="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
+                            <div class="flex gap-2 overflow-hidden">
+                                <input type="text" id="voucherCode" name="voucher_code" class="min-w-0 flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-[14px] text-on-surface focus:outline-none focus:border-primary transition-colors" placeholder="Nhập mã giảm giá" value="{{ $appliedVoucher ? $appliedVoucher['code'] : '' }}" {{ $appliedVoucher ? 'readonly' : '' }}>
                                 @if($appliedVoucher)
-                                    <button type="button" id="btnRemoveVoucher" class="bg-error text-on-error px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-error/90 transition-all shrink-0 whitespace-nowrap">Gỡ mã</button>
+                                    <button type="button" id="btnRemoveVoucher" class="flex-shrink-0 bg-error text-on-error px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-error/90 transition-all whitespace-nowrap">Gỡ mã</button>
                                 @else
-                                    <button type="button" id="btnApplyVoucher" class="bg-primary text-on-primary px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all shrink-0 whitespace-nowrap">Áp dụng</button>
+                                    <button type="button" id="btnApplyVoucher" class="flex-shrink-0 bg-primary text-on-primary px-3 py-2 rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all whitespace-nowrap">Áp dụng</button>
                                 @endif
                             </div>
                             

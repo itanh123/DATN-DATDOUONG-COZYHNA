@@ -157,7 +157,11 @@ class OrderController extends Controller
 
         DB::transaction(function () use ($request, $profile, $cartItems, $userId, $checkoutItemIds, &$createdOrderCode) {
             // Format full address
-            $fullAddress = trim("{$request->address}, {$request->ward}, {$request->district}, {$request->province}", ", ");
+            $fullAddress = trim("{$request->address}");
+            if ($request->ward) {
+                $fullAddress .= ", {$request->ward}";
+            }
+            $fullAddress .= ", {$request->district}, {$request->province}";
 
             $isDefault = $request->has('set_default') ? 1 : 0;
             
