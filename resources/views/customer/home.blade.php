@@ -40,39 +40,114 @@
     </button>
 </div>
 
-<!-- Danh Mục Sản Phẩm -->
-@php
-    $groupedProducts = collect($products ?? [])->groupBy(function($item) {
-        return $item->category ? $item->category->id . '|' . $item->category->name : '0|Khác';
-    });
-@endphp
+<div class="flex flex-col lg:flex-row gap-xl mb-2xl">
+    <!-- Left: Products -->
+    <div class="flex-1 min-w-0">
+        <!-- Danh Mục Sản Phẩm -->
+        @php
+            $groupedProducts = collect($products ?? [])->groupBy(function($item) {
+                $order = $item->category ? ($item->category->display_order ?? 999) : 9999;
+                return sprintf('%04d', $order) . '|' . ($item->category ? $item->category->id . '|' . $item->category->name : '0|Khác');
+            })->sortKeys();
+        @endphp
 
-@forelse($groupedProducts as $categoryKey => $categoryProducts)
-    @php
-        list($catId, $categoryName) = explode('|', $categoryKey);
-        $displayProducts = $isFiltered ? $categoryProducts : $categoryProducts->take(4);
-    @endphp
-    <section class="mb-2xl">
-        <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-sm">
-            <h3 class="font-headline-lg text-headline-lg">{{ $categoryName }}</h3>
-            @if(!$isFiltered && $categoryProducts->count() > 4)
-            <a class="text-primary font-label-md hover:underline" href="/?category_id={{ $catId }}">Xem Tất Cả {{ $categoryName }}</a>
+        @forelse($groupedProducts as $categoryKey => $categoryProducts)
+            @php
+                list($order, $catId, $categoryName) = explode('|', $categoryKey);
+                $displayProducts = $isFiltered ? $categoryProducts : $categoryProducts->take(4);
+            @endphp
+            <section class="mb-2xl last:mb-0">
+                <div class="flex justify-between items-end mb-xl border-b border-outline-variant/30 pb-sm">
+                    <h3 class="font-headline-lg text-headline-lg">{{ $categoryName }}</h3>
+                    @if(!$isFiltered && $categoryProducts->count() > 4)
+                    <a class="text-primary font-label-md hover:underline" href="/?category_id={{ $catId }}">Xem Tất Cả {{ $categoryName }}</a>
+                    @endif
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-lg">
+                    @foreach($displayProducts as $product)
+                        <x-product-card :product="$product" />
+                    @endforeach
+                </div>
+            </section>
+        @empty
+            <section class="mb-2xl">
+                <div class="flex justify-between items-center mb-xl">
+                    <h2 class="font-headline-lg text-headline-lg">Thực Đơn</h2>
+                </div>
+                <p class="text-on-surface-variant font-body-md col-span-full">Chưa có sản phẩm nào.</p>
+            </section>
+        @endforelse
+    </div>
+    
+    <!-- Right: Sidebar -->
+    <div class="w-full lg:w-[320px] shrink-0">
+        <div class="sticky top-24 space-y-lg">
+            
+            <!-- Khuyến Mãi Section -->
+            @if(isset($banners) && $banners->count() > 0)
+            <div class="bg-surface-container-low rounded-2xl p-lg border border-outline-variant/30 shadow-sm">
+                <h3 class="font-title-lg text-title-lg mb-md flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined">campaign</span>
+                    Khuyến Mãi
+                </h3>
+                
+                <div class="space-y-4">
+                    @foreach($banners as $banner)
+                        <a href="{{ $banner->link ?? '#' }}" class="block rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-outline-variant/20">
+                            <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="w-full h-auto object-cover aspect-[4/3]" onerror="this.src='https://placehold.co/400x300?text=Khuyen+Mai'">
+                            @if($banner->title)
+                            <div class="p-3 bg-white">
+                                <h4 class="font-title-md font-bold text-on-surface line-clamp-2">{{ $banner->title }}</h4>
+                            </div>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            </div>
             @endif
+
+            <!-- Vouchers Section -->
+            <div class="bg-surface-container-low rounded-2xl p-lg border border-outline-variant/30 shadow-sm">
+                <h3 class="font-title-lg text-title-lg mb-md flex items-center gap-2 text-primary">
+                    <span class="material-symbols-outlined">local_activity</span>
+                    Voucher Mới & HOT
+                </h3>
+                
+                @if(isset($vouchers) && $vouchers->count() > 0)
+                    <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        @foreach($vouchers->take(5) as $voucher)
+                            <div class="bg-white rounded-xl p-md border border-outline-variant/20 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                <div class="absolute -right-4 -top-4 w-12 h-12 bg-primary/10 rounded-full"></div>
+                                
+                                <div class="flex justify-between items-start mb-1">
+                                    <div class="font-title-md font-bold text-on-surface">{{ $voucher->name }}</div>
+                                    @if($voucher->used_count > 10)
+                                        <span class="bg-error/10 text-error text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap">HOT</span>
+                                    @endif
+                                </div>
+                                
+                                <div class="text-body-sm text-on-surface-variant mb-3 line-clamp-2">{{ $voucher->description }}</div>
+                                
+                                <div class="flex justify-between items-center mt-2 pt-3 border-t border-outline-variant/20 border-dashed">
+                                    <span class="font-mono bg-surface-container px-2 py-1 rounded text-primary font-bold text-label-md select-all">{{ $voucher->code }}</span>
+                                    <button onclick="navigator.clipboard.writeText('{{ $voucher->code }}'); const t = this.innerHTML; this.innerHTML = '<span class=\'material-symbols-outlined text-[18px]\'>check</span>'; setTimeout(() => this.innerHTML = t, 2000);" class="text-primary hover:text-primary/80 transition-colors flex items-center bg-primary/10 p-1.5 rounded-lg" title="Copy mã">
+                                        <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-6">
+                        <span class="material-symbols-outlined text-[40px] text-outline-variant mb-2">sentiment_dissatisfied</span>
+                        <p class="text-body-sm text-on-surface-variant">Hiện chưa có voucher nào.</p>
+                    </div>
+                @endif
+            </div>
+            
         </div>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-lg">
-            @foreach($displayProducts as $product)
-                <x-product-card :product="$product" />
-            @endforeach
-        </div>
-    </section>
-@empty
-    <section class="mb-2xl">
-        <div class="flex justify-between items-center mb-xl">
-            <h2 class="font-headline-lg text-headline-lg">Thực Đơn</h2>
-        </div>
-        <p class="text-on-surface-variant font-body-md col-span-full">Chưa có sản phẩm nào.</p>
-    </section>
-@endforelse
+    </div>
+</div>
 
 <!-- Cửa Hàng Gần Nhất Giâytion -->
 <section class="mb-2xl">

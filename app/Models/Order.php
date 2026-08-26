@@ -113,6 +113,33 @@ class Order extends Model
                     }
                 }
             }
+            
+            $itemToppings = \Illuminate\Support\Facades\DB::table('order_item_toppings')->where('order_item_id', $item->id)->get();
+            foreach ($itemToppings as $itemTopping) {
+                $topping = \App\Models\Topping::find($itemTopping->topping_id);
+                if ($topping && $topping->ingredient_id) {
+                    $ingredient = \App\Models\Ingredient::find($topping->ingredient_id);
+                    if ($ingredient) {
+                        $quantityToDeduct = $itemTopping->quantity * ($topping->ingredient_quantity ?? 1);
+                        $beforeQuantity = $ingredient->current_stock;
+                        
+                        $ingredient->decrement('current_stock', $quantityToDeduct);
+                        
+                        \App\Models\InventoryTransaction::create([
+                            'ingredient_id' => $ingredient->id,
+                            'transaction_type' => 'EXPORT',
+                            'quantity' => $quantityToDeduct,
+                            'unit_id' => $ingredient->unit_id ?? null,
+                            'before_quantity' => $beforeQuantity,
+                            'after_quantity' => $beforeQuantity - $quantityToDeduct,
+                            'reference_type' => self::class,
+                            'reference_id' => $this->id,
+                            'note' => "Xuất kho topping tự động cho Đơn hàng #{$this->order_code}",
+                            'created_by' => auth()->id() ?? null,
+                        ]);
+                    }
+                }
+            }
         }
     }
 
@@ -145,6 +172,33 @@ class Order extends Model
                                 'created_by' => auth()->id() ?? null,
                             ]);
                         }
+                    }
+                }
+            }
+
+            $itemToppings = \Illuminate\Support\Facades\DB::table('order_item_toppings')->where('order_item_id', $item->id)->get();
+            foreach ($itemToppings as $itemTopping) {
+                $topping = \App\Models\Topping::find($itemTopping->topping_id);
+                if ($topping && $topping->ingredient_id) {
+                    $ingredient = \App\Models\Ingredient::find($topping->ingredient_id);
+                    if ($ingredient) {
+                        $quantityToRestore = $itemTopping->quantity * ($topping->ingredient_quantity ?? 1);
+                        $beforeQuantity = $ingredient->current_stock;
+                        
+                        $ingredient->increment('current_stock', $quantityToRestore);
+                        
+                        \App\Models\InventoryTransaction::create([
+                            'ingredient_id' => $ingredient->id,
+                            'transaction_type' => 'IMPORT',
+                            'quantity' => $quantityToRestore,
+                            'unit_id' => $ingredient->unit_id ?? null,
+                            'before_quantity' => $beforeQuantity,
+                            'after_quantity' => $beforeQuantity + $quantityToRestore,
+                            'reference_type' => self::class,
+                            'reference_id' => $this->id,
+                            'note' => "Hoàn kho topping do hủy Đơn hàng #{$this->order_code}",
+                            'created_by' => auth()->id() ?? null,
+                        ]);
                     }
                 }
             }

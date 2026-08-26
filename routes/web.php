@@ -157,6 +157,7 @@ Route::middleware(['admin'])->group(function () {
 
     // Ingredients
     Route::get('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'index']);
+    Route::get('/admin/ingredients/check-code', [\App\Http\Controllers\AdminIngredientController::class, 'checkCode']);
     Route::post('/admin/ingredients', [\App\Http\Controllers\AdminIngredientController::class, 'store']);
     Route::post('/admin/ingredients/import', [\App\Http\Controllers\AdminIngredientController::class, 'import']);
     Route::put('/admin/ingredients/{id}', [\App\Http\Controllers\AdminIngredientController::class, 'update']);
@@ -201,7 +202,9 @@ Route::middleware(['admin'])->group(function () {
         \App\Models\Topping::create([
             'name' => $request->name,
             'price' => $request->price,
-            'status' => $request->has('status')
+            'status' => $request->has('status'),
+            'ingredient_id' => $request->ingredient_id ?: null,
+            'ingredient_quantity' => $request->ingredient_quantity ?: 1,
         ]);
         return back()->with('success', 'Topping added successfully.');
     });
@@ -211,7 +214,9 @@ Route::middleware(['admin'])->group(function () {
             $topping->update([
                 'name' => $request->name,
                 'price' => $request->price,
-                'status' => $request->has('status')
+                'status' => $request->has('status'),
+                'ingredient_id' => $request->ingredient_id ?: null,
+                'ingredient_quantity' => $request->ingredient_quantity ?: 1,
             ]);
         }
         return back()->with('success', 'Topping updated successfully.');

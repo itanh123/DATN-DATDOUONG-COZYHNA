@@ -20,7 +20,7 @@ class CartController extends Controller
         session(['cart' => $cartItems]);
     }
 
-    private function checkCartStock(array $simulatedCartItems)
+    private function getRequiredIngredients(array $cartItems)
     {
         $productQuantities = [];
         foreach ($simulatedCartItems as $item) {
@@ -42,38 +42,108 @@ class CartController extends Controller
 
         $requiredIngredients = [];
 
-        foreach ($simulatedCartItems as $item) {
-            if (empty($item['product_size_id']) || empty($item['quantity'])) continue;
+        foreach ($cartItems as $item) {
+            if (empty($item['quantity'])) continue;
             
-            $recipe = \App\Models\Recipe::where('product_size_id', $item['product_size_id'])
-                ->with('ingredients.ingredient')
-                ->first();
+            // 1. Tính nguyên liệu của công thức đồ uống (nếu có)
+            if (!empty($item['product_size_id'])) {
+                $recipe = \App\Models\Recipe::where('product_size_id', $item['product_size_id'])
+                    ->with('ingredients.ingredient')
+                    ->first();
 
-            if (!$recipe) continue;
-
-            foreach ($recipe->ingredients as $ri) {
-                if (!$ri->ingredient) continue;
-                
-                $ingredientId = $ri->ingredient_id;
-                if (!isset($requiredIngredients[$ingredientId])) {
-                    $requiredIngredients[$ingredientId] = [
-                        'name' => $ri->ingredient->name,
-                        'required' => 0,
-                        'stock' => $ri->ingredient->current_stock,
-                    ];
+                if ($recipe) {
+                    foreach ($recipe->ingredients as $ri) {
+                        if (!$ri->ingredient) continue;
+                        
+                        $ingredientId = $ri->ingredient_id;
+                        if (!isset($requiredIngredients[$ingredientId])) {
+                            $requiredIngredients[$ingredientId] = [
+                                'name' => $ri->ingredient->name,
+                                'required' => 0,
+                                'stock' => $ri->ingredient->current_stock,
+                            ];
+                        }
+                        $requiredIngredients[$ingredientId]['required'] += ($ri->quantity * $item['quantity']);
+                    }
                 }
-                $requiredIngredients[$ingredientId]['required'] += ($ri->quantity * $item['quantity']);
+            }
+
+            // 2. Tính thêm nguyên liệu của Topping (nếu có)
+            if (!empty($item['toppings'])) {
+                foreach ($item['toppings'] as $toppingData) {
+                    $topping = \App\Models\Topping::find($toppingData['id']);
+                    if ($topping && $topping->ingredient_id) {
+                        $ingredient = \App\Models\Ingredient::find($topping->ingredient_id);
+                        if ($ingredient) {
+                            $ingredientId = $ingredient->id;
+                            if (!isset($requiredIngredients[$ingredientId])) {
+                                $requiredIngredients[$ingredientId] = [
+                                    'name' => $ingredient->name,
+                                    'required' => 0,
+                                    'stock' => $ingredient->current_stock,
+                                ];
+                            }
+                            $qty = $topping->ingredient_quantity ?? 1;
+                            $requiredIngredients[$ingredientId]['required'] += ($qty * $item['quantity']);
+                        }
+                    }
+                }
             }
         }
 
+        return $requiredIngredients;
+    }
+
+    private function checkCartStock(array $simulatedCartItems)
+    {
+        $requiredIngredients = $this->getRequiredIngredients($simulatedCartItems);
+
         foreach ($requiredIngredients as $ing) {
             if ($ing['required'] > $ing['stock']) {
-                return "Không đủ nguyên liệu: {$ing['name']} (Cần: " . round($ing['required'], 2) . ", Tồn: " . round($ing['stock'], 2) . ")";
+                return "Không đủ số lượng nguyên liệu: {$ing['name']}";
             }
         }
 
         return true;
     }
+
+    private function getMaxQuantityForItem(array $cartItems, $itemId)
+    {
+        if (!isset($cartItems[$itemId])) return 0;
+        
+        $targetItem = $cartItems[$itemId];
+        
+        // Find required ingredients for 1 unit of target item
+        $targetItem['quantity'] = 1;
+        $reqForOne = $this->getRequiredIngredients([$itemId => $targetItem]);
+        
+        if (empty($reqForOne)) return 999;
+        
+        // Find required ingredients for all other items
+        $otherItems = $cartItems;
+        unset($otherItems[$itemId]);
+        $reqForOthers = $this->getRequiredIngredients($otherItems);
+        
+        $maxQty = 999;
+        
+        foreach ($reqForOne as $ingId => $ingData) {
+            $stock = $ingData['stock'];
+            $usedByOthers = $reqForOthers[$ingId]['required'] ?? 0;
+            $availableForTarget = $stock - $usedByOthers;
+            
+            if ($availableForTarget <= 0) return 0;
+            
+            $reqPerUnit = $ingData['required'];
+            $canMake = floor($availableForTarget / $reqPerUnit);
+            
+            if ($canMake < $maxQty) {
+                $maxQty = $canMake;
+            }
+        }
+        
+        return $maxQty;
+    }
+
 
     public function add(Request $request)
     {
@@ -179,7 +249,11 @@ class CartController extends Controller
 
         $stockCheck = $this->checkCartStock($cartItems);
         if ($stockCheck !== true) {
-            return response()->json(['error' => $stockCheck], 400);
+            $maxQty = $this->getMaxQuantityForItem($this->getCartItems(), $id);
+            return response()->json([
+                'error' => $stockCheck,
+                'max_quantity' => $maxQty
+            ], 400);
         }
 
         $this->saveCartItems($cartItems);
@@ -371,7 +445,14 @@ class CartController extends Controller
             })
             ->get();
 
-        $allToppings = \App\Models\Topping::where('status', true)->get();
+        $allToppings = \App\Models\Topping::where('status', true)
+            ->where(function($q) {
+                $q->whereNull('ingredient_id')
+                  ->orWhereHas('ingredient', function($subQ) {
+                      $subQ->where('current_stock', '>', 0);
+                  });
+            })
+            ->get();
 
         return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount', 'availableVouchers', 'allToppings'));
     }

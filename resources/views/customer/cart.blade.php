@@ -608,7 +608,13 @@
                 window.location.reload(); 
             } else {
                 if (data.error) showToast(data.error, 'error');
-                updateRowUI(originalQty, row);
+                
+                if (data.max_quantity !== undefined && data.max_quantity > 0 && data.max_quantity !== originalQty) {
+                    // Cập nhật lại số lượng tối đa có thể
+                    updateCartQty(id, data.max_quantity, row);
+                } else {
+                    updateRowUI(originalQty, row);
+                }
             }
         } catch (e) { 
             console.error('Fetch Error:', e);

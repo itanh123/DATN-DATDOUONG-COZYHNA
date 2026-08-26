@@ -11,9 +11,22 @@ class AdminIngredientController extends Controller
         if (!check_permission('manage_inventory')) {
             // using manage_products for now if manage_inventory doesn't exist
         }
-        $ingredients = \App\Models\Ingredient::with('unit')->orderBy('name')->paginate(20);
+        $allIngredients = \App\Models\Ingredient::with('unit')->orderBy('name')->get();
+        $ingredientsByCategory = $allIngredients->groupBy(function($item) {
+            return $item->category ?: 'Khác';
+        });
+        
+        $categories = \App\Models\Ingredient::whereNotNull('category')->where('category', '!=', '')->distinct()->pluck('category');
+        
         $units = \App\Models\MeasurementUnit::all();
-        return view('admin.ingredients.index', compact('ingredients', 'units'));
+        return view('admin.ingredients.index', compact('ingredientsByCategory', 'allIngredients', 'units', 'categories'));
+    }
+
+    public function checkCode(Request $request)
+    {
+        $code = $request->code;
+        $exists = \App\Models\Ingredient::where('code', $code)->exists();
+        return response()->json(['exists' => $exists]);
     }
 
     public function store(Request $request)
@@ -26,6 +39,7 @@ class AdminIngredientController extends Controller
             'minimum_stock' => 'required|numeric|min:0',
             'expiration_date' => 'nullable|date',
             'is_fresh' => 'boolean',
+            'category' => 'nullable|string|max:255',
         ]);
 
         \App\Models\Ingredient::create([
@@ -36,6 +50,7 @@ class AdminIngredientController extends Controller
             'minimum_stock' => $request->minimum_stock,
             'expiration_date' => $request->expiration_date,
             'is_fresh' => $request->has('is_fresh'),
+            'category' => $request->category,
             'status' => true,
         ]);
 
@@ -51,6 +66,8 @@ class AdminIngredientController extends Controller
             'unit_id' => 'required|exists:measurement_units,id',
             'minimum_stock' => 'required|numeric|min:0',
             'expiration_date' => 'nullable|date',
+            'is_fresh' => 'boolean',
+            'category' => 'nullable|string|max:255',
         ]);
 
         $ingredient->update([
@@ -60,6 +77,7 @@ class AdminIngredientController extends Controller
             'minimum_stock' => $request->minimum_stock,
             'expiration_date' => $request->expiration_date,
             'is_fresh' => $request->has('is_fresh'),
+            'category' => $request->category,
         ]);
 
         return redirect()->back()->with('success', 'Cập nhật nguyên liệu thành công.');
@@ -78,12 +96,17 @@ class AdminIngredientController extends Controller
             'ingredient_id' => 'required|exists:ingredients,id',
             'quantity' => 'required|numeric|min:0.01',
             'note' => 'nullable|string|max:255',
+            'expiration_date' => 'nullable|date',
         ]);
 
         $ingredient = \App\Models\Ingredient::findOrFail($request->ingredient_id);
         $beforeQuantity = $ingredient->current_stock;
         
-        $ingredient->increment('current_stock', $request->quantity);
+        $ingredient->current_stock += $request->quantity;
+        if ($request->filled('expiration_date')) {
+            $ingredient->expiration_date = $request->expiration_date;
+        }
+        $ingredient->save();
 
         \App\Models\InventoryTransaction::create([
             'ingredient_id' => $ingredient->id,
