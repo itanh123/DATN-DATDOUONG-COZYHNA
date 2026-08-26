@@ -203,17 +203,32 @@ class ProductController extends Controller
         $sizesData = $request->input('sizes', []);
         $defaultSizeId = $request->input('default_size_id');
 
-        $product->productSizes()->delete();
+        $activeSizeIds = [];
 
         foreach ($sizesData as $sizeId => $data) {
             if (isset($data['active']) && $data['active'] == '1') {
-                $product->productSizes()->create([
-                    'size_id' => $sizeId,
-                    'selling_price' => $data['selling_price'] ?: 0,
-                    'cost_price' => $data['cost_price'] ?? 0,
-                    'is_default' => ($defaultSizeId == $sizeId),
-                    'status' => true,
-                ]);
+                $activeSizeIds[] = $sizeId;
+                
+                $product->productSizes()->updateOrCreate(
+                    ['size_id' => $sizeId],
+                    [
+                        'selling_price' => $data['selling_price'] ?: 0,
+                        'cost_price' => $data['cost_price'] ?? 0,
+                        'is_default' => ($defaultSizeId == $sizeId),
+                        'status' => true,
+                    ]
+                );
+            }
+        }
+
+        // Xử lý các size bị bỏ chọn
+        $removedSizes = $product->productSizes()->whereNotIn('size_id', $activeSizeIds)->get();
+        foreach ($removedSizes as $rs) {
+            try {
+                $rs->delete();
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Nếu dính khóa ngoại (đang nằm trong giỏ hàng/đơn hàng), chuyển status = false thay vì xóa
+                $rs->update(['status' => false, 'is_default' => false]);
             }
         }
 
@@ -287,7 +302,8 @@ class ProductController extends Controller
     {
         $product->load('productSizes.size', 'productSizes.recipes.ingredients');
         $ingredients = \App\Models\Ingredient::orderBy('name')->get();
-        return view('admin.recipes.index', compact('product', 'ingredients'));
+        $categories = \App\Models\Ingredient::select('category')->distinct()->whereNotNull('category')->pluck('category');
+        return view('admin.recipes.index', compact('product', 'ingredients', 'categories'));
     }
 
     public function updateRecipe(Request $request, Product $product)

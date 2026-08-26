@@ -41,6 +41,7 @@
                     @for($i = 1; $i <= 5; $i++)
                         <span class="material-symbols-outlined cursor-pointer text-outline-variant hover:text-amber-400 text-3xl transition-colors star-icon" data-value="{{ $i }}">star</span>
                     @endfor
+                    <span class="rating-text font-label-lg font-bold text-amber-500 ml-3">Tuyệt vời</span>
                 </div>
                 <input type="hidden" name="reviews[{{ $index }}][rating]" class="rating-input" value="5" required>
             </div>
@@ -70,6 +71,7 @@
                     @for($i = 1; $i <= 5; $i++)
                         <span class="material-symbols-outlined cursor-pointer text-outline-variant hover:text-amber-400 text-3xl transition-colors star-icon" data-value="{{ $i }}">star</span>
                     @endfor
+                    <span class="rating-text font-label-lg font-bold text-amber-500 ml-3">Tuyệt vời</span>
                 </div>
                 <input type="hidden" name="shipper_rating" class="rating-input" value="5">
             </div>
@@ -85,8 +87,8 @@
 
 <style>
     .star-icon.active {
-        color: #fbbf24; /* amber-400 */
-        font-variation-settings: 'FILL' 1;
+        color: #fbbf24 !important; /* amber-400 */
+        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
     }
 </style>
 
@@ -94,49 +96,56 @@
     document.addEventListener('DOMContentLoaded', function() {
         const containers = document.querySelectorAll('.star-rating-container');
         
+        const ratingTexts = {
+            1: 'Tệ',
+            2: 'Tạm được',
+            3: 'Bình thường',
+            4: 'Tốt',
+            5: 'Tuyệt vời'
+        };
+
+        function updateStars(stars, value, textEl) {
+            stars.forEach(s => {
+                const sVal = parseInt(s.getAttribute('data-value'));
+                if (sVal <= value) {
+                    s.classList.add('active');
+                    s.style.color = '#fbbf24';
+                    s.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                } else {
+                    s.classList.remove('active');
+                    s.style.color = '';
+                    s.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                }
+            });
+            if (textEl) {
+                textEl.innerText = ratingTexts[value] || '';
+            }
+        }
+
         containers.forEach(container => {
             const stars = container.querySelectorAll('.star-icon');
             const input = container.parentElement.querySelector('.rating-input');
+            const textEl = container.querySelector('.rating-text');
             
             // Set default 5 stars
-            stars.forEach(s => s.classList.add('active'));
+            updateStars(stars, parseInt(input.value) || 5, textEl);
             
             stars.forEach(star => {
                 star.addEventListener('click', function() {
                     const value = parseInt(this.getAttribute('data-value'));
                     input.value = value;
-                    
-                    stars.forEach(s => {
-                        if (parseInt(s.getAttribute('data-value')) <= value) {
-                            s.classList.add('active');
-                        } else {
-                            s.classList.remove('active');
-                        }
-                    });
+                    updateStars(stars, value, textEl);
                 });
                 
                 // Hover effects
                 star.addEventListener('mouseenter', function() {
                     const value = parseInt(this.getAttribute('data-value'));
-                    stars.forEach(s => {
-                        if (parseInt(s.getAttribute('data-value')) <= value) {
-                            s.style.color = '#fbbf24';
-                        } else {
-                            s.style.color = '';
-                        }
-                    });
+                    updateStars(stars, value, textEl);
                 });
                 
                 star.addEventListener('mouseleave', function() {
-                    const currentValue = parseInt(input.value);
-                    stars.forEach(s => {
-                        s.style.color = '';
-                        if (parseInt(s.getAttribute('data-value')) <= currentValue) {
-                            s.classList.add('active');
-                        } else {
-                            s.classList.remove('active');
-                        }
-                    });
+                    const currentValue = parseInt(input.value) || 5;
+                    updateStars(stars, currentValue, textEl);
                 });
             });
         });

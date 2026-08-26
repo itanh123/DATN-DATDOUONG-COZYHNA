@@ -126,7 +126,10 @@
                                 data-province="{{ $addr->province }}"
                                 data-district="{{ $addr->district }}"
                                 data-ward="{{ $addr->ward }}"
-                                data-address="{{ $addr->address }}">{{ $addr->receiver_name }} - {{ $addr->receiver_phone }} ({{ $addr->address }}, {{ $addr->ward }}, {{ $addr->district }}, {{ $addr->province }})</option>
+                                data-address="{{ $addr->address }}"
+                                data-lat="{{ $addr->latitude }}"
+                                data-lon="{{ $addr->longitude }}"
+                                {{ ($defaultAddr && $defaultAddr->id == $addr->id) ? 'selected' : '' }}>{{ $addr->receiver_name }} - {{ $addr->receiver_phone }} ({{ $addr->address }}, {{ $addr->ward }}, {{ $addr->district }}, {{ $addr->province }})</option>
                     @endforeach
                 </select>
             </div>
@@ -158,15 +161,15 @@
                     </select>
                 </div>
                 <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Quận/Huyện *</label>
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Xã/Phường *</label>
                     <select id="district_select" name="district" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                        <option value="">Chọn Quận/Huyện</option>
+                        <option value="">Chọn Xã/Phường</option>
                     </select>
                 </div>
                 <div>
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Phường/Xã *</label>
+                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Thôn/Xóm/Tổ dân phố *</label>
                     <select id="ward_select" name="ward" required disabled class="no-choices w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors">
-                        <option value="">Chọn Phường/Xã</option>
+                        <option value="">Chọn Thôn/Xóm/Tổ dân phố</option>
                     </select>
                 </div>
             </div>
@@ -177,7 +180,7 @@
                     <input type="text" id="specific_address" name="address" required
                         value="{{ old('address', optional($defaultAddr)->address ?? '') }}"
                         class="flex-1 p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
-                        placeholder="Số nhà, thôn, ngõ, ngách..."/>
+                        placeholder="Số nhà, ngõ, mô tả vị trí để shipper đọc..."/>
                     <button type="button" id="btn_find_location" class="px-4 bg-secondary text-on-secondary rounded-xl hover:bg-secondary/90 transition-colors flex items-center justify-center whitespace-nowrap" title="Tìm trên bản đồ">
                         <span class="material-symbols-outlined mr-1">search</span> Tìm
                     </button>
@@ -198,8 +201,8 @@
             </div>
 
             <div class="mt-sm flex items-center gap-xs">
-                <input type="checkbox" id="save_address" name="save_address" value="1" class="w-4 h-4 text-primary border-outline focus:ring-primary rounded">
-                <label for="save_address" class="font-label-md text-label-md text-on-surface-variant cursor-pointer select-none">Lưu thông tin giao hàng cho lần sau</label>
+                <input type="checkbox" id="save_address" name="set_default" value="1" class="w-4 h-4 text-primary border-outline focus:ring-primary rounded">
+                <label for="save_address" class="font-label-md text-label-md text-on-surface-variant cursor-pointer select-none">Đặt làm mặc định</label>
             </div>
 
             <div class="mt-md">
@@ -350,54 +353,69 @@ document.addEventListener('DOMContentLoaded', function() {
     const tsDistrict = new TomSelect('#district_select', tsOptions);
     const tsWard = new TomSelect('#ward_select', tsOptions);
 
-    // Load Provinces (Force Ninh Binh)
-    const options = [{value: 'Tỉnh Ninh Bình', text: 'Tỉnh Ninh Bình', code: 37}];
-    tsProvince.addOptions(options);
-    tsProvince.refreshOptions(false);
+    // Local data loading for administrative boundaries
+    let localData = [];
 
+    fetch('/data/provinces.json')
+        .then(res => res.json())
+        .then(data => {
+            // Nếu JSON mới là 1 Object (chỉ chứa 1 tỉnh) thay vì Array, tự bọc lại vào Array
+            if (!Array.isArray(data)) {
+                data = [data];
+            }
+            localData = data;
+            
+            // Tìm Ninh Bình với nhiều biến thể tên có thể có trong file JSON
+            const ninhBinh = data.find(p =>
+                p.Name === 'Ninh Bình' ||
+                p.Name === 'Tỉnh Ninh Bình' ||
+                p.Name.includes('Ninh B\u00ecnh') ||
+                p.Name.includes('Ninh Bình')
+            );
+            
+            if (ninhBinh) {
+                tsProvince.addOption({value: ninhBinh.Name, text: ninhBinh.Name, id: ninhBinh.Id});
+                tsProvince.setValue(ninhBinh.Name);
+                tsProvince.lock();
+                populateDistricts(ninhBinh.Name);
+            } else {
+                // Nếu không tìm thấy, load tất cả tỉnh để debug
+                const options = data.map(p => ({value: p.Name, text: p.Name, id: p.Id}));
+                tsProvince.addOptions(options);
+                console.warn('[Checkout] Không tìm thấy Ninh Bình trong provinces.json. Các tỉnh hiện có:', data.map(p => p.Name));
+            }
 
-    tsProvince.on('change', function(value) {
+            // Sau khi data đã load xong, trigger địa chỉ mặc định nếu có
+            if (tsSaved) {
+                const val = tsSaved.getValue();
+                if (val) {
+                    setTimeout(() => {
+                        tsSaved.trigger('change', val);
+                    }, 150);
+                }
+            }
+        });
+
+    function populateDistricts(provinceName) {
         tsDistrict.clearOptions();
         tsDistrict.clear();
         tsWard.clearOptions();
         tsWard.clear();
         tsWard.disable();
         
-        if (value) {
-            const option = tsProvince.options[value];
-            if (option && option.code) {
-                tsDistrict.enable();
-                tsDistrict.addOption({value: '', text: 'Đang tải...'});
-                Promise.all([
-                    fetch(`https://provinces.open-api.vn/api/v1/p/35?depth=2`).then(res => res.json()),
-                    fetch(`https://provinces.open-api.vn/api/v1/p/36?depth=2`).then(res => res.json()),
-                    fetch(`https://provinces.open-api.vn/api/v1/p/37?depth=2`).then(res => res.json())
-                ]).then(results => {
-                    tsDistrict.clearOptions();
-                    let allDistricts = [];
-                    results.forEach(data => {
-                        if (data.districts) {
-                            allDistricts = allDistricts.concat(data.districts);
-                        }
-                    });
-                    
-                    // Sắp xếp theo tên
-                    allDistricts.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    const options = allDistricts.map(d => ({value: d.name, text: d.name, code: d.code}));
-                    tsDistrict.addOptions(options);
-                    tsDistrict.refreshOptions(false);
-                }).catch(err => {
-                    console.error('Lỗi khi tải quận/huyện:', err);
-                    tsDistrict.clearOptions();
-                    tsDistrict.addOption({value: '', text: 'Lỗi tải dữ liệu'});
-                });
-            } else {
-                tsDistrict.disable();
-            }
+        const province = localData.find(p => p.Name === provinceName);
+        if (province && province.Districts) {
+            tsDistrict.enable();
+            const options = province.Districts.map(d => ({value: d.Name, text: d.Name, id: d.Id}));
+            tsDistrict.addOptions(options);
+            tsDistrict.refreshOptions(false);
         } else {
             tsDistrict.disable();
         }
+    }
+
+    tsProvince.on('change', function(value) {
+        populateDistricts(value);
     });
 
     tsDistrict.on('change', function(value) {
@@ -405,35 +423,64 @@ document.addEventListener('DOMContentLoaded', function() {
         tsWard.clear();
         
         if (value) {
-            const option = tsDistrict.options[value];
-            if (option && option.code) {
-                tsWard.enable();
-                tsWard.addOption({value: '', text: 'Đang tải...'});
-                fetch(`https://provinces.open-api.vn/api/v1/d/${option.code}?depth=2`)
-                    .then(res => res.json())
-                    .then(data => {
-                        tsWard.clearOptions();
-                        const options = data.wards.map(w => ({value: w.name, text: w.name, code: w.code}));
-                        tsWard.addOptions(options);
-                        tsWard.refreshOptions(false);
-                        tsWard.on('change', async function(value) {
-                            // Chỉ lưu thông tin để check phí ship (nếu có), không ảnh hưởng đến bản đồ
-                            if (value) {
-                                calculateShippingWithCoords();
-                            }
-                        });
-                    });
-            } else {
-                tsWard.disable();
+            const provinceName = tsProvince.getValue();
+            const province = localData.find(p => p.Name === provinceName);
+            if (province) {
+                const district = province.Districts.find(d => d.Name === value);
+                if (district && district.Wards && district.Wards.length > 0) {
+                    tsWard.enable();
+                    const options = district.Wards.map(w => ({value: w.Name, text: w.Name, id: w.Id}));
+                    tsWard.addOptions(options);
+                    tsWard.refreshOptions(false);
+                } else {
+                    tsWard.disable();
+                    document.getElementById('ward_select').removeAttribute('required');
+                }
             }
         } else {
             tsWard.disable();
         }
     });
-    
-    // Set value and disable after listeners are attached
-    tsProvince.setValue('Tỉnh Ninh Bình');
-    tsProvince.disable();
+
+    let polygonLayer = null;
+    let currentBoundaryGeoJSON = null;
+
+    tsWard.on('change', async function(value) {
+        const provinceName = tsProvince.getValue();
+        const communeName = tsDistrict.getValue();   // Xã/Phường mới
+        const residentialName = value;               // Thôn/Xóm/Tổ dân phố
+
+        currentBoundaryGeoJSON = null;
+
+        if (polygonLayer && map) {
+            map.removeLayer(polygonLayer);
+            polygonLayer = null;
+        }
+
+        if (!provinceName || !communeName || !residentialName) return;
+
+        // Với dữ liệu mới: district = xã/phường, ward = thôn/TDP.
+        // Không gọi API boundary bằng ward nữa vì ward bây giờ không phải cấp xã.
+        // Thử tìm luôn vị trí tương đối theo alias GoogleSearch trong JSON.
+        try {
+            const residential = getSelectedResidentialArea();
+            const fallbackCoords = await getCoordinatesWithFallback(
+                residentialName,
+                communeName,
+                provinceName,
+                residential
+            );
+
+            if (fallbackCoords) {
+                initMap(fallbackCoords.lat, fallbackCoords.lon, false);
+                await calculateShippingWithCoords();
+                document.getElementById('map_helper_text').innerText =
+                    'Đã tìm được khu vực tương đối. Vui lòng kéo ghim đến đúng vị trí nhận hàng.';
+            }
+        } catch (e) {
+            console.error('Lỗi xác định vị trí khu dân cư', e);
+        }
+    });
 
     // Leaflet Map Integration
     let map = null;
@@ -473,6 +520,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
+    function getSelectedResidentialArea() {
+        const provinceName = tsProvince.getValue();
+        const communeName = tsDistrict.getValue();
+        const residentialName = tsWard.getValue();
+
+        const province = localData.find(p => p.Name === provinceName);
+        if (!province || !province.Districts) return null;
+
+        const commune = province.Districts.find(d => d.Name === communeName);
+        if (!commune || !commune.Wards) return null;
+
+        return commune.Wards.find(w => w.Name === residentialName) || null;
+    }
+
     async function reverseGeocode(lat, lng) {
         try {
             isReverseGeocoding = true;
@@ -493,109 +554,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('specific_address').value = fullStreet.trim();
                 }
                 
-                let matchedProv = fuzzyMatch(provName, tsProvince.options);
-                if (!matchedProv) {
-                    matchedProv = 'Tỉnh Ninh Bình'; // Force match if outside
-                }
-                
-                if (matchedProv) {
-                    tsProvince.setValue(matchedProv, true);
-                    
-                    tsDistrict.enable();
-                    tsDistrict.clear(true);
-                    tsWard.clear(true);
-                    tsWard.disable();
-                    
-                    const distRes1 = await fetch(`https://provinces.open-api.vn/api/v1/p/35?depth=3`);
-                    const distRes2 = await fetch(`https://provinces.open-api.vn/api/v1/p/36?depth=3`);
-                    const distRes3 = await fetch(`https://provinces.open-api.vn/api/v1/p/37?depth=3`);
-                    
-                    const dataP1 = await distRes1.json();
-                    const dataP2 = await distRes2.json();
-                    const dataP3 = await distRes3.json();
-                    
-                    const dataP = {
-                        districts: (dataP1.districts || []).concat(dataP2.districts || []).concat(dataP3.districts || [])
-                    };
-                    
-                    tsDistrict.clearOptions();
-                    tsDistrict.addOptions(dataP.districts.map(d => ({value: d.name, text: d.name, code: d.code})));
-                    tsDistrict.refreshOptions(false);
-                    
-                    let possibleNames = [
-                        addr.county, addr.city_district, addr.district, addr.borough,
-                        addr.suburb, addr.village, addr.quarter, addr.hamlet, addr.town,
-                        addr.city, addr.state, addr.province, addr.municipality
-                    ].filter(Boolean);
-                    
-                    // Thêm các bí danh (aliases) để xử lý việc sáp nhập hành chính
-                    let aliases = [];
-                    possibleNames.forEach(n => {
-                        let lower = n.toLowerCase().trim();
-                        if (lower === 'ninh bình' || lower === 'thành phố ninh bình' || lower === 'huyện hoa lư') {
-                            aliases.push('Hoa Lư');
-                        }
-                    });
-                    possibleNames.push(...aliases);
-                    
-                    let matchedDist = null;
-                    let targetDistObj = null;
-                    let targetWardVal = null;
-                    
-                    // 1. Tìm Huyện trực tiếp
-                    for (let d of dataP.districts) {
-                        for (let name of possibleNames) {
-                            if (fuzzyMatch(name, { [d.name]: {text: d.name} })) {
-                                matchedDist = d.name;
-                                targetDistObj = d;
-                                break;
-                            }
-                        }
-                        if (matchedDist) break;
-                    }
-                    
-                    // 2. Tìm Xã trong Huyện (hoặc tìm cả Huyện+Xã nếu chưa có Huyện)
-                    if (targetDistObj) {
-                        for (let w of targetDistObj.wards) {
-                            for (let name of possibleNames) {
-                                if (fuzzyMatch(name, { [w.name]: {text: w.name} })) {
-                                    targetWardVal = w.name;
-                                    break;
-                                }
-                            }
-                            if (targetWardVal) break;
-                        }
-                    } else {
-                        // Deep search
-                        for (let d of dataP.districts) {
-                            for (let w of d.wards) {
-                                for (let name of possibleNames) {
-                                    if (fuzzyMatch(name, { [w.name]: {text: w.name} })) {
-                                        matchedDist = d.name;
-                                        targetDistObj = d;
-                                        targetWardVal = w.name;
-                                        break;
-                                    }
-                                }
-                                if (targetWardVal) break;
-                            }
-                            if (targetWardVal) break;
-                        }
-                    }
-                    
-                    if (matchedDist && targetDistObj) {
-                        tsDistrict.setValue(matchedDist, true);
-                        
-                        tsWard.enable();
-                        tsWard.clearOptions();
-                        tsWard.addOptions(targetDistObj.wards.map(w => ({value: w.name, text: w.name})));
-                        tsWard.refreshOptions(false);
-                        
-                        if (targetWardVal) {
-                            tsWard.setValue(targetWardVal, true);
-                        }
-                    }
-                }
+                // Không tự động ghi đè Tỉnh/Xã-Phường/Thôn-TDP bằng dữ liệu reverse geocode cũ.
+                // Nominatim/Google có thể vẫn trả về địa giới trước sáp nhập.
+                // Chỉ dùng reverse geocode để gợi ý số nhà/đường phía trên.
             }
         } catch(e) {
             console.error('Lỗi định vị ngược', e);
@@ -674,10 +635,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const p = tsProvince.getValue();
         const d = tsDistrict.getValue();
         const w = tsWard.getValue();
-        const specific = document.getElementById('specific_address').value;
+        // Kiểm tra xem dropdown Thôn/Xóm có option nào không
+        const requiresWard = Object.keys(tsWard.options).length > 0;
 
-        if (!p || !d || !w) {
-            showShippingWarning('Vui lòng chọn đầy đủ Tỉnh, Huyện, Xã trước khi tìm vị trí.');
+        // Địa chỉ cụ thể chỉ để shipper đọc, KHÔNG dùng để tìm bản đồ.
+
+        if (!p || !d || (requiresWard && !w)) {
+            showShippingWarning('Vui lòng chọn đầy đủ cấp địa chỉ hiện có trước khi tìm vị trí.');
             return;
         }
 
@@ -686,7 +650,8 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.innerHTML = 'Đang tìm...';
         btn.disabled = true;
 
-        const coords = await getCoordinatesWithFallback(specific, w, d, p);
+        const residential = getSelectedResidentialArea();
+        const coords = await getCoordinatesWithFallback(w, d, p, residential);
         if (coords) {
             initMap(coords.lat, coords.lon);
             await calculateShippingWithCoords();
@@ -729,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function cleanAddress(addr) {
         if (!addr) return '';
-        return addr.replace(/^(Tỉnh|Thành phố|Huyện|Quận|Thị xã|Xã|Phường|Thị trấn)\s+/i, '').trim();
+        return addr.replace(/^(Tỉnh|Thành phố|Huyện|Quận|Thị xã|Xã|Phường|Thị trấn|Thôn|Xóm|Tổ dân phố)\s+/i, '').trim();
     }
 
     async function geocode(address) {
@@ -747,27 +712,134 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function getCoordinatesWithFallback(specific, ward, district, province) {
-        const cWard = cleanAddress(ward);
-        const cDist = cleanAddress(district);
-        const cProv = cleanAddress(province);
+    async function getCoordinatesWithFallback(residentialArea, commune, province, residentialObj = null) {
+        const cResidential = cleanAddress(residentialArea);
+        const cCommune = cleanAddress(commune);
+        const cProvince = cleanAddress(province);
 
-        if (specific) {
-            let coords = await geocode(`${specific}, ${cWard}, ${cDist}, ${cProv}`);
-            if (coords) {
-                document.getElementById('map_helper_text').innerText = "Vị trí đã được tìm thấy. Bạn có thể kéo ghim (marker) nếu chưa hoàn toàn chính xác.";
-                return coords;
+        // 1) Ưu tiên tọa độ cố định của Thôn/Xóm/TDP nếu JSON đã có.
+        if (residentialObj) {
+            const lat = parseFloat(
+                residentialObj.Latitude ??
+                residentialObj.latitude ??
+                residentialObj.lat ??
+                ''
+            );
+            const lon = parseFloat(
+                residentialObj.Longitude ??
+                residentialObj.longitude ??
+                residentialObj.lng ??
+                residentialObj.lon ??
+                ''
+            );
+
+            if (!isNaN(lat) && !isNaN(lon)) {
+                document.getElementById('map_helper_text').innerText =
+                    'Đã xác định khu vực Thôn/Xóm/Tổ dân phố. Vui lòng kéo ghim đến đúng vị trí nhận hàng.';
+                return {
+                    lat: lat,
+                    lon: lon,
+                    source: 'residential_coords'
+                };
             }
         }
-        
-        let coords = await geocode(`${cWard}, ${cDist}, ${cProv}`);
-        if (coords) {
-            document.getElementById('map_helper_text').innerText = "Chỉ tìm được vị trí tương đối của Xã/Phường. Vui lòng KÉO GHIM đến ĐÚNG nhà bạn để tính phí chính xác.";
-            return coords;
+
+        // 2) Dùng các alias dành riêng cho bản đồ trong provinces.json.
+        const configuredQueries = [];
+
+        if (residentialObj) {
+            if (residentialObj.GoogleSearch) {
+                configuredQueries.push(residentialObj.GoogleSearch);
+            }
+
+            if (Array.isArray(residentialObj.GoogleSearchFallbacks)) {
+                configuredQueries.push(...residentialObj.GoogleSearchFallbacks);
+            }
         }
-        
-        coords = await geocode(`${cDist}, ${cProv}`);
-        return coords;
+
+        // Xử lý tên tỉnh đặc biệt (do OSM có thể chưa cập nhật ranh giới 2025)
+        let provSearch1 = cProvince;
+        let provSearch2 = cProvince;
+        if (province.includes('Khu vực Hà Nam cũ') || province.includes('Ninh Bình')) {
+            provSearch1 = 'Ninh Bình';
+            provSearch2 = 'Hà Nam';
+        }
+
+        // 3) Fallback bằng tên địa danh.
+        const queries = [
+            ...configuredQueries
+        ];
+
+        if (residentialArea) {
+            queries.push(
+                `${residentialArea}, ${commune}, ${provSearch1}`,
+                `${cResidential}, ${cCommune}, ${provSearch1}`,
+                `${residentialArea}, ${commune}, ${provSearch2}`,
+                `${cResidential}, ${cCommune}, ${provSearch2}`
+            );
+        }
+
+        const uniqueQueries = [...new Set(
+            queries.map(q => (q || '').trim()).filter(Boolean)
+        )];
+
+        for (const query of uniqueQueries) {
+            const coords = await geocode(query);
+            if (coords) {
+                document.getElementById('map_helper_text').innerText =
+                    'Đã tìm được khu vực gần đúng của Thôn/Xóm/Tổ dân phố. Vui lòng kiểm tra và kéo ghim đến đúng vị trí nhận hàng.';
+                return {
+                    ...coords,
+                    source: 'geocode',
+                    query: query
+                };
+            }
+        }
+
+        // 4) Không tìm được TDP thì mới fallback về xã/phường.
+        const communeQueries = [
+            `${commune}, ${provSearch1}`,
+            `${cCommune}, ${provSearch1}`,
+            `${commune}, ${provSearch2}`,
+            `${cCommune}, ${provSearch2}`
+        ];
+
+        const uniqueCommuneQueries = [...new Set(
+            communeQueries.map(q => (q || '').trim()).filter(Boolean)
+        )];
+
+        for (const query of uniqueCommuneQueries) {
+            const coords = await geocode(query);
+            if (coords) {
+                document.getElementById('map_helper_text').innerText =
+                    'Chưa xác định được chính xác Thôn/Xóm/Tổ dân phố. Bản đồ đang hiển thị Xã/Phường, vui lòng kéo ghim đến đúng vị trí nhận hàng.';
+                return {
+                    ...coords,
+                    source: 'commune_fallback',
+                    query: query
+                };
+            }
+        }
+
+        // 5) Cuối cùng mới dùng vị trí cửa hàng / tâm tỉnh.
+        if (storeCoords) {
+            document.getElementById('map_helper_text').innerText =
+                'Không tìm được địa danh tự động. Đang hiển thị vị trí cửa hàng, vui lòng kéo ghim đến đúng nơi nhận.';
+            return {
+                lat: storeCoords.lat,
+                lon: storeCoords.lon,
+                source: 'store_fallback'
+            };
+        }
+
+        document.getElementById('map_helper_text').innerText =
+            'Không tìm được địa danh tự động. Vui lòng kéo ghim tới đúng vị trí nhận hàng.';
+
+        return {
+            lat: 20.2506,
+            lon: 105.9745,
+            source: 'province_fallback'
+        };
     }
 
     async function getDistanceOSRM(lon1, lat1, lon2, lat2) {
@@ -880,8 +952,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('display_total').innerText = new Intl.NumberFormat('vi-VN').format(total) + ' đ';
     }
 
-    // Removed auto-find address on blur to prevent overwriting manual pins
-
     if (tsSaved) {
         tsSaved.on('change', function(value) {
             const el = tsSaved.getItem(value);
@@ -891,7 +961,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('receiver_name').value = '';
                 document.getElementById('receiver_phone').value = '';
                 document.getElementById('specific_address').value = '';
-                tsProvince.setValue('');
+                // Không xóa tỉnh - giữ nguyên Ninh Bình mặc định
+                tsDistrict.clearOptions(); tsDistrict.clear(); tsDistrict.disable();
+                tsWard.clearOptions(); tsWard.clear(); tsWard.disable();
                 document.getElementById('map_container').style.display = 'none';
                 return;
             }
@@ -906,27 +978,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('receiver_phone').value = originalOption.dataset.phone || '';
                 document.getElementById('specific_address').value = originalOption.dataset.address || '';
                 
-                const pName = originalOption.dataset.province;
                 const dName = originalOption.dataset.district;
                 const wName = originalOption.dataset.ward;
                 
-                tsProvince.setValue(pName);
+                // Tỉnh luôn là Ninh Bình và đã được lock - không gọi setValue để tránh bị clear
+                // Chỉ cần populate districts từ giá trị hiện tại của tsProvince
+                const currentProvince = tsProvince.getValue();
+                if (currentProvince) {
+                    populateDistricts(currentProvince);
+                }
+                
+                const lat = originalOption.dataset.lat;
+                const lon = originalOption.dataset.lon;
                 
                 // wait for district to load
                 setTimeout(() => {
-                    tsDistrict.setValue(dName);
+                    tsDistrict.setValue(dName, true);
                     setTimeout(() => {
-                        tsWard.setValue(wName);
-                        // Trigger map automatically when saved address is fully loaded
-                        setTimeout(() => {
-                            if (document.getElementById('specific_address').value.trim().length > 3) {
-                                document.getElementById('btn_find_location').click();
-                            }
-                        }, 800);
+                        tsWard.setValue(wName, true);
+                        if (lat && lon) {
+                            initMap(parseFloat(lat), parseFloat(lon));
+                            calculateShippingWithCoords();
+                            document.getElementById('map_helper_text').innerText = 'Đã tải vị trí đã lưu.';
+                        }
                     }, 500); // Wait for ward load
                 }, 500); // Wait for district load
             }
         });
+
     }
 
     document.getElementById('checkout-form').addEventListener('submit', function(e) {

@@ -178,9 +178,9 @@
                                 @if($user->role && $user->role->code === 'admin')
                                     <span class="text-sm text-outline-variant italic">Không khả dụng</span>
                                 @else
-                                    <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0">
+                                    <form action="/admin/users/{{ $user->id }}/role" method="POST" class="flex items-center gap-2 m-0 role-form">
                                         @csrf
-                                        <select name="role_id" class="px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
+                                        <select name="role_id" data-original="{{ $user->role_id }}" class="role-select px-3 py-1.5 rounded-lg border border-outline-variant text-sm bg-surface focus:ring-primary focus:border-primary">
                                             @foreach($roles as $role)
                                                 @if(!in_array($role->code, ['admin', 'customer']))
                                                     <option value="{{ $role->id }}" {{ $user->role_id == $role->id ? 'selected' : '' }}>
@@ -189,7 +189,7 @@
                                                 @endif
                                             @endforeach
                                         </select>
-                                        <button type="submit" class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors">
+                                        <button type="submit" class="save-role-btn hidden px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors active:scale-95">
                                             Lưu
                                         </button>
                                     </form>
@@ -343,4 +343,29 @@
         </div>
     </div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Gắn sự kiện cho tất cả select phân quyền
+    document.querySelectorAll('.role-select').forEach(function (select) {
+        const form = select.closest('.role-form');
+        const btn = form.querySelector('.save-role-btn');
+
+        select.addEventListener('change', function () {
+            if (this.value !== this.getAttribute('data-original')) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        });
+
+        // Khi submit: hiện trạng thái loading rồi tự submit
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.textContent = 'Đang lưu...';
+        });
+    });
+});
+</script>
+
 @endsection
