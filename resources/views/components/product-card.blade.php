@@ -19,6 +19,12 @@
                 class="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface hover:text-error transition-colors btn-favorite-toggle">
                 <span class="material-symbols-outlined text-[20px] favorite-icon-{{ $product->id }}" style="font-variation-settings: 'FILL' 0;">favorite</span>
             </button>
+            
+            <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-sm">
+                <span class="text-xs font-semibold {{ $product->stock > 0 ? 'text-primary' : 'text-error' }}">
+                    Kho: {{ $product->stock !== null ? $product->stock : 0 }}
+                </span>
+            </div>
         </div>
 
         <h3 class="font-title-lg text-title-lg mb-xs group-hover:text-primary transition-colors">{{ $product->name }}</h3>

@@ -71,6 +71,8 @@ class ProductController extends Controller
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             // Nhận status từ form (string "0"/"1") để mapping chắc chắn
             'status' => ['required', 'in:0,1'],
+            'stock' => ['nullable', 'integer', 'min:0'],
+            'is_auto_stock' => ['nullable', 'boolean'],
         ]);
 
         $path = $request->file('image')->store('products', 'public');
@@ -82,6 +84,8 @@ class ProductController extends Controller
             'description' => $validated['description'] ?? null,
             'image' => Storage::url($path),
             'status' => (int) $validated['status'],
+            'stock' => $validated['stock'] ?? 0,
+            'is_auto_stock' => $request->has('is_auto_stock'),
         ]);
 
 
@@ -100,12 +104,16 @@ class ProductController extends Controller
                 'description' => ['nullable', 'string'],
                 'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
                 'status' => ['required', 'in:0,1'],
+                'stock' => ['nullable', 'integer', 'min:0'],
+                'is_auto_stock' => ['nullable', 'boolean'],
             ]);
 
             $product->category_id = $validated['category_id'];
             $product->code = $validated['code'];
             $product->name = $validated['name'];
             $product->description = $validated['description'] ?? null;
+            $product->stock = $validated['stock'] ?? 0;
+            $product->is_auto_stock = $request->has('is_auto_stock');
 
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store('products', 'public');
@@ -305,6 +313,48 @@ class ProductController extends Controller
         }
 
         return redirect('/admin/product')->with('success', 'Cập nhật công thức thành công!');
+    }
+
+    public function calculateStock(Product $product)
+    {
+        // Find default size or the first active one
+        $productSize = $product->productSizes()->where('is_default', true)->first();
+        if (!$productSize) {
+            $productSize = $product->productSizes()->where('status', true)->first();
+        }
+
+        if (!$productSize) {
+            return response()->json(['success' => true, 'stock' => 0]);
+        }
+
+        // Get the first recipe for this size
+        $recipe = $productSize->recipes()->with('ingredients.ingredient')->first();
+
+        if (!$recipe || $recipe->ingredients->isEmpty()) {
+            return response()->json(['success' => true, 'stock' => 0]);
+        }
+
+        $maxProducts = -1;
+
+        foreach ($recipe->ingredients as $recipeIngredient) {
+            $ingredient = $recipeIngredient->ingredient;
+            if (!$ingredient || $recipeIngredient->quantity <= 0) {
+                continue;
+            }
+
+            // Calculate max products based on this ingredient
+            $possible = floor($ingredient->current_stock / $recipeIngredient->quantity);
+            
+            if ($maxProducts === -1 || $possible < $maxProducts) {
+                $maxProducts = $possible;
+            }
+        }
+
+        if ($maxProducts === -1) {
+            $maxProducts = 0;
+        }
+
+        return response()->json(['success' => true, 'stock' => $maxProducts]);
     }
 }
 

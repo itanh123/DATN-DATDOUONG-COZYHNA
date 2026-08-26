@@ -22,6 +22,24 @@ class CartController extends Controller
 
     private function checkCartStock(array $simulatedCartItems)
     {
+        $productQuantities = [];
+        foreach ($simulatedCartItems as $item) {
+             if (empty($item['product_id']) || empty($item['quantity'])) continue;
+             $pid = $item['product_id'];
+             if (!isset($productQuantities[$pid])) $productQuantities[$pid] = 0;
+             $productQuantities[$pid] += $item['quantity'];
+        }
+
+        foreach ($productQuantities as $pid => $totalQty) {
+             $product = \App\Models\Product::find($pid);
+             // If stock is limited (not null or maybe just check if stock < totalQty, default is 0 but we want to allow if they didn't set it? Wait, default is 0 so it's always set)
+             // Wait, if stock is 0, it means out of stock. If they don't use stock, they can set it to a high number or we can make stock nullable. The migration says default 0. 
+             // If stock is 0, it will block. This is correct if they manage stock.
+             if ($product && $totalQty > $product->stock) {
+                 return "Sản phẩm này đã đến giới hạn";
+             }
+        }
+
         $requiredIngredients = [];
 
         foreach ($simulatedCartItems as $item) {

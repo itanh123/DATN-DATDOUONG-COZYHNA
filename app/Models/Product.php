@@ -23,6 +23,8 @@ class Product extends Model
         'favorite_count',
         'is_featured',
         'status',
+        'stock',
+        'is_auto_stock',
     ];
 
     protected $appends = ['average_rating', 'review_count'];

@@ -40,6 +40,11 @@
                         <div class="w-2 h-2 rounded-full bg-primary"></div>
                         <div class="w-2 h-2 rounded-full bg-outline-variant"></div>
                     </div>
+                    
+                    <!-- Stock Badge -->
+                    <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-sm" id="drawerStockBadge" style="display: none;">
+                        <span class="text-xs font-semibold text-primary" id="drawerStockText">Kho: 0</span>
+                    </div>
                 </section>
                 <!-- Product Info Header -->
                 <section class="px-lg pt-lg pb-md border-b border-outline-variant/10">
@@ -316,6 +321,22 @@
                                 img.style.backgroundImage = `url('${product.image}')`;
                             });
                         }
+                    }
+                    
+                    // Stock badge
+                    const stockBadge = document.getElementById('drawerStockBadge');
+                    const stockText = document.getElementById('drawerStockText');
+                    if (stockBadge && stockText) {
+                        const stock = product.stock !== null && product.stock !== undefined ? parseInt(product.stock) : 0;
+                        stockText.innerText = `Kho: ${stock}`;
+                        if (stock > 0) {
+                            stockText.classList.remove('text-error');
+                            stockText.classList.add('text-primary');
+                        } else {
+                            stockText.classList.remove('text-primary');
+                            stockText.classList.add('text-error');
+                        }
+                        stockBadge.style.display = 'block';
                     }
                     
                     // Related Products

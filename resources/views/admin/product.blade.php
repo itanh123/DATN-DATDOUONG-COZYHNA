@@ -161,7 +161,12 @@
                                         <span class="text-on-surface-variant text-label-sm">No size</span>
                                     @endif
                                 </td>
-                                <td class="p-4 text-on-surface-variant text-body-md">N/A</td>
+                                <td class="p-4 text-on-surface-variant text-body-md">
+                                    {{ $product->stock !== null ? $product->stock : 0 }} 
+                                    @if($product->is_auto_stock)
+                                        <span class="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1" title="Tự động tính toán">Auto</span>
+                                    @endif
+                                </td>
                                 <td class="p-4">
                                     @if($product->status)
                                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-label-md font-bold">
@@ -184,6 +189,8 @@
                                         data-description="{{ $product->description }}"
                                         data-status="{{ $product->status }}"
                                         data-image="{{ $product->image }}"
+                                        data-stock="{{ $product->stock }}"
+                                        data-is-auto-stock="{{ $product->is_auto_stock ? 1 : 0 }}"
                                         onclick="openProductActions(this)"
                                     >
                                         <span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
@@ -442,7 +449,7 @@
 
     <!-- Modal: Edit Product -->
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productEditModal">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
                 <h3 class="font-headline-md text-headline-md">Edit Product</h3>
                 <button type="button" onclick="toggleModal('productEditModal')" class="p-2 hover:bg-surface-container rounded-full">
@@ -450,7 +457,7 @@
                 </button>
             </div>
 
-            <div class="p-xl space-y-lg">
+            <div class="p-xl space-y-lg overflow-y-auto">
                 <form id="edit_product_form" action="" method="POST" enctype="multipart/form-data" class="space-y-lg">
                     @csrf
                     <input type="hidden" id="edit_product_id" name="product_id" />
@@ -483,6 +490,15 @@
                     <div>
                         <label class="block mb-2 font-medium">Description</label>
                         <textarea id="edit_description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Product description" {{ $isAdmin ? '' : 'disabled' }}></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2 font-medium">Tồn kho</label>
+                        <input id="edit_stock" type="number" min="0" name="stock" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Ví dụ: 100" {{ $isAdmin ? '' : 'disabled' }}>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input id="edit_is_auto_stock" type="checkbox" name="is_auto_stock" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="calculateStockAuto('edit')" {{ $isAdmin ? '' : 'disabled' }}>
+                            <label for="edit_is_auto_stock" class="text-sm font-medium">Tự động tính toán (dựa trên nguyên liệu của kích thước mặc định)</label>
+                        </div>
                     </div>
 
                     <div>
@@ -522,7 +538,7 @@
 
     <!-- Modal: Add New Product -->
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productModal">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
                 <h3 class="font-headline-md text-headline-md">Add Product</h3>
                 <button type="button" onclick="toggleModal('productModal')" class="p-2 hover:bg-surface-container rounded-full">
@@ -530,7 +546,7 @@
                 </button>
             </div>
 
-            <div class="p-xl space-y-lg">
+            <div class="p-xl space-y-lg overflow-y-auto">
                 <form action="/admin/product/store" method="POST" enctype="multipart/form-data" class="space-y-lg">
                     @csrf
 
@@ -559,6 +575,15 @@
                     <div>
                         <label class="block mb-2 font-medium">Description</label>
                         <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Product description"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2 font-medium">Tồn kho</label>
+                        <input id="add_stock" type="number" min="0" name="stock" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Ví dụ: 100">
+                        <div class="mt-2 flex items-center gap-2">
+                            <input id="add_is_auto_stock" type="checkbox" name="is_auto_stock" value="1" class="rounded text-primary focus:ring-primary border-outline" onchange="calculateStockAuto('add')">
+                            <label for="add_is_auto_stock" class="text-sm font-medium">Tự động tính toán (cần thêm nguyên liệu sau khi tạo)</label>
+                        </div>
                     </div>
 
                     <div>
@@ -953,7 +978,6 @@
             const modal = document.getElementById('productEditModal');
             if (!modal) return;
 
-            // Prefill
             const id = button.getAttribute('data-id');
             if (!id) return;
 
@@ -962,9 +986,16 @@
             document.getElementById('edit_code').value = button.getAttribute('data-code') ?? '';
             document.getElementById('edit_category_id').value = button.getAttribute('data-category-id') ?? '';
             document.getElementById('edit_description').value = button.getAttribute('data-description') ?? '';
+            
+            const stock = button.getAttribute('data-stock') ?? '';
+            document.getElementById('edit_stock').value = stock;
+
+            const isAutoStock = button.getAttribute('data-is-auto-stock') ?? '0';
+            document.getElementById('edit_is_auto_stock').checked = (String(isAutoStock) === '1');
+            calculateStockAuto('edit');
+
             const statusVal = button.getAttribute('data-status') ?? '0';
 
-            // Ensure radio correct even when statusVal is boolean-like string.
             const normalizedStatus = String(statusVal) === '1' ? '1' : '0';
 
             const radioActive = document.getElementById('edit_status_active');
@@ -975,13 +1006,9 @@
                 if (radioInactive) radioInactive.checked = true;
             }
 
-
-
-            // Update form action
             const form = document.getElementById('edit_product_form');
             form.action = `/admin/product/${id}/update`;
 
-            // Image preview
             const currentImg = button.getAttribute('data-image');
             const preview = document.getElementById('edit_current_image_preview');
             if (preview) {
@@ -993,7 +1020,6 @@
                 }
             }
 
-            // close dropdown
             document.querySelectorAll('.product-action-menu').forEach(m => m.classList.add('hidden'));
 
             modal.classList.remove('hidden');
@@ -1007,7 +1033,6 @@
             const menu = row.querySelector('.size-action-menu');
             if (!menu) return;
 
-            // Close others
             document.querySelectorAll('.size-action-menu').forEach(m => {
                 if (m !== menu) m.classList.add('hidden');
             });
@@ -1021,18 +1046,63 @@
             const moreBtn = row.querySelector('.action-more-size');
             if (!moreBtn) return;
 
+            openSizeEditModal(moreBtn);
+        }
+
+        function openSizeEditModal(button) {
             const modal = document.getElementById('sizeEditModal');
             if (!modal) return;
 
-            const id = moreBtn.getAttribute('data-id');
-            document.getElementById('edit_size_name').value = moreBtn.getAttribute('data-name') || '';
-            document.getElementById('edit_size_volume').value = moreBtn.getAttribute('data-volume') || '';
-            document.getElementById('edit_size_description').value = moreBtn.getAttribute('data-description') || '';
-            
-            document.getElementById('edit_size_form').action = `/admin/size/${id}/update`;
+            const id = button.getAttribute('data-id');
+            if (!id) return;
 
-            document.querySelectorAll('.size-action-menu').forEach(m => m.classList.add('hidden'));
-            modal.classList.remove('hidden');
+            document.getElementById('edit_size_name').value = button.getAttribute('data-name') ?? '';
+            document.getElementById('edit_size_volume').value = button.getAttribute('data-volume') ?? '';
+            document.getElementById('edit_size_description').value = button.getAttribute('data-description') ?? '';
+
+            const form = document.getElementById('edit_size_form');
+            form.action = `/admin/size/${id}/update`;
+
+            toggleModal('sizeEditModal');
+        }
+
+        async function calculateStockAuto(type) {
+            const checkbox = document.getElementById(type + '_is_auto_stock');
+            const stockInput = document.getElementById(type + '_stock');
+            
+            if (checkbox && checkbox.checked) {
+                if (type === 'edit') {
+                    const productId = document.getElementById('edit_product_id').value;
+                    if (productId) {
+                        try {
+                            const response = await fetch(`/admin/product/${productId}/calculate-stock`);
+                            const data = await response.json();
+                            if (data.success) {
+                                stockInput.value = data.stock;
+                            } else {
+                                alert(data.message || 'Có lỗi xảy ra khi tính tồn kho.');
+                                checkbox.checked = false;
+                            }
+                        } catch (error) {
+                            console.error('Error calculating stock:', error);
+                            alert('Lỗi kết nối.');
+                            checkbox.checked = false;
+                        }
+                    }
+                } else if (type === 'add') {
+                    stockInput.value = '0';
+                }
+                
+                if(stockInput) {
+                    stockInput.readOnly = true;
+                    stockInput.classList.add('bg-gray-100');
+                }
+            } else {
+                if(stockInput) {
+                    stockInput.readOnly = false;
+                    stockInput.classList.remove('bg-gray-100');
+                }
+            }
         }
 
         // Close action menu on outside click

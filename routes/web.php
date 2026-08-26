@@ -176,6 +176,7 @@ Route::middleware(['admin'])->group(function () {
         $toppings = \App\Models\Topping::all();
         return view('admin.products', compact('toppings'));
     });
+    Route::get('/admin/product/{product}/calculate-stock', [\App\Http\Controllers\ProductController::class, 'calculateStock']);
     Route::get('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'recipe']);
     Route::post('/admin/product/{product}/recipe', [\App\Http\Controllers\ProductController::class, 'updateRecipe']);
     Route::post('/admin/product/store', function (\Illuminate\Http\Request $request) {
