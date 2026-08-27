@@ -25,7 +25,7 @@ class AiChatController extends Controller
     {
         $userMessage = trim($request->input('message', ''));
         $sessionId   = $request->input('session_id');
-        $userId      = session('user_id');
+        $userId      = $request->user() ? $request->user()->id : session('user_id');
         $lat         = $request->input('lat');
         $lon         = $request->input('lon');
 

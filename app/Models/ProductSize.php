@@ -18,6 +18,37 @@ class ProductSize extends Model
         'status',
     ];
 
+    protected $appends = ['stock'];
+
+    public function getStockAttribute()
+    {
+        $product = $this->product;
+        if ($product && !$product->is_auto_stock) {
+            return $product->stock;
+        }
+
+        $recipe = $this->recipes()->first();
+        if (!$recipe || $recipe->ingredients->isEmpty()) {
+            return 0;
+        }
+
+        $maxProducts = -1;
+
+        foreach ($recipe->ingredients as $recipeIngredient) {
+            $ingredient = $recipeIngredient->ingredient;
+            if (!$ingredient || $recipeIngredient->quantity <= 0) {
+                continue;
+            }
+
+            $possible = floor($ingredient->current_stock / $recipeIngredient->quantity);
+            if ($maxProducts === -1 || $possible < $maxProducts) {
+                $maxProducts = $possible;
+            }
+        }
+
+        return $maxProducts === -1 ? 0 : $maxProducts;
+    }
+
     public function product() {
         return $this->belongsTo(Product::class, 'product_id');
     }

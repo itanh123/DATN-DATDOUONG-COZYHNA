@@ -190,6 +190,40 @@
             }
         }
 
+        function calculateSizeStock(ps) {
+            if (!ps || !ps.recipes || ps.recipes.length === 0) return 0;
+            let recipe = ps.recipes[0];
+            if (!recipe || !recipe.ingredients || recipe.ingredients.length === 0) return 0;
+            let maxStock = Infinity;
+            for (let i = 0; i < recipe.ingredients.length; i++) {
+                let ri = recipe.ingredients[i];
+                if (!ri.ingredient) continue;
+                let requiredQty = parseFloat(ri.quantity) || 0;
+                if (requiredQty <= 0) continue;
+                let currentStock = parseFloat(ri.ingredient.current_stock) || 0;
+                let possibleQuantity = Math.floor(currentStock / requiredQty);
+                if (possibleQuantity < maxStock) maxStock = possibleQuantity;
+            }
+            return maxStock === Infinity ? 0 : maxStock;
+        }
+
+        function updateStockDisplay(stock) {
+            const stockBadge = document.getElementById('drawerStockBadge');
+            const stockText = document.getElementById('drawerStockText');
+            if (stockBadge && stockText) {
+                stock = parseInt(stock) || 0;
+                stockText.innerText = `Kho: ${stock}`;
+                if (stock > 0) {
+                    stockText.classList.remove('text-error');
+                    stockText.classList.add('text-primary');
+                } else {
+                    stockText.classList.remove('text-primary');
+                    stockText.classList.add('text-error');
+                }
+                stockBadge.style.display = 'block';
+            }
+        }
+
         let currentProductForCart = null;
         let currentProductSizeId = null;
 
@@ -288,6 +322,7 @@
                                 currentProductSizeId = ps.id || null;
                                 document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                                 updateTotals();
+                                updateStockDisplay(calculateSizeStock(ps));
                             };
                             
                             if (sizeSelector) sizeSelector.appendChild(btn);
@@ -324,19 +359,11 @@
                     }
                     
                     // Stock badge
-                    const stockBadge = document.getElementById('drawerStockBadge');
-                    const stockText = document.getElementById('drawerStockText');
-                    if (stockBadge && stockText) {
-                        const stock = product.stock !== null && product.stock !== undefined ? parseInt(product.stock) : 0;
-                        stockText.innerText = `Kho: ${stock}`;
-                        if (stock > 0) {
-                            stockText.classList.remove('text-error');
-                            stockText.classList.add('text-primary');
-                        } else {
-                            stockText.classList.remove('text-primary');
-                            stockText.classList.add('text-error');
-                        }
-                        stockBadge.style.display = 'block';
+                    if (product.product_sizes && product.product_sizes.length > 0) {
+                        let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
+                        updateStockDisplay(calculateSizeStock(defaultPs));
+                    } else {
+                        updateStockDisplay(product.stock !== null ? parseInt(product.stock) : 0);
                     }
                     
                     // Related Products

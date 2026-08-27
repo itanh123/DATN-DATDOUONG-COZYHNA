@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1016154284395",
+    "project_id": "cozyhna-app",
+    "storage_bucket": "cozyhna-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016154284395:android:6a95239d294709e28cec2e",
+        "android_client_info": {
+          "package_name": "com.example.cozyhna"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1016154284395-d42gm8nfc7qumauqrea7clao1t7pocnl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cozyhna",
+            "certificate_hash": "8eacb02ddfcf84ab7a40f6395821a3a1bc05261b"
+          }
+        },
+        {
+          "client_id": "1016154284395-s03t31bhik26cpg2k93oijkf7t6o9r0s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7q9TYWprqQJP1rZHgiVve9_acNjx2RCo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1016154284395-s03t31bhik26cpg2k93oijkf7t6o9r0s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
