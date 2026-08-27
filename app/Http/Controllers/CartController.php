@@ -1,0 +1,793 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\CustomerProfile;
+use App\Models\Product;
+use App\Models\ProductSize;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class CartController extends Controller
+{
+    private function getCartItems()
+    {
+        return session('cart', []);
+    }
+
+    private function saveCartItems($cartItems)
+    {
+        session(['cart' => $cartItems]);
+    }
+
+    private function getRequiredIngredients(array $cartItems)
+    {
+        $requiredIngredients = [];
+
+        foreach ($cartItems as $item) {
+            if (empty($item['quantity'])) continue;
+            
+            // 1. Tính nguyên liệu của công thức đồ uống (nếu có)
+            if (!empty($item['product_size_id'])) {
+                $recipe = \App\Models\Recipe::where('product_size_id', $item['product_size_id'])
+                    ->with('ingredients.ingredient')
+                    ->first();
+
+                if ($recipe) {
+                    foreach ($recipe->ingredients as $ri) {
+                        if (!$ri->ingredient) continue;
+                        
+                        $ingredientId = $ri->ingredient_id;
+                        if (!isset($requiredIngredients[$ingredientId])) {
+                            $requiredIngredients[$ingredientId] = [
+                                'name' => $ri->ingredient->name,
+                                'required' => 0,
+                                'stock' => $ri->ingredient->current_stock,
+                            ];
+                        }
+                        $requiredIngredients[$ingredientId]['required'] += ($ri->quantity * $item['quantity']);
+                    }
+                }
+            }
+
+            // 2. Tính thêm nguyên liệu của Topping (nếu có)
+            if (!empty($item['toppings'])) {
+                foreach ($item['toppings'] as $toppingData) {
+                    $topping = \App\Models\Topping::find($toppingData['id']);
+                    if ($topping && $topping->ingredient_id) {
+                        $ingredient = \App\Models\Ingredient::find($topping->ingredient_id);
+                        if ($ingredient) {
+                            $ingredientId = $ingredient->id;
+                            if (!isset($requiredIngredients[$ingredientId])) {
+                                $requiredIngredients[$ingredientId] = [
+                                    'name' => $ingredient->name,
+                                    'required' => 0,
+                                    'stock' => $ingredient->current_stock,
+                                ];
+                            }
+                            $qty = $topping->ingredient_quantity ?? 1;
+                            $requiredIngredients[$ingredientId]['required'] += ($qty * $item['quantity']);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $requiredIngredients;
+    }
+
+    private function checkCartStock(array $simulatedCartItems)
+    {
+        $requiredIngredients = $this->getRequiredIngredients($simulatedCartItems);
+
+        foreach ($requiredIngredients as $ing) {
+            if ($ing['required'] > $ing['stock']) {
+                return "Không đủ số lượng nguyên liệu: {$ing['name']}";
+            }
+        }
+
+        return true;
+    }
+
+    private function getMaxQuantityForItem(array $cartItems, $itemId)
+    {
+        if (!isset($cartItems[$itemId])) return 0;
+        
+        $targetItem = $cartItems[$itemId];
+        
+        // Find required ingredients for 1 unit of target item
+        $targetItem['quantity'] = 1;
+        $reqForOne = $this->getRequiredIngredients([$itemId => $targetItem]);
+        
+        if (empty($reqForOne)) return 999;
+        
+        // Find required ingredients for all other items
+        $otherItems = $cartItems;
+        unset($otherItems[$itemId]);
+        $reqForOthers = $this->getRequiredIngredients($otherItems);
+        
+        $maxQty = 999;
+        
+        foreach ($reqForOne as $ingId => $ingData) {
+            $stock = $ingData['stock'];
+            $usedByOthers = $reqForOthers[$ingId]['required'] ?? 0;
+            $availableForTarget = $stock - $usedByOthers;
+            
+            if ($availableForTarget <= 0) return 0;
+            
+            $reqPerUnit = $ingData['required'];
+            $canMake = floor($availableForTarget / $reqPerUnit);
+            
+            if ($canMake < $maxQty) {
+                $maxQty = $canMake;
+            }
+        }
+        
+        return $maxQty;
+    }
+
+
+    public function add(Request $request)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Bạn cần đăng nhập để thêm vào giỏ hàng.'], 401);
+        }
+
+        $request->validate([
+            'product_id'      => ['nullable', 'integer', 'exists:products,id'],
+            'product_size_id' => ['nullable', 'integer', 'exists:product_sizes,id'],
+            'unit_price'      => ['nullable', 'numeric', 'min:0'],
+            'quantity'        => ['required', 'integer', 'min:1'],
+            'topping_ids'     => ['nullable', 'array'],
+            'topping_ids.*'   => ['integer', 'exists:toppings,id'],
+            'toppings'        => ['nullable', 'array'],
+            'toppings.*'      => ['integer', 'exists:toppings,id'],
+        ]);
+
+        $productSizeId = $request->input('product_size_id');
+        $productId     = $request->input('product_id');
+        $quantity      = (int) $request->input('quantity', 1);
+
+        if ($productSizeId) {
+            $ps = ProductSize::findOrFail($productSizeId);
+            $productId = $ps->product_id;
+            $unitPrice = (float) $ps->selling_price;
+        } elseif ($productId) {
+            $unitPrice = (float) $request->input('unit_price', 0);
+        } else {
+            return response()->json(['error' => 'Thiếu thông tin sản phẩm.'], 422);
+        }
+
+        $toppingIds = $request->input('topping_ids') ?? $request->input('toppings', []);
+        $toppingIds = array_map('intval', $toppingIds);
+        $toppings = [];
+        if (!empty($toppingIds)) {
+            $dbToppings = \App\Models\Topping::whereIn('id', $toppingIds)->get();
+            foreach ($dbToppings as $top) {
+                $toppings[] = [
+                    'id' => $top->id,
+                    'name' => $top->name,
+                    'price' => (float) $top->price,
+                ];
+                $unitPrice += (float) $top->price;
+            }
+        }
+
+        sort($toppingIds);
+        $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
+
+        $cartItems = $this->getCartItems();
+        $cartItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+
+        if (isset($cartItems[$cartItemId])) {
+            $cartItems[$cartItemId]['quantity'] += $quantity;
+        } else {
+            $cartItems[$cartItemId] = [
+                'id'              => $cartItemId,
+                'product_id'      => $productId,
+                'product_size_id' => $productSizeId,
+                'quantity'        => $quantity,
+                'unit_price'      => $unitPrice,
+                'toppings'        => $toppings,
+            ];
+        }
+
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            return response()->json(['error' => $stockCheck], 400);
+        }
+
+        $this->saveCartItems($cartItems);
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Đã thêm sản phẩm vào giỏ hàng!',
+            'cart_item_count' => count($cartItems),
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+        }
+
+        $request->validate(['quantity' => ['required', 'integer', 'min:0']]);
+        
+        $cartItems = $this->getCartItems();
+        
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
+
+        $quantity = (int) $request->input('quantity');
+        if ($quantity <= 0) {
+            unset($cartItems[$id]);
+            $message = 'Đã xóa sản phẩm khỏi giỏ hàng';
+        } else {
+            $cartItems[$id]['quantity'] = $quantity;
+            $message = 'Đã cập nhật số lượng';
+        }
+
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            $maxQty = $this->getMaxQuantityForItem($this->getCartItems(), $id);
+            return response()->json([
+                'error' => $stockCheck,
+                'max_quantity' => $maxQty
+            ], 400);
+        }
+
+        $this->saveCartItems($cartItems);
+
+        return response()->json([
+            'success'         => true,
+            'message'         => $message,
+            'cart_item_count' => count($cartItems),
+            'total_price'     => $this->calcTotals($cartItems),
+        ]);
+    }
+
+    public function remove($id)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+        }
+
+        $cartItems = $this->getCartItems();
+        
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
+
+        unset($cartItems[$id]);
+        $this->saveCartItems($cartItems);
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Đã xóa sản phẩm khỏi giỏ hàng',
+            'cart_item_count' => count($cartItems),
+            'total_price'     => $this->calcTotals($cartItems),
+        ]);
+    }
+
+    public function updateVariant(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'product_size_id' => ['nullable', 'integer', 'exists:product_sizes,id'],
+            'topping_ids'     => ['nullable', 'array'],
+            'topping_ids.*'   => ['integer', 'exists:toppings,id'],
+        ]);
+
+        $cartItems = $this->getCartItems();
+        if (!isset($cartItems[$id])) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong giỏ'], 404);
+        }
+
+        $oldItem = $cartItems[$id];
+        $productId = $oldItem['product_id'];
+        $quantity = $oldItem['quantity'];
+
+        $productSizeId = $request->input('product_size_id');
+        
+        $unitPrice = 0;
+        if ($productSizeId) {
+            $ps = ProductSize::findOrFail($productSizeId);
+            $unitPrice = (float) $ps->selling_price;
+        } else {
+            // If no size id passed, attempt to find a default or fallback to 0
+            $ps = ProductSize::where('product_id', $productId)->first();
+            if ($ps) {
+                $productSizeId = $ps->id;
+                $unitPrice = (float) $ps->selling_price;
+            }
+        }
+
+        $toppingIds = $request->input('topping_ids', []);
+        $toppings = [];
+        if (!empty($toppingIds)) {
+            $dbToppings = \App\Models\Topping::whereIn('id', $toppingIds)->get();
+            foreach ($dbToppings as $top) {
+                $toppings[] = [
+                    'id' => $top->id,
+                    'name' => $top->name,
+                    'price' => (float) $top->price,
+                ];
+                $unitPrice += (float) $top->price;
+            }
+        }
+
+        sort($toppingIds);
+        $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
+
+        $newItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+
+        // Remove old item
+        unset($cartItems[$id]);
+
+        // Add new item (merge quantity if it exists)
+        if (isset($cartItems[$newItemId])) {
+            $cartItems[$newItemId]['quantity'] += $quantity;
+        } else {
+            $cartItems[$newItemId] = [
+                'id'              => $newItemId,
+                'product_id'      => $productId,
+                'product_size_id' => $productSizeId,
+                'quantity'        => $quantity,
+                'unit_price'      => $unitPrice,
+                'toppings'        => $toppings,
+            ];
+        }
+
+        $stockCheck = $this->checkCartStock($cartItems);
+        if ($stockCheck !== true) {
+            return response()->json(['error' => $stockCheck], 400);
+        }
+
+        $this->saveCartItems($cartItems);
+
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Đã cập nhật tùy chọn',
+            'cart_item_count' => array_sum(array_column($cartItems, 'quantity')),
+            'total_price'     => $this->calcTotals($cartItems),
+        ]);
+    }
+
+    public function index()
+    {
+        if (!session('user_id')) {
+            return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
+        }
+
+        $cartItemsRaw = $this->getCartItems();
+        $cartItems = collect();
+        $subtotal = 0;
+
+        foreach ($cartItemsRaw as $item) {
+            $product = Product::with(['productSizes.size', 'toppings'])->find($item['product_id']);
+            $productSize = $item['product_size_id'] ? ProductSize::with('size')->find($item['product_size_id']) : null;
+            
+            if ($product) {
+                $obj = new \stdClass();
+                $obj->id = $item['id'];
+                $obj->product_id = $item['product_id'];
+                $obj->product_size_id = $item['product_size_id'];
+                $obj->quantity = $item['quantity'];
+                $obj->unit_price = $item['unit_price'];
+                $obj->product = $product;
+                $obj->productSize = $productSize;
+                $obj->toppings = $item['toppings'] ?? [];
+                
+                $cartItems->push($obj);
+                $subtotal += $item['unit_price'] * $item['quantity'];
+            }
+        }
+
+        $appliedVoucher = session('applied_voucher');
+        $discountAmount = 0;
+        if ($appliedVoucher) {
+            $discountAmount = $appliedVoucher['discount_amount'];
+            $voucher = \App\Models\Voucher::find($appliedVoucher['id']);
+            if ($voucher && $voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+                $discountAmount = 0;
+            } else if ($voucher) {
+                if ($voucher->discount_type === 'percent') {
+                    $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+                    if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                        $discountAmount = $voucher->maximum_discount;
+                    }
+                } else {
+                    $discountAmount = $voucher->discount_value;
+                }
+                
+                if ($discountAmount > $subtotal) {
+                    $discountAmount = $subtotal;
+                }
+                
+                $appliedVoucher['discount_amount'] = $discountAmount;
+                session(['applied_voucher' => $appliedVoucher]);
+            }
+        }
+
+        $user = \App\Models\User::find(session('user_id'));
+        $availableVouchers = collect();
+        if ($user) {
+            $availableVouchers = collect($user->savedVouchers)->filter(function($v) use ($subtotal) {
+                return $v->status == 1 && 
+                       ($v->quantity === null || $v->used < $v->quantity) &&
+                       ($v->start_date === null || $v->start_date <= now()) &&
+                       ($v->end_date === null || $v->end_date > now()) &&
+                       ($v->minimum_order === null || $subtotal >= $v->minimum_order) &&
+                       !$v->pivot->is_used;
+            })->values();
+        }
+
+        $allToppings = \App\Models\Topping::where('status', true)
+            ->where(function($q) {
+                $q->whereNull('ingredient_id')
+                  ->orWhereHas('ingredient', function($subQ) {
+                      $subQ->where('current_stock', '>', 0);
+                  });
+            })
+            ->get();
+
+        $appliedShippingVoucher = session('applied_shipping_voucher');
+        $shippingDiscountAmount = 0;
+        if ($appliedShippingVoucher) {
+            $shippingVoucher = \App\Models\Voucher::find($appliedShippingVoucher['id']);
+            if ($shippingVoucher && $shippingVoucher->minimum_order && $subtotal < $shippingVoucher->minimum_order) {
+                session()->forget('applied_shipping_voucher');
+                $appliedShippingVoucher = null;
+            } else if ($shippingVoucher) {
+                $shippingDiscountAmount = $appliedShippingVoucher['discount_amount']; 
+            }
+        }
+
+        return view('customer.cart', compact('cartItems', 'subtotal', 'appliedVoucher', 'discountAmount', 'appliedShippingVoucher', 'shippingDiscountAmount', 'availableVouchers', 'allToppings'));
+    }
+
+    public function initCheckout(Request $request)
+    {
+        if (!session('user_id')) {
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+        }
+
+        $request->validate([
+            'selected_items' => 'required|array|min:1',
+            'selected_items.*' => 'string'
+        ]);
+
+        session(['checkout_items' => $request->selected_items]);
+        
+        $isTableOrder = session('is_table_order', false);
+        $redirectUrl = $isTableOrder ? '/table/order/confirm' : route('customer.checkout');
+        
+        return response()->json([
+            'success' => true, 
+            'redirect' => $redirectUrl,
+            'is_table_order' => $isTableOrder
+        ]);
+    }
+
+    public function checkout()
+    {
+        if (!session('user_id')) {
+            return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
+        }
+
+        $checkoutItemIds = session('checkout_items', []);
+        if (empty($checkoutItemIds)) {
+            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn sản phẩm để thanh toán.');
+        }
+
+        $cartItemsRaw = $this->getCartItems();
+        $cartItems = collect();
+        $subtotal = 0;
+
+        foreach ($cartItemsRaw as $item) {
+            if (!in_array($item['id'], $checkoutItemIds)) continue;
+
+            $product = Product::find($item['product_id']);
+            $productSize = $item['product_size_id'] ? ProductSize::with('size')->find($item['product_size_id']) : null;
+            
+            if ($product) {
+                $obj = new \stdClass();
+                $obj->id = $item['id'];
+                $obj->product_id = $item['product_id'];
+                $obj->product_size_id = $item['product_size_id'];
+                $obj->quantity = $item['quantity'];
+                $obj->unit_price = $item['unit_price'];
+                $obj->product = $product;
+                $obj->productSize = $productSize;
+                $obj->toppings = $item['toppings'] ?? [];
+                
+                $cartItems->push($obj);
+                $subtotal += $item['unit_price'] * $item['quantity'];
+            }
+        }
+
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Không tìm thấy sản phẩm được chọn.');
+        }
+        $minOrderAmount = (float) \App\Models\Setting::get('min_order_amount', 0);
+        if ($subtotal < $minOrderAmount) {
+            return redirect()->route('cart.index')->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để giao hàng (' . number_format($minOrderAmount, 0, ',', '.') . ' đ). Vui lòng mua thêm.');
+        }
+
+        $deliveryFee = 0; // Sẽ được tính lại bằng JS ở frontend khi có địa chỉ
+        $tax         = 0;
+
+        $appliedVoucher = session('applied_voucher');
+        $discountAmount = 0;
+        if ($appliedVoucher) {
+            $discountAmount = $appliedVoucher['discount_amount'];
+            // Revalidate voucher minimum order just in case
+            $voucher = \App\Models\Voucher::find($appliedVoucher['id']);
+            if ($voucher && $voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+                $discountAmount = 0;
+            } else if ($voucher) {
+                // Recalculate discount based on current subtotal
+                if ($voucher->discount_type === 'percent') {
+                    $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+                    if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                        $discountAmount = $voucher->maximum_discount;
+                    }
+                } else {
+                    $discountAmount = $voucher->discount_value;
+                }
+                
+                if ($discountAmount > $subtotal) {
+                    $discountAmount = $subtotal;
+                }
+                
+                // Update session
+                $appliedVoucher['discount_amount'] = $discountAmount;
+                session(['applied_voucher' => $appliedVoucher]);
+            } else {
+                session()->forget('applied_voucher');
+                $appliedVoucher = null;
+            }
+        }
+
+        $appliedShippingVoucher = session('applied_shipping_voucher');
+        $shippingDiscountAmount = 0;
+        if ($appliedShippingVoucher) {
+            $shippingVoucher = \App\Models\Voucher::find($appliedShippingVoucher['id']);
+            if ($shippingVoucher && $shippingVoucher->minimum_order && $subtotal < $shippingVoucher->minimum_order) {
+                session()->forget('applied_shipping_voucher');
+                $appliedShippingVoucher = null;
+            } else if ($shippingVoucher) {
+                // Shipping discount is usually calculated later via JS or in placeOrder when we know the exact shipping fee.
+                // We just pass it to the view.
+                $shippingDiscountAmount = $appliedShippingVoucher['discount_amount']; 
+            } else {
+                session()->forget('applied_shipping_voucher');
+                $appliedShippingVoucher = null;
+            }
+        }
+
+        $total       = $subtotal + $deliveryFee + $tax - $discountAmount - $shippingDiscountAmount;
+
+        $userId = session('user_id');
+        $profile = CustomerProfile::where('user_id', $userId)->first();
+        $addresses = collect();
+        if ($profile) {
+            $addresses = DB::table('customer_addresses')
+                ->where('customer_id', $profile->id)
+                ->whereNull('deleted_at')
+                ->get();
+        }
+        $feePerKm = (float) \App\Models\Setting::get('fee_per_km', 0);
+        $maxRadius = (float) \App\Models\Setting::get('max_delivery_radius', 0);
+        $baseFee = (float) \App\Models\Setting::get('base_shipping_fee', 15000);
+        $storeProvince = \App\Models\Setting::get('store_province', 'Hà Nội');
+        $storeDistrict = \App\Models\Setting::get('store_district', '');
+        $storeWard = \App\Models\Setting::get('store_ward', '');
+        $storeSpecificAddress = \App\Models\Setting::get('store_specific_address', '');
+        $storeLat = \App\Models\Setting::get('store_lat', '');
+        $storeLon = \App\Models\Setting::get('store_lon', '');
+        $shippingTiers = \App\Models\Setting::get('shipping_tiers', '[{"max_km": 3, "fee": 15000}, {"max_km": 5, "fee": 20000}, {"max_km": 10, "fee": 30000}, {"max_km": 15, "fee": 40000}]');
+
+        $user = \App\Models\User::find($userId);
+        $availableVouchers = collect();
+        if ($user) {
+            $availableVouchers = collect($user->savedVouchers)->filter(function($v) use ($subtotal) {
+                return $v->status == 1 && 
+                       ($v->quantity === null || $v->used < $v->quantity) &&
+                       ($v->start_date === null || $v->start_date <= now()) &&
+                       ($v->end_date === null || $v->end_date > now()) &&
+                       ($v->minimum_order === null || $subtotal >= $v->minimum_order) &&
+                       !$v->pivot->is_used;
+            })->values();
+        }
+
+        return view('customer.checkout', compact('cartItems', 'subtotal', 'deliveryFee', 'tax', 'discountAmount', 'appliedVoucher', 'shippingDiscountAmount', 'appliedShippingVoucher', 'total', 'addresses', 'feePerKm', 'maxRadius', 'baseFee', 'storeProvince', 'storeDistrict', 'storeWard', 'storeSpecificAddress', 'storeLat', 'storeLon', 'shippingTiers', 'availableVouchers'));
+    }
+
+    private function calcTotals($cartItems): array
+    {
+        $subtotal = 0;
+        foreach ($cartItems as $item) {
+            $subtotal += $item['unit_price'] * $item['quantity'];
+        }
+        $fee      = $subtotal > 0 ? 15000 : 0;
+        $tax      = 0;
+        $total    = $subtotal + $fee + $tax;
+
+        return [
+            'subtotal'    => number_format($subtotal, 0, ',', '.') . ' đ',
+            'delivery'    => number_format($fee, 0, ',', '.') . ' đ',
+            'tax'         => number_format($tax, 0, ',', '.') . ' đ',
+            'total'       => number_format($total, 0, ',', '.') . ' đ',
+            'raw_total'   => $total,
+        ];
+    }
+
+    public function applyVoucher(Request $request)
+    {
+        $request->validate([
+            'voucher_code' => 'required|string',
+        ]);
+
+        $code = $request->voucher_code;
+        // if subtotal is not provided in request (like from checkout form), calculate it from cart
+        $subtotal = $request->subtotal;
+        if (!$subtotal) {
+            $cartItems = session()->get('cart', []);
+            $subtotal = array_sum(array_map(function($item) {
+                return $item['unit_price'] * $item['quantity'];
+            }, $cartItems));
+        }
+
+        $isAjax = $request->wantsJson() || $request->ajax();
+        
+        $errorResponse = function($msg) use ($isAjax) {
+            if ($isAjax) return response()->json(['success' => false, 'message' => $msg]);
+            return redirect()->back()->with('error', $msg);
+        };
+
+        $voucher = \App\Models\Voucher::where('code', $code)->where('status', true)->first();
+
+        if (!$voucher) {
+            return $errorResponse('Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa.');
+        }
+
+        if ($voucher->start_date && now()->lt($voucher->start_date)) {
+            return $errorResponse('Mã giảm giá chưa đến thời gian áp dụng.');
+        }
+
+        if ($voucher->end_date && now()->gt($voucher->end_date)) {
+            return $errorResponse('Mã giảm giá đã hết hạn.');
+        }
+
+        if ($voucher->quantity !== null && $voucher->used >= $voucher->quantity) {
+            return $errorResponse('Mã giảm giá đã hết lượt sử dụng.');
+        }
+
+        // Check if user has saved this voucher and hasn't used it yet
+        $userId = session('user_id');
+        if (!$userId) {
+            return $errorResponse('Vui lòng đăng nhập để áp dụng mã giảm giá.');
+        }
+
+        $user = \App\Models\User::find($userId);
+        
+        if (is_array($voucher->target_audience) && !in_array('all', $voucher->target_audience)) {
+            $profile = \App\Models\CustomerProfile::where('user_id', $userId)->first();
+            $userRank = $profile ? $profile->dynamic_rank['level'] : 'Member';
+            
+            if (!in_array($userRank, $voucher->target_audience)) {
+                $rankNames = [
+                    'Member' => 'Thành viên',
+                    'Silver' => 'Hạng Bạc',
+                    'Gold' => 'Hạng Vàng',
+                    'Diamond' => 'Hạng Kim Cương'
+                ];
+                
+                $allowedRanks = array_map(function($r) use ($rankNames) {
+                    return $rankNames[$r] ?? $r;
+                }, $voucher->target_audience);
+                
+                $targetName = implode(', ', $allowedRanks);
+                return $errorResponse("Mã giảm giá này chỉ dành riêng cho khách hàng: $targetName.");
+            }
+        }
+
+        $customerVoucher = $user->savedVouchers()->where('vouchers.id', $voucher->id)->first();
+        
+        if (!$customerVoucher) {
+            return $errorResponse('Bạn chưa lưu mã giảm giá này. Vui lòng lưu mã trước khi sử dụng.');
+        }
+
+        if ($customerVoucher->pivot->is_used) {
+            return $errorResponse('Bạn đã sử dụng mã giảm giá này rồi, mỗi mã chỉ được dùng 1 lần.');
+        }
+
+        if ($voucher->minimum_order && $subtotal < $voucher->minimum_order) {
+            return $errorResponse('Đơn hàng chưa đạt giá trị tối thiểu ' . number_format($voucher->minimum_order, 0, ',', '.') . ' đ để áp dụng mã này.');
+        }
+
+        $discountAmount = 0;
+        
+        // Cần truyền thêm shipping_fee từ request nếu áp dụng mã freeship
+        $shippingFee = $request->input('shipping_fee', 0);
+        
+        if ($voucher->target === 'shipping') {
+            if ($voucher->discount_type === 'percent') {
+                $discountAmount = ($shippingFee * $voucher->discount_value) / 100;
+                if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                    $discountAmount = $voucher->maximum_discount;
+                }
+            } else {
+                $discountAmount = $voucher->discount_value;
+            }
+            // Không giảm quá phí ship
+            if ($shippingFee > 0 && $discountAmount > $shippingFee) {
+                $discountAmount = $shippingFee;
+            }
+            
+            $sessionKey = 'applied_shipping_voucher';
+        } else {
+            if ($voucher->discount_type === 'percent') {
+                $discountAmount = ($subtotal * $voucher->discount_value) / 100;
+                if ($voucher->maximum_discount && $discountAmount > $voucher->maximum_discount) {
+                    $discountAmount = $voucher->maximum_discount;
+                }
+            } else {
+                $discountAmount = $voucher->discount_value;
+            }
+            // Không giảm quá subtotal
+            if ($discountAmount > $subtotal) {
+                $discountAmount = $subtotal;
+            }
+            
+            $sessionKey = 'applied_voucher';
+        }
+
+        // Save voucher to session
+        session([$sessionKey => [
+            'id' => $voucher->id,
+            'code' => $voucher->code,
+            'target' => $voucher->target,
+            'discount_amount' => $discountAmount,
+            'discount_type' => $voucher->discount_type,
+            'discount_value' => $voucher->discount_value,
+        ]]);
+
+        if ($isAjax) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Áp dụng mã giảm giá thành công!',
+                'discount_amount' => $discountAmount,
+                'voucher_code' => $voucher->code,
+                'target' => $voucher->target
+            ]);
+        }
+        
+        return redirect()->back()->with('success', 'Áp dụng mã giảm giá thành công!');
+    }
+
+    public function removeVoucher(Request $request)
+    {
+        $target = $request->input('target', 'product');
+        if ($target === 'shipping') {
+            session()->forget('applied_shipping_voucher');
+        } else {
+            session()->forget('applied_voucher');
+        }
+        
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Đã gỡ mã giảm giá.']);
+        }
+        return redirect()->back()->with('success', 'Đã gỡ mã giảm giá.');
+    }
+}

@@ -1,0 +1,1165 @@
+{
+  "Id": "37-HANAM-OLD-AREA",
+  "Name": "Khu vực Hà Nam cũ - Tỉnh Ninh Bình",
+  "Districts": [
+    {
+      "Id": "HN01",
+      "Name": "Xã Bình Lục",
+      "Level": "Xã",
+      "Wards": [
+        {
+          "Id": "HN01001",
+          "Name": "Thôn Bình Nghĩa",
+          "Level": "Thôn",
+          "GoogleSearch": "Bình Nghĩa, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Bình Nghĩa, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Bình Nghĩa, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01002",
+          "Name": "Thôn Phúc Tiến",
+          "Level": "Thôn",
+          "GoogleSearch": "Phúc Tiến, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Phúc Tiến, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Phúc Tiến, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01003",
+          "Name": "Thôn Nội",
+          "Level": "Thôn",
+          "GoogleSearch": "Nội, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Nội, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Nội, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01004",
+          "Name": "Thôn Đồng Du",
+          "Level": "Thôn",
+          "GoogleSearch": "Đồng Du, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Đồng Du, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Đồng Du, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01005",
+          "Name": "Thôn Tràng An",
+          "Level": "Thôn",
+          "GoogleSearch": "Tràng An, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Tràng An, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Tràng An, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01006",
+          "Name": "Thôn 1 Ngô Khê",
+          "Level": "Thôn",
+          "GoogleSearch": "1 Ngô Khê, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "1 Ngô Khê, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "1 Ngô Khê, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01007",
+          "Name": "Thôn 2 Ngô Khê",
+          "Level": "Thôn",
+          "GoogleSearch": "2 Ngô Khê, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "2 Ngô Khê, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "2 Ngô Khê, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01008",
+          "Name": "Thôn 1 Cát Lại",
+          "Level": "Thôn",
+          "GoogleSearch": "1 Cát Lại, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "1 Cát Lại, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "1 Cát Lại, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01009",
+          "Name": "Thôn 2 Cát Lại",
+          "Level": "Thôn",
+          "GoogleSearch": "2 Cát Lại, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "2 Cát Lại, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "2 Cát Lại, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01010",
+          "Name": "Thôn An Bài 1",
+          "Level": "Thôn",
+          "GoogleSearch": "An Bài 1, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "An Bài 1, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "An Bài 1, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01011",
+          "Name": "Thôn An Bài 2",
+          "Level": "Thôn",
+          "GoogleSearch": "An Bài 2, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "An Bài 2, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "An Bài 2, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01012",
+          "Name": "Thôn Bãi Vĩnh",
+          "Level": "Thôn",
+          "GoogleSearch": "Bãi Vĩnh, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Bãi Vĩnh, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Bãi Vĩnh, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01013",
+          "Name": "Thôn Cương Thôn",
+          "Level": "Thôn",
+          "GoogleSearch": "Cương Thôn, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Cương Thôn, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Cương Thôn, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01014",
+          "Name": "Thôn Dân Khang Ninh",
+          "Level": "Thôn",
+          "GoogleSearch": "Dân Khang Ninh, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Dân Khang Ninh, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Dân Khang Ninh, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01015",
+          "Name": "Thôn Hoà Thái Thịnh",
+          "Level": "Thôn",
+          "GoogleSearch": "Hoà Thái Thịnh, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Hoà Thái Thịnh, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Hoà Thái Thịnh, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01016",
+          "Name": "Thôn Ô Mễ",
+          "Level": "Thôn",
+          "GoogleSearch": "Ô Mễ, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Ô Mễ, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Ô Mễ, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN01017",
+          "Name": "Thôn Thành Thắng",
+          "Level": "Thôn",
+          "GoogleSearch": "Thành Thắng, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Thành Thắng, Xã Bình Lục, Ninh Bình, Việt Nam",
+            "Thành Thắng, Ninh Bình, Việt Nam",
+            "Xã Bình Lục, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN02",
+      "Name": "Xã Bình Mỹ",
+      "Level": "Xã",
+      "Wards": [
+        {
+          "Id": "HN02001",
+          "Name": "Thôn Đa Bồ Đạo",
+          "Level": "Thôn",
+          "GoogleSearch": "Đa Bồ Đạo, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Đa Bồ Đạo, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Đa Bồ Đạo, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02002",
+          "Name": "Thôn Tiên Lý",
+          "Level": "Thôn",
+          "GoogleSearch": "Tiên Lý, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Tiên Lý, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Tiên Lý, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02003",
+          "Name": "Thôn Cao Cát",
+          "Level": "Thôn",
+          "GoogleSearch": "Cao Cát, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Cao Cát, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Cao Cát, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02004",
+          "Name": "Thôn Đồn Xá",
+          "Level": "Thôn",
+          "GoogleSearch": "Đồn Xá, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Đồn Xá, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Đồn Xá, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02005",
+          "Name": "Thôn Bình Long",
+          "Level": "Thôn",
+          "GoogleSearch": "Bình Long, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Bình Long, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Bình Long, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02006",
+          "Name": "Thôn An Thái",
+          "Level": "Thôn",
+          "GoogleSearch": "An Thái, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "An Thái, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "An Thái, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02007",
+          "Name": "Thôn Bình Thắng",
+          "Level": "Thôn",
+          "GoogleSearch": "Bình Thắng, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Bình Thắng, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Bình Thắng, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02008",
+          "Name": "Thôn An Hòa",
+          "Level": "Thôn",
+          "GoogleSearch": "An Hòa, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "An Hòa, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "An Hòa, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02009",
+          "Name": "Thôn Thượng Thọ",
+          "Level": "Thôn",
+          "GoogleSearch": "Thượng Thọ, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Thượng Thọ, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Thượng Thọ, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02010",
+          "Name": "Thôn Mỹ Thọ",
+          "Level": "Thôn",
+          "GoogleSearch": "Mỹ Thọ, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Mỹ Thọ, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Mỹ Thọ, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02011",
+          "Name": "Thôn Đồng Tâm",
+          "Level": "Thôn",
+          "GoogleSearch": "Đồng Tâm, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Đồng Tâm, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Đồng Tâm, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02012",
+          "Name": "Thôn La Sơn",
+          "Level": "Thôn",
+          "GoogleSearch": "La Sơn, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "La Sơn, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "La Sơn, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN02013",
+          "Name": "Thôn Đồng Tập",
+          "Level": "Thôn",
+          "GoogleSearch": "Đồng Tập, Bình Lục, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "Đồng Tập, Xã Bình Mỹ, Ninh Bình, Việt Nam",
+            "Đồng Tập, Ninh Bình, Việt Nam",
+            "Xã Bình Mỹ, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN03",
+      "Name": "Xã Bình An",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN04",
+      "Name": "Xã Bình Giang",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN05",
+      "Name": "Xã Bình Sơn",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN06",
+      "Name": "Xã Liêm Hà",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN07",
+      "Name": "Xã Tân Thanh",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN08",
+      "Name": "Xã Thanh Bình",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN09",
+      "Name": "Xã Thanh Lâm",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN10",
+      "Name": "Xã Thanh Liêm",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN11",
+      "Name": "Xã Lý Nhân",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN12",
+      "Name": "Xã Nam Xang",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN13",
+      "Name": "Xã Bắc Lý",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN14",
+      "Name": "Xã Vĩnh Trụ",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN15",
+      "Name": "Xã Trần Thương",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN16",
+      "Name": "Xã Nhân Hà",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN17",
+      "Name": "Xã Nam Lý",
+      "Level": "Xã",
+      "Wards": []
+    },
+    {
+      "Id": "HN18",
+      "Name": "Phường Duy Tiên",
+      "Level": "Phường",
+      "Wards": [
+        {
+          "Id": "HN18001",
+          "Name": "Tổ dân phố Hòa Mạc",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "òa Mạc, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "òa Mạc, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "òa Mạc, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18002",
+          "Name": "Tổ dân phố Mạc Liên Hà",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ạc Liên Hà, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ạc Liên Hà, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ạc Liên Hà, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18003",
+          "Name": "Tổ dân phố Quan Nha",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "uan Nha, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "uan Nha, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "uan Nha, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18004",
+          "Name": "Tổ dân phố Yên Nam",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ên Nam, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ên Nam, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ên Nam, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18005",
+          "Name": "Tổ dân phố Thận Tu",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hận Tu, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hận Tu, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "hận Tu, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18006",
+          "Name": "Tổ dân phố Điệp Châu",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "iệp Châu, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "iệp Châu, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "iệp Châu, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18007",
+          "Name": "Tổ dân phố Thủy Văn",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hủy Văn, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hủy Văn, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "hủy Văn, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18008",
+          "Name": "Tổ dân phố Tường Thụy",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ường Thụy, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ường Thụy, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ường Thụy, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18009",
+          "Name": "Tổ dân phố Trác Văn",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "rác Văn, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "rác Văn, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "rác Văn, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18010",
+          "Name": "Tổ dân phố Chuyên Ngoại",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "huyên Ngoại, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "huyên Ngoại, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "huyên Ngoại, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18011",
+          "Name": "Tổ dân phố Từ Yên",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ừ Yên, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ừ Yên, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ừ Yên, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18012",
+          "Name": "Tổ dân phố Yên Lệnh",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ên Lệnh, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ên Lệnh, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ên Lệnh, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN18013",
+          "Name": "Tổ dân phố Lỗ Hà",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ỗ Hà, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ỗ Hà, Phường Duy Tiên, Ninh Bình, Việt Nam",
+            "ỗ Hà, Ninh Bình, Việt Nam",
+            "Phường Duy Tiên, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN19",
+      "Name": "Phường Duy Tân",
+      "Level": "Phường",
+      "Wards": [
+        {
+          "Id": "HN19001",
+          "Name": "Tổ dân phố Hoàn Dương",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "oàn Dương, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "oàn Dương, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "oàn Dương, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19002",
+          "Name": "Tổ dân phố Mộc Bắc",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ộc Bắc, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ộc Bắc, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "ộc Bắc, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19003",
+          "Name": "Tổ dân phố Yên Bình",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ên Bình, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ên Bình, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "ên Bình, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19004",
+          "Name": "Tổ dân phố Yên Đô",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ên Đô, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ên Đô, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "ên Đô, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19005",
+          "Name": "Tổ dân phố Mộc Nam",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ộc Nam, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ộc Nam, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "ộc Nam, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19006",
+          "Name": "Tổ dân phố Du Long",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "u Long, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "u Long, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "u Long, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19007",
+          "Name": "Tổ dân phố Chuyên Nội",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "huyên Nội, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "huyên Nội, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "huyên Nội, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19008",
+          "Name": "Tổ dân phố Châu Giang",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hâu Giang, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hâu Giang, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "hâu Giang, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19009",
+          "Name": "Tổ dân phố Trác Bút",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "rác Bút, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "rác Bút, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "rác Bút, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN19010",
+          "Name": "Tổ dân phố Duyên Giang",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "uyên Giang, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "uyên Giang, Phường Duy Tân, Ninh Bình, Việt Nam",
+            "uyên Giang, Ninh Bình, Việt Nam",
+            "Phường Duy Tân, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN20",
+      "Name": "Phường Đồng Văn",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN21",
+      "Name": "Phường Duy Hà",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN22",
+      "Name": "Phường Tiên Sơn",
+      "Level": "Phường",
+      "Wards": [
+        {
+          "Id": "HN22001",
+          "Name": "Tổ dân phố Tiên Nội",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "iên Nội, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "iên Nội, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "iên Nội, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22002",
+          "Name": "Tổ dân phố Hòa Trung",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "òa Trung, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "òa Trung, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "òa Trung, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22003",
+          "Name": "Tổ dân phố Ngô Thượng",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "gô Thượng, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "gô Thượng, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "gô Thượng, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22004",
+          "Name": "Tổ dân phố Tiên Ngoại",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "iên Ngoại, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "iên Ngoại, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "iên Ngoại, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22005",
+          "Name": "Tổ dân phố Tín Nhì",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ín Nhì, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ín Nhì, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "ín Nhì, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22006",
+          "Name": "Tổ dân phố Đọi Sơn",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ọi Sơn, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ọi Sơn, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "ọi Sơn, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22007",
+          "Name": "Tổ dân phố Châu Sơn",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hâu Sơn, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hâu Sơn, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "hâu Sơn, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22008",
+          "Name": "Tổ dân phố Tiên Phong",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "iên Phong, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "iên Phong, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "iên Phong, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN22009",
+          "Name": "Tổ dân phố Đọi Tam",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ọi Tam, Duy Tiên, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ọi Tam, Phường Tiên Sơn, Ninh Bình, Việt Nam",
+            "ọi Tam, Ninh Bình, Việt Nam",
+            "Phường Tiên Sơn, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN23",
+      "Name": "Phường Lê Hồ",
+      "Level": "Phường",
+      "Wards": [
+        {
+          "Id": "HN23001",
+          "Name": "Tổ dân phố Đồng Phương",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ồng Phương, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ồng Phương, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "ồng Phương, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23002",
+          "Name": "Tổ dân phố Phương Nông",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hương Nông, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hương Nông, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "hương Nông, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23003",
+          "Name": "Tổ dân phố Đồng Quan",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ồng Quan, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ồng Quan, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "ồng Quan, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23004",
+          "Name": "Tổ dân phố Phú Thượng",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hú Thượng, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hú Thượng, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "hú Thượng, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23005",
+          "Name": "Tổ dân phố Phương Đông",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hương Đông, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hương Đông, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "hương Đông, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23006",
+          "Name": "Tổ dân phố 1 Lạc Nhuế",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": " Lạc Nhuế, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            " Lạc Nhuế, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            " Lạc Nhuế, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23007",
+          "Name": "Tổ dân phố 2 Lạc Nhuế",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": " Lạc Nhuế, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            " Lạc Nhuế, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            " Lạc Nhuế, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23008",
+          "Name": "Tổ dân phố Yên Lạc",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ên Lạc, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ên Lạc, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "ên Lạc, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23009",
+          "Name": "Tổ dân phố Dương Cương",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ương Cương, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ương Cương, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "ương Cương, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23010",
+          "Name": "Tổ dân phố Thịnh Đại",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hịnh Đại, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hịnh Đại, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "hịnh Đại, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN23011",
+          "Name": "Tổ dân phố Phương Thượng 2",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hương Thượng 2, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hương Thượng 2, Phường Lê Hồ, Ninh Bình, Việt Nam",
+            "hương Thượng 2, Ninh Bình, Việt Nam",
+            "Phường Lê Hồ, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN24",
+      "Name": "Phường Nguyễn Úy",
+      "Level": "Phường",
+      "Wards": [
+        {
+          "Id": "HN24001",
+          "Name": "Tổ dân phố Nguyễn Úy",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "guyễn Úy, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "guyễn Úy, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "guyễn Úy, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24002",
+          "Name": "Tổ dân phố Tân Sơn",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ân Sơn, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ân Sơn, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "ân Sơn, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24003",
+          "Name": "Tổ dân phố Phù Lưu 1",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hù Lưu 1, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hù Lưu 1, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hù Lưu 1, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24004",
+          "Name": "Tổ dân phố Phù Lưu 2",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hù Lưu 2, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hù Lưu 2, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hù Lưu 2, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24005",
+          "Name": "Tổ dân phố Cát Thường",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "át Thường, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "át Thường, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "át Thường, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24006",
+          "Name": "Tổ dân phố Phù Đê",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hù Đê, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hù Đê, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hù Đê, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24007",
+          "Name": "Tổ dân phố Quang Thừa",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "uang Thừa, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "uang Thừa, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "uang Thừa, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24008",
+          "Name": "Tổ dân phố Lưu Phúc Mỹ",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ưu Phúc Mỹ, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ưu Phúc Mỹ, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "ưu Phúc Mỹ, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24009",
+          "Name": "Tổ dân phố Thọ Cầu Ấp",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "họ Cầu Ấp, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "họ Cầu Ấp, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "họ Cầu Ấp, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24010",
+          "Name": "Tổ dân phố Thụy Sơn 1",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hụy Sơn 1, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hụy Sơn 1, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hụy Sơn 1, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24011",
+          "Name": "Tổ dân phố Thụy Sơn 2",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hụy Sơn 2, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hụy Sơn 2, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hụy Sơn 2, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24012",
+          "Name": "Tổ dân phố Thụy Hồi Trại",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "hụy Hồi Trại, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "hụy Hồi Trại, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "hụy Hồi Trại, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        },
+        {
+          "Id": "HN24013",
+          "Name": "Tổ dân phố Đồng Tân",
+          "Level": "Tổ dân phố",
+          "GoogleSearch": "ồng Tân, Kim Bảng, Hà Nam, Việt Nam",
+          "GoogleSearchFallbacks": [
+            "ồng Tân, Phường Nguyễn Úy, Ninh Bình, Việt Nam",
+            "ồng Tân, Ninh Bình, Việt Nam",
+            "Phường Nguyễn Úy, Ninh Bình, Việt Nam"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "HN25",
+      "Name": "Phường Lý Thường Kiệt",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN26",
+      "Name": "Phường Kim Thanh",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN27",
+      "Name": "Phường Tam Chúc",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN28",
+      "Name": "Phường Kim Bảng",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN29",
+      "Name": "Phường Hà Nam",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN30",
+      "Name": "Phường Phù Vân",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN31",
+      "Name": "Phường Châu Sơn",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN32",
+      "Name": "Phường Phủ Lý",
+      "Level": "Phường",
+      "Wards": []
+    },
+    {
+      "Id": "HN33",
+      "Name": "Phường Liêm Tuyền",
+      "Level": "Phường",
+      "Wards": []
+    }
+  ],
+  "_meta": {
+    "scope": "Chỉ 33 xã/phường mới thuộc địa bàn tỉnh Hà Nam trước sáp nhập tỉnh năm 2025; loại toàn bộ địa bàn Nam Định cũ và Ninh Bình cũ.",
+    "effective_residential_data_from": "2026-07-01",
+    "communes_wards_total": 33,
+    "verified_residential_units_in_file": 86,
+    "units_with_verified_residential_data": 7,
+    "warning": "Chỉ đưa tên đã đối chiếu chắc chắn từ nguồn công khai. Wards=[] nghĩa là chưa đủ dữ liệu tên để đưa vào, không phải địa phương không có thôn/TDP."
+  }
+}

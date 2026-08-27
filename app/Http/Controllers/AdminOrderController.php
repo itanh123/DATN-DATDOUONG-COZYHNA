@@ -1,0 +1,321 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Order;
+use App\Models\OrderStatusHistory;
+use App\Models\ShipperProfile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+
+class AdminOrderController extends Controller
+{
+    public function index(Request $request)
+    {
+        if (!check_permission('view_orders')) {
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
+        }
+
+        $query = Order::with(['customer.user', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment']);
+
+        if ($request->filled('status')) {
+            $query->where(function($q) use ($request) {
+                $q->where('order_status', strtoupper($request->status))
+                  ->orWhere('status', strtolower($request->status));
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('receiver_name', 'like', "%{$search}%")
+                  ->orWhere('receiver_phone', 'like', "%{$search}%");
+            });
+        }
+
+        if (session('role_code') === 'shipper') {
+            $query->whereIn('order_status', ['READY_FOR_DELIVERY', 'DELIVERING', 'COMPLETED', 'CANCELLED']);
+            $query->where(function($q) {
+                $q->where('order_type', 'DELIVERY')->orWhereNull('order_type');
+            });
+        } else {
+            $tab = $request->get('tab', 'online');
+            if ($tab === 'table') {
+                $query->where('order_type', 'AT_TABLE');
+            } else {
+                $query->where(function($q) {
+                    $q->where('order_type', 'DELIVERY')->orWhereNull('order_type');
+                });
+            }
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(15);
+        $shippers = \Illuminate\Support\Facades\Cache::remember('available_shippers', 300, function () {
+            return ShipperProfile::with('user')->where('status', 'Available')->get();
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'orders' => $orders,
+                'shippers' => $shippers
+            ]);
+        }
+
+        $today = \Carbon\Carbon::today();
+        $todayOrders = Order::whereDate('created_at', $today)->count();
+        $pendingPrep = Order::whereIn('order_status', ['PENDING', 'PREPARING'])->count();
+        $delivering = Order::where('order_status', 'DELIVERING')->count();
+        
+        $completedToday = Order::whereDate('created_at', $today)
+            ->where('order_status', 'COMPLETED')
+            ->whereNotNull('completed_at')
+            ->get();
+            
+        $avgFulfillment = 'N/A';
+        if ($completedToday->count() > 0) {
+            $totalMinutes = 0;
+            foreach ($completedToday as $o) {
+                $totalMinutes += $o->created_at->diffInMinutes(\Carbon\Carbon::parse($o->completed_at));
+            }
+            $avgMinutes = round($totalMinutes / $completedToday->count());
+            $avgFulfillment = $avgMinutes . 'p';
+        }
+
+        return view('admin.orders', compact('orders', 'shippers', 'todayOrders', 'pendingPrep', 'delivering', 'avgFulfillment'));
+    }
+
+    public function show($id)
+    {
+        if (!check_permission('view_orders')) {
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+        }
+
+        $order = Order::with(['customer.user', 'address', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment'])->findOrFail($id);
+        
+        $histories = OrderStatusHistory::with('changedBy')
+            ->where('order_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'order' => $order,
+            'histories' => $histories
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        if (!check_permission('edit_orders') && !check_permission('update_orders') && session('role_code') !== 'shipper') {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+            }
+            return redirect('/login')->with('error', 'Bạn không có quyền truy cập.');
+        }
+
+        $request->validate([
+            'status' => 'required|string',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $newStatusStr = strtoupper($request->status);
+        $newStatusLower = strtolower($request->status);
+        
+        $oldStatus = $order->order_status ?? strtoupper($order->status);
+
+        $role = session('role_code');
+
+        if ($newStatusStr !== $oldStatus) {
+            $valid = false;
+            
+            if ($newStatusStr === 'CANCELLED') {
+                if ($role === 'admin') $valid = true;
+                if ($role === 'staff' && in_array($oldStatus, ['PENDING', 'CONFIRMED', 'PREPARING'])) $valid = true;
+                if ($role === 'shipper' && in_array($oldStatus, ['READY_FOR_DELIVERY', 'DELIVERING'])) $valid = true;
+            } else {
+                if (in_array($oldStatus, ['PENDING', 'CONFIRMED']) && $newStatusStr === 'PREPARING') {
+                    if (in_array($role, ['admin', 'staff'])) $valid = true;
+                }
+                if ($oldStatus === 'PREPARING') {
+                    if ($order->order_type === 'AT_TABLE' && $newStatusStr === 'COMPLETED') {
+                        if (in_array($role, ['admin', 'staff'])) $valid = true;
+                    }
+                    if ($order->order_type !== 'AT_TABLE' && $newStatusStr === 'READY_FOR_DELIVERY') {
+                        if (in_array($role, ['admin', 'staff'])) $valid = true;
+                    }
+                }
+                if ($oldStatus === 'READY_FOR_DELIVERY' && $newStatusStr === 'DELIVERING') {
+                    if (in_array($role, ['admin', 'shipper'])) $valid = true;
+                }
+                if ($oldStatus === 'DELIVERING' && $newStatusStr === 'COMPLETED') {
+                    if (in_array($role, ['admin', 'shipper'])) $valid = true;
+                }
+            }
+
+            if (!$valid) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['error' => 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.'], 400);
+                }
+                return redirect()->back()->with('error', 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.');
+            }
+        }
+
+        DB::transaction(function () use ($request, $order, $newStatusStr, $newStatusLower, $oldStatus) {
+            if ($request->filled('shipper_id')) {
+                $order->shipper_id = $request->shipper_id;
+            }
+
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatusStr,
+                'changed_by' => session('user_id'),
+                'note' => 'Admin cập nhật trạng thái: ' . $newStatusStr,
+            ]);
+
+            $order->order_status = $newStatusStr;
+            $order->status = $newStatusLower;
+
+            if (!in_array($oldStatus, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED']) && in_array($newStatusStr, ['PREPARING', 'DELIVERING', 'SHIPPING', 'COMPLETED'])) {
+                $order->deductInventory();
+            }
+
+            if ($newStatusStr === 'COMPLETED') {
+                $order->completed_at = now();
+                
+                if ($order->shipper_id && $oldStatus !== 'COMPLETED') {
+                    $shipper = ShipperProfile::find($order->shipper_id);
+                    if ($shipper) {
+                        $shipper->increment('total_deliveries');
+                    }
+                }
+                
+                DB::table('payments')
+                    ->where('order_id', $order->id)
+                    ->where('payment_status', 'PENDING')
+                    ->update(['payment_status' => 'COMPLETED']);
+
+            } else if ($newStatusStr === 'CANCELLED') {
+                $order->cancelled_at = now();
+                // Không hoàn lại nguyên liệu nếu đã qua công đoạn pha chế theo yêu cầu
+            }
+
+            $order->save();
+        });
+
+        // Email Notification
+        try {
+            $customerUser = DB::table('customer_profiles')
+                ->join('users', 'customer_profiles.user_id', '=', 'users.id')
+                ->where('customer_profiles.id', $order->customer_id)
+                ->select('users.email', 'users.username')
+                ->first();
+
+            if ($customerUser && $customerUser->email) {
+                \Illuminate\Support\Facades\Mail::to($customerUser->email)
+                    ->queue(new \App\Mail\OrderStatusChanged($order, $customerUser->username, $newStatusStr));
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Mail Error: ' . $e->getMessage());
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Cập nhật trạng thái thành công']);
+        }
+
+        return redirect()->back()->with('success', 'Trạng thái đơn hàng đã được cập nhật!');
+    }
+
+    public function assignShipper(Request $request, $id)
+    {
+        if (!check_permission('edit_orders')) {
+            return response()->json(['error' => 'Không có quyền truy cập.'], 401);
+        }
+
+        $request->validate([
+            'shipper_id' => 'nullable|exists:shipper_profiles,id',
+        ]);
+
+        $order = Order::findOrFail($id);
+        
+        $order->shipper_id = $request->shipper_id;
+        if ($request->shipper_id && in_array(strtoupper($order->order_status), ['PREPARING', 'PENDING'])) {
+            $order->order_status = 'DELIVERING';
+            $order->status = 'shipping';
+            OrderStatusHistory::create([
+                'order_id' => $order->id,
+                'old_status' => 'PREPARING',
+                'new_status' => 'DELIVERING',
+                'changed_by' => session('user_id'),
+                'note' => 'Admin gán Shipper: ' . $request->shipper_id,
+            ]);
+        }
+
+        $order->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Gán Shipper thành công']);
+        }
+
+        return redirect()->back()->with('success', 'Gán Shipper thành công');
+    }
+
+    public function checkNew(Request $request)
+    {
+        $latestId = $request->input('latest_id', 0);
+        $newOrdersCount = DB::table('orders')->where('id', '>', $latestId)->count();
+
+        return response()->json([
+            'has_new' => $newOrdersCount > 0,
+            'count' => $newOrdersCount
+        ]);
+    }
+
+    public function printInvoice($orderCode)
+    {
+        if (!session('user_id')) return redirect('/login');
+
+        $order = Order::with(['customer.user', 'address', 'items.productSize.product', 'items.productSize.size'])
+            ->where(function($q) use ($orderCode) {
+                $q->where('order_code', $orderCode)->orWhere('code', $orderCode);
+            })
+            ->firstOrFail();
+        
+        $customer = null;
+        if ($order->customer) {
+            $customer = $order->customer->user ?? $order->customer;
+        } else {
+            $customer = new \stdClass();
+            $customer->name = $order->receiver_name ?? 'Khách vãng lai';
+            $customer->phone = $order->receiver_phone ?? '';
+            $customer->email = '';
+        }
+
+        $address = $order->address;
+        if (!$address && $order->delivery_address) {
+            $address = new \stdClass();
+            $address->receiver_name = $order->receiver_name ?? ($customer->name ?? 'Khách');
+            $address->receiver_phone = $order->receiver_phone ?? ($customer->phone ?? '');
+            $address->address = $order->delivery_address;
+        }
+
+        $items = collect();
+        foreach ($order->items as $item) {
+            $i = new \stdClass();
+            $i->product_name = $item->product_name ?? ($item->productSize->product->name ?? 'Sản phẩm');
+            $i->size_name = $item->size_name ?? ($item->productSize->size->name ?? '');
+            $i->quantity = $item->quantity;
+            $i->unit_price = $item->unit_price;
+            $i->total_price = $item->quantity * $item->unit_price;
+            $items->push($i);
+        }
+
+        $order->order_code = $order->code;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', compact('order', 'customer', 'address', 'items'));
+        return $pdf->stream('hoadon_' . $order->code . '.pdf');
+    }
+}
