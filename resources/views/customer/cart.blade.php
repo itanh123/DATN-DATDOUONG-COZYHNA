@@ -169,7 +169,11 @@
         
         <div class="mb-8">
             <h1 class="text-[28px] font-bold text-on-surface">Giỏ hàng của bạn</h1>
-            <p class="text-[14px] text-on-surface-variant mt-1">Kiểm tra lại các món đồ uống tuyệt vời trước khi thanh toán.</p>
+            <p class="text-[14px] text-on-surface-variant mt-1 mb-4">Kiểm tra lại các món đồ uống tuyệt vời trước khi thanh toán.</p>
+            <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl font-medium transition-colors duration-200 w-fit">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                Tiếp tục chọn món
+            </a>
         </div>
 
         @if($cartItems->isEmpty())
