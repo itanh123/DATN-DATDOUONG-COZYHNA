@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiService {
-  // Thay đổi IP này theo IP máy tính của bạn
-  static const String baseUrl = 'http://192.168.2.12:8000/api';
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://192.168.2.12:8000/api';
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();

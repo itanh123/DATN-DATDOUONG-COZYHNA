@@ -294,7 +294,13 @@
 @else
     <a href="/" class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="table_restaurant" title="Đang ở bàn {{ session('table_name') }}">table_restaurant</a>
 @endif
+    <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden'); document.getElementById('mobile-menu').classList.toggle('flex');" class="md:hidden material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95" data-icon="menu">menu</button>
 </div>
+</div>
+<!-- Mobile Dropdown Menu -->
+<div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 w-full bg-surface border-b border-outline-variant/30 shadow-md flex-col px-4 py-4 gap-4 z-40">
+    <a class="font-body-lg text-body-lg {{ request()->is('/') ? 'text-primary font-bold' : 'text-on-surface-variant' }}" href="/">Thực đơn</a>
+    <a class="font-body-lg text-body-lg {{ request()->is('customer/contact') ? 'text-primary font-bold' : 'text-on-surface-variant' }}" href="/customer/contact">Giới thiệu & Tải App</a>
 </div>
 </header>
 

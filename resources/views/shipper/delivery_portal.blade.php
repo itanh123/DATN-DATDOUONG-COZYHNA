@@ -96,13 +96,16 @@
         </div>
 
         {{-- Tab Content: Available --}}
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-lg animate-in fade-in duration-500" id="content-available">
-            @include('shipper.partials.available_orders_list', ['availableOrders' => $availableOrders])
+        <div id="content-available">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-lg animate-in fade-in duration-500">
+                @include('shipper.partials.available_orders_list', ['availableOrders' => $availableOrders])
+            </div>
         </div>
 
         {{-- Tab Content: Active --}}
-        <div class="hidden grid grid-cols-1 gap-lg animate-in fade-in duration-500" id="content-active">
-            @forelse($activeOrders as $order)
+        <div id="content-active" class="hidden">
+            <div class="grid grid-cols-1 gap-lg animate-in fade-in duration-500">
+                @forelse($activeOrders as $order)
                 <div class="glass-card rounded-2xl p-lg">
                     <div class="flex flex-col md:flex-row gap-lg items-start">
                         <div class="flex-1 space-y-sm">
@@ -218,6 +221,7 @@
                     <p class="font-body-md opacity-60">Hãy nhận đơn từ tab "Đơn sẵn sàng".</p>
                 </div>
             @endforelse
+            </div>
         </div>
 
         {{-- Tab Content: History --}}

@@ -1,3 +1,5 @@
+import 'package:flutter_application_1/services/api_service.dart';
+
 class ProductSize {
   final int id;
   final int productId;
@@ -71,11 +73,14 @@ class Product {
     if (image == null || image!.isEmpty) {
       return 'https://via.placeholder.com/400';
     }
+    
+    final baseUrl = ApiService.baseUrl.replaceAll('/api', '');
+    
     // Database lưu dạng /storage/products/abc.jpg
     if (image!.startsWith('/')) {
-      return 'http://192.168.2.12:8000$image';
+      return '$baseUrl$image';
     } else {
-      return 'http://192.168.2.12:8000/$image';
+      return '$baseUrl/$image';
     }
   }
 }

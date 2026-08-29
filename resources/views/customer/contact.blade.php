@@ -11,6 +11,30 @@
                 Have a question about our organic beverages or need assistance with your order? Our team is here to help you experience vitality in every sip.
             </p>
 </section>
+
+<!-- App Download Section -->
+<section class="max-w-container-max mx-auto px-lg mb-2xl">
+    <div class="bg-primary-container/20 p-xl rounded-2xl border border-primary/10 text-center">
+        <h2 class="font-headline-md text-headline-md mb-sm text-primary">Trải nghiệm trên ứng dụng di động</h2>
+        <p class="text-body-lg mb-lg text-on-surface-variant">Cài đặt ngay ứng dụng CozyHNA để đặt đồ uống mọi lúc mọi nơi.</p>
+        
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-md">
+            <!-- Android Button -->
+            <a href="/cozyhna.apk" class="bg-surface-container-lowest text-primary border-2 border-primary font-title-md px-lg py-sm rounded-full shadow hover:bg-primary hover:text-white transition-colors flex items-center gap-sm">
+                <span class="material-symbols-outlined">android</span>
+                Cài APK cho Android
+            </a>
+            
+            <!-- iOS Button -->
+            <a href="/app/index.html" class="bg-surface-container-lowest text-primary border-2 border-primary font-title-md px-lg py-sm rounded-full shadow hover:bg-primary hover:text-white transition-colors flex items-center gap-sm">
+                <span class="material-symbols-outlined">phone_iphone</span>
+                Cài cho iOS iPhone
+            </a>
+        </div>
+        <p class="text-label-sm text-on-surface-variant mt-sm italic">* Đối với iPhone: Bấm vào nút trên, sau đó chọn "Thêm vào MH chính" trong Safari.</p>
+    </div>
+</section>
+
 <!-- Main Content Grid -->
 <section class="max-w-container-max mx-auto px-lg grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
 <!-- Contact Info Cards (Left Column) -->
