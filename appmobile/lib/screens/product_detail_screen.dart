@@ -12,7 +12,7 @@ import '../services/api_service.dart';
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
   
-  ProductDetailScreen({required this.product});
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   _ProductDetailScreenState createState() => _ProductDetailScreenState();
@@ -23,7 +23,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isLoadingToppings = true;
 
   ProductSize? _selectedSize;
-  List<CartItemTopping> _selectedToppings = [];
+  final List<CartItemTopping> _selectedToppings = [];
   int _quantity = 1;
   List<Review> _reviews = [];
   bool _isLoadingReviews = true;
@@ -169,7 +169,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         onSelected: (selected) {
                           if (selected) setState(() => _selectedSize = size);
                         },
-                        selectedColor: primaryColor.withOpacity(0.2),
+                        selectedColor: primaryColor.withValues(alpha: 0.2),
                         labelStyle: TextStyle(
                           color: isSelected ? primaryColor : Colors.black87,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
@@ -199,7 +199,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         contentPadding: EdgeInsets.zero,
                         controlAffinity: ListTileControlAffinity.leading,
                       );
-                    }).toList(),
+                    }),
 
                   SizedBox(height: 24),
                   

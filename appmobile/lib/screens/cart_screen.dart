@@ -5,6 +5,8 @@ import '../providers/cart_provider.dart';
 import '../services/api_service.dart';
 
 class CartScreen extends StatefulWidget {
+  const CartScreen({super.key});
+
   @override
   _CartScreenState createState() => _CartScreenState();
 }
@@ -138,7 +140,7 @@ class _CartScreenState extends State<CartScreen> {
           : ListView.separated(
               padding: EdgeInsets.all(16),
               itemCount: cart.items.length,
-              separatorBuilder: (_, __) => Divider(),
+              separatorBuilder: (_, _) => Divider(),
               itemBuilder: (context, index) {
                 final item = cart.items[index];
                 return Row(

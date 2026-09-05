@@ -171,45 +171,25 @@
 </head>
 
 <body class="bg-background text-on-background font-body-lg overflow-hidden">
-    <!-- Authentication Screen: Split Layout -->
-    <main class="min-h-screen flex items-stretch">
-        <!-- Left Side: Lifestyle Imagery (Web Only) -->
-        <section class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary-container">
+    <main class="min-h-screen flex items-center justify-center relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80');">
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black/30"></div>
 
-            <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/40 to-transparent"></div>
-            <!-- Hero Image Container -->
-            <div class="relative z-20 w-full h-full flex flex-col justify-between p-2xl text-on-primary">
-                <div>
-                    <h1 class="font-display-lg text-display-lg tracking-tight mb-md">CozyHNA Portal</h1>
-                    <p class="font-headline-md text-headline-md max-w-md opacity-90">Internal management and operations portal.</p>
-                </div>
-                <div
-                    class="relative w-full aspect-[4/3] rounded-xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
-                    <div class="absolute inset-0 bg-cover bg-center"
-                        style="background-image: url('https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&q=80')">
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- Right Side: Auth Form -->
-        <section class="w-full lg:w-1/2 bg-surface flex items-center justify-center p-md md:p-xl relative">
-            <div class="absolute top-lg left-lg lg:hidden">
-                <span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA Portal</span>
-            </div>
-            <div class="w-full max-w-md">
-                <div class="form-transition" id="authContent">
-                    <header class="mb-lg">
-                        <h2 class="font-headline-lg text-headline-lg mb-xs">Admin Sign In</h2>
-                        <p class="font-body-md text-body-md text-on-surface-variant">Please enter your
-                            credentials to access the management portal.</p>
-                    </header>
+        <!-- Glass Card -->
+        <div class="relative z-10 w-full max-w-[420px] mx-4 p-8 rounded-3xl backdrop-blur-md bg-white/20 border border-white/30 shadow-2xl">
+            <div class="form-transition" id="authContent">
+                <h2 class="text-3xl font-bold text-white mb-2">Admin Login</h2>
+                <p class="text-white/90 text-sm mb-8">Welcome back please login to your portal</p>
+
+                <form id="authForm" class="space-y-4" method="POST" action="/login/admin">
+                    @csrf
                     @if(session('error'))
-                        <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
+                        <div class="p-3 bg-red-500/50 border border-red-500/50 text-white rounded-lg text-sm mb-4">
                             {{ session('error') }}
                         </div>
                     @endif
                     @if($errors->any())
-                        <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
+                        <div class="p-3 bg-red-500/50 border border-red-500/50 text-white rounded-lg text-sm mb-4">
                             <ul class="list-disc pl-5">
                                 @foreach($errors->all() as $err)
                                     <li>{{ $err }}</li>
@@ -217,58 +197,41 @@
                             </ul>
                         </div>
                     @endif
-                    <!-- Main Form -->
-                    <form id="authForm" class="space-y-md" method="POST" action="/login/admin">
-                        @csrf
-                        <div>
-                            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email
-                                Address</label>
-                            <div class="relative">
-                                <span
-                                    class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant"
-                                    style="font-size: 20px;">mail</span>
-                                <input
-                                    class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
-                                    placeholder="admin@example.com" type="email" name="email" value="{{ old('email') }}" required />
-                            </div>
+
+                    <div>
+                        <div class="relative">
+                            <input name="email" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" placeholder="Email Address" type="email" value="{{ old('email') }}" required/>
+                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/80">mail</span>
                         </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-xs ml-base mr-base">
-                                <label
-                                    class="block font-label-md text-label-md text-on-surface-variant">Password</label>
-                                <a class="font-label-sm text-label-sm text-primary hover:underline transition-opacity" href="/forgot-password">Forgot password?</a>
-                            </div>
-                            <div class="relative">
-                                <span
-                                    class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant"
-                                    style="font-size: 20px;">lock</span>
-                                <input id="passwordInput"
-                                    class="w-full pl-11 pr-11 py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md"
-                                    type="password" name="password" required />
-                                <button
-                                    class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
-                                    onclick="togglePasswordVisibility()" type="button">
-                                    <span class="material-symbols-outlined" id="passIcon"
-                                        style="font-size: 20px;">visibility</span>
-                                </button>
-                            </div>
+                    </div>
+                    
+                    <div>
+                        <div class="relative">
+                            <input name="password" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" id="passwordInput" placeholder="Password" type="password" required/>
+                            <button class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors" onclick="togglePasswordVisibility()" type="button">
+                                <span class="material-symbols-outlined" id="passIcon">visibility_off</span>
+                            </button>
                         </div>
-                        <button
-                            class="w-full py-md rounded-xl bg-primary-container text-on-primary-container font-headline-md text-headline-md shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm mt-xl"
-                            id="submitBtn">
-                            <span>Sign In Securely</span>
-                            <span class="material-symbols-outlined">shield</span>
-                        </button>
-                    </form>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex items-center gap-2">
+                            <input class="w-4 h-4 rounded border-white/50 bg-transparent text-[#39b54a] focus:ring-[#39b54a]" type="checkbox" name="remember"/>
+                            <label class="text-sm text-white/90">Remember me</label>
+                        </div>
+                        <a class="text-sm text-white/90 hover:underline transition-opacity" href="/forgot-password">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#8cc63f] to-[#39b54a] text-white font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-6" id="submitBtn">
+                        <span>Login</span>
+                    </button>
+                </form>
+                
+                <div class="mt-8 text-center text-xs text-white/70">
+                    Created by <span class="font-bold text-white/90">CozyHNA</span>
                 </div>
             </div>
-            <!-- Footer Links -->
-            <div
-                class="absolute bottom-lg left-1/2 -translate-x-1/2 flex gap-lg opacity-40 hover:opacity-100 transition-opacity whitespace-nowrap">
-                <a class="font-label-sm text-label-sm hover:text-primary" href="#">Help Center</a>
-                <a class="font-label-sm text-label-sm hover:text-primary" href="#">System Status</a>
-            </div>
-        </section>
+        </div>
     </main>
     <script>
     function togglePasswordVisibility() {

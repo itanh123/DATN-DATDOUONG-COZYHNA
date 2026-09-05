@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 class AiChatScreen extends StatefulWidget {
+  const AiChatScreen({super.key});
+
   @override
   _AiChatScreenState createState() => _AiChatScreenState();
 }
@@ -128,7 +130,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     Container(
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(isUser ? 0.2 : 0.6),
+                        color: Colors.white.withValues(alpha: isUser ? 0.2 : 0.6),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(

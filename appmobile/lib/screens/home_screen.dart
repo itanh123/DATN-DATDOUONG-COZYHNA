@@ -12,6 +12,8 @@ import 'order_history_screen.dart';
 import 'ai_chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -44,14 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
 
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       _HomeTab(products: _allProducts),
       _MenuTab(),
       _ProfileTab(),
     ];
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: primaryColor,
@@ -72,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.push(context, MaterialPageRoute(builder: (_) => AiChatScreen()));
         },
         backgroundColor: primaryColor,
-        child: Icon(Icons.smart_toy, color: Colors.white),
         tooltip: 'Trợ lý AI',
+        child: Icon(Icons.smart_toy, color: Colors.white),
       ),
     );
   }
@@ -83,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeTab extends StatelessWidget {
   final List<Product> products;
 
-  _HomeTab({required this.products});
+  const _HomeTab({required this.products});
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +123,7 @@ class _HomeTab extends StatelessWidget {
                 image: DecorationImage(
                   image: NetworkImage('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=500&q=80'),
                   fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken),
+                  colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.4), BlendMode.darken),
                 )
               ),
               child: Column(
@@ -265,7 +267,7 @@ class __MenuTabState extends State<_MenuTab> {
         queryParams.add('search=${_searchController.text}');
       }
       if (queryParams.isNotEmpty) {
-        prodEndpoint += '?' + queryParams.join('&');
+        prodEndpoint += '?${queryParams.join('&')}';
       }
       final prodRes = await ApiService.get(prodEndpoint);
       if (prodRes.statusCode == 200) {

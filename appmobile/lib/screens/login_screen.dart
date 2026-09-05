@@ -8,6 +8,8 @@ import '../widgets/web_signin_button.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -90,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _loginWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
       if (googleUser != null) {
         _handleGoogleSignIn(googleUser);
       }

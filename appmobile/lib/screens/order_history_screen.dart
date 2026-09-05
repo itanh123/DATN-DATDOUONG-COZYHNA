@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
+  const OrderHistoryScreen({super.key});
+
   @override
   _OrderHistoryScreenState createState() => _OrderHistoryScreenState();
 }
@@ -58,8 +60,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   void _showReviewDialog(Map<String, dynamic> item, int orderId) {
-    int _rating = 5;
-    TextEditingController _commentController = TextEditingController();
+    int rating = 5;
+    TextEditingController commentController = TextEditingController();
 
     showDialog(
       context: context,
@@ -79,13 +81,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       children: List.generate(5, (index) {
                         return IconButton(
                           icon: Icon(
-                            index < _rating ? Icons.star : Icons.star_border,
+                            index < rating ? Icons.star : Icons.star_border,
                             color: Colors.amber,
                             size: 32,
                           ),
                           onPressed: () {
                             setState(() {
-                              _rating = index + 1;
+                              rating = index + 1;
                             });
                           },
                         );
@@ -93,7 +95,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     ),
                     SizedBox(height: 16),
                     TextField(
-                      controller: _commentController,
+                      controller: commentController,
                       decoration: InputDecoration(
                         hintText: 'Nhập nhận xét của bạn (tuỳ chọn)',
                         border: OutlineInputBorder(),
@@ -111,7 +113,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    _submitReview(orderId, item['product_id'], _rating, _commentController.text);
+                    _submitReview(orderId, item['product_id'], rating, commentController.text);
                   },
                   child: Text('Gửi đánh giá'),
                 ),
@@ -179,7 +181,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: _getStatusColor(order['order_status']).withOpacity(0.1),
+                                    color: _getStatusColor(order['order_status']).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -225,7 +227,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                             Divider(height: 24),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
