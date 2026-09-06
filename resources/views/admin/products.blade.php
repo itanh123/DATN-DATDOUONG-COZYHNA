@@ -7,19 +7,19 @@
 <!-- Top Header -->
 <header class="h-16 flex items-center justify-between px-xl bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30">
 <div class="flex items-center gap-4">
-<h2 class="font-headline-md text-headline-md text-on-surface">Product Management</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface">Quản lý Sản phẩm</h2>
 <div class="h-6 w-px bg-outline-variant/50"></div>
 <div class="flex bg-surface-container-low p-1 rounded-lg">
 <button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all active-tab bg-white shadow-sm text-primary" data-tab="products" onclick="switchTab('products')">Sản phẩm</button>
-<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="categories" onclick="switchTab('categories')">Categories</button>
+<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="categories" onclick="switchTab('categories')">Danh mục</button>
 <button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="recipes" onclick="switchTab('recipes')">Quản lý Topping</button>
-<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="sizes" onclick="switchTab('sizes')">Sizes</button>
+<button class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface" data-tab="sizes" onclick="switchTab('sizes')">Kích cỡ</button>
 </div>
 </div>
 <div class="flex items-center gap-md">
 <div class="relative">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-64 transition-all" placeholder="Search items..." type="text"/>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-64 transition-all" placeholder="Tìm kiếm..." type="text"/>
 </div>
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
 <span class="material-symbols-outlined">notifications</span>
@@ -28,8 +28,8 @@
 <div class="flex items-center gap-2 border-l border-outline-variant/30 pl-4">
 <img class="w-8 h-8 rounded-full border border-primary/20" data-alt="A professional headshot of a female administrative manager with a friendly expression, wearing a clean olive green blazer. The background is a blurred high-end cafe interior with warm lighting. The aesthetic is clean, sharp, and reflects a modern SaaS admin user profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2uapHi3hVEabMv9iRYSDDmILO_wpMweW4uFl0p9gWTOlqCClI5F9eiFBkDd6GNdHiWfIUa40AFDRc_OjrmS9--W-sX-q-1NqwzJkNCaPMwUtUW-FDotL0B5WQzcHB71m5ByrjzjjvpVHTRVQW3k064Zcx2O2xpkpy2LasjnNOQJalNQ1PkO4wOLU-RIRgYp2NVzdAeGY_4wUSR48S94lWPjrihXiFg5nxInvcwzV7eR274LIEQJWzE0R-avGP04PeAkJj7IBb"/>
 <div class="hidden xl:block">
-<p class="font-label-md text-label-md text-on-surface">Admin User</p>
-<p class="text-[10px] text-on-surface-variant">Store Manager</p>
+<p class="font-label-md text-label-md text-on-surface">{{ __('Admin User') }}</p>
+<p class="text-[10px] text-on-surface-variant">{{ __('Store Manager') }}</p>
 </div>
 </div>
 </div>
@@ -46,16 +46,14 @@
 </div>
 <div class="flex items-center gap-2 px-3 py-2 bg-white border border-outline-variant/30 rounded-lg shadow-sm text-body-md cursor-pointer hover:bg-surface-container-low transition-colors">
 <span class="material-symbols-outlined text-body-md">category</span>
-<span>Category: All</span>
+<span>Danh mục: Tất cả</span>
 </div>
 </div>
 <div class="flex gap-2">
 <button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/30 rounded-lg text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all">
-<span class="material-symbols-outlined">download</span> Export
-                        </button>
+<span class="material-symbols-outlined">download</span>{{ __('Export') }}</button>
 <button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="toggleModal('productModal')">
-<span class="material-symbols-outlined">add</span> Add Product
-                        </button>
+<span class="material-symbols-outlined">add</span>Thêm Sản Phẩm</button>
 </div>
 </div>
 <div class="bg-white rounded-xl border border-outline-variant/30 shadow-sm overflow-x-auto">
@@ -63,9 +61,9 @@
 <thead>
 <tr class="bg-surface-container-low border-b border-outline-variant/30">
 <th class="p-4 w-10"><input class="rounded text-primary focus:ring-primary border-outline" type="checkbox"/></th>
-<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Product</th>
-<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Category</th>
-<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Price</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Sản phẩm</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Danh mục</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Giá</th>
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Kho hàng</th>
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
 <th class="p-4 w-10"></th>
@@ -81,12 +79,12 @@
 <img class="w-full h-full object-cover" data-alt="Close up of a refreshing iced matcha latte with vibrant green layers, topped with creamy white foam, served in a minimalist glass cup. Soft organic lighting highlights the texture. High-end beverage aesthetic for a modern cafe menu management interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9MIJ0nPJifoUglWwNoYp3-XuVgF2jSp7ku6GWkPDK4Ob7mvpFbMErl_q41hHPmCpGtTIBV0i12H8pCFfbZvvF_Fx_7mAahZjeJlxojv3QRbiL4fSPKihzDMowi1-H0z2UtAefhAitkJ_RdQNjJB2DSqsrLq_JBp6pvITq_tiYzdB0rl-lGdgLeaR6SNa6JazL-KYSdz1lEhToyHtiHyyDyLGAFJ9eLtA3k0bajYPlaOXCeMTiLledrKLyCGRS-uR52R3Pql-o"/>
 </div>
 <div>
-<p class="font-body-md text-body-md font-semibold text-on-surface">Ceremonial Matcha Latte</p>
-<p class="text-label-md text-on-surface-variant">SKU: ML-001</p>
+<p class="font-body-md text-body-md font-semibold text-on-surface">{{ __('Ceremonial Matcha Latte') }}</p>
+<p class="text-label-md text-on-surface-variant">{{ __('SKU: ML-001') }}</p>
 </div>
 </div>
 </td>
-<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">Tea Lattes</span></td>
+<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">{{ __('Tea Lattes') }}</span></td>
 <td class="p-4 text-on-surface font-semibold">$5.50</td>
 <td class="p-4 text-on-surface-variant text-body-md">In Stock (142)</td>
 <td class="p-4">
@@ -107,12 +105,12 @@
 <img class="w-full h-full object-cover" data-alt="A smooth, dark espresso being poured into a small ceramic demitasse. Rich crema is visible on the surface. Phútimalist, professional lighting with deep shadows to emphasize quality and freshness of the coffee. Neutral background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl-F7pB_jprguOZrCZjcS7nuNzkZXsnqVL3v8F-n-6feTIuRqmUKbHxoUphnHo6M2uJckTqxzIx38eDwDqJOdel3oWMZ8QdMbpQl62N9qJCQtfhPrgCxNpGQ_AFkb3lbgLhATzLOJHsgnV7Xmk2CferBFhMi7mCZoBMFQZX4p1u9CqPHJubf-av86Y66iaSlKbis6YAtgPysF905Tqw157CW0NXCDLIja05_0e5SIMbTtVvYICTUoSmTlFlcLabtJrtWEa1WQZ"/>
 </div>
 <div>
-<p class="font-body-md text-body-md font-semibold text-on-surface">Double Espresso Shot</p>
-<p class="text-label-md text-on-surface-variant">SKU: ES-202</p>
+<p class="font-body-md text-body-md font-semibold text-on-surface">{{ __('Double Espresso Shot') }}</p>
+<p class="text-label-md text-on-surface-variant">{{ __('SKU: ES-202') }}</p>
 </div>
 </div>
 </td>
-<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">Classic Coffee</span></td>
+<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">{{ __('Classic Coffee') }}</span></td>
 <td class="p-4 text-on-surface font-semibold">$3.25</td>
 <td class="p-4 text-on-surface-variant text-body-md">Low Stock (12)</td>
 <td class="p-4">
@@ -133,18 +131,17 @@
 <img class="w-full h-full object-cover" data-alt="A stack of golden brown, freshly baked almond croissants on a white marble surface. Flaky texture and powdered sugar topping are highlighted by soft, natural morning light. Warm, organic, premium bakery aesthetic for an administrative product management view." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDM1o2hnt9w08pLmwQCcytn6ds3HdO6UFLsVX1FseqqasaFpF8UwtroGboWrBa3lrcbvKgrIkq2nJ8sPPYF1bcgA-IpR6ZSZKaZHJoGXjxAVvOXFbmDfq7cMFgcrHV1wj8HJ8zzBkQtK2toq-lg_8FAypzrfhWcVibqF7k4OW2OBb9A4ndgdsGFqFVXandJf7Fhz0WcZoV0Jlgc88Fh0Y00vPwmv4n8pQjgnCgN3t97dKRM0z0zYGdpSDDAq03V9W3JmJIguodA"/>
 </div>
 <div>
-<p class="font-body-md text-body-md font-semibold text-on-surface">Almond Croissant</p>
-<p class="text-label-md text-on-surface-variant">SKU: BK-501</p>
+<p class="font-body-md text-body-md font-semibold text-on-surface">{{ __('Almond Croissant') }}</p>
+<p class="text-label-md text-on-surface-variant">{{ __('SKU: BK-501') }}</p>
 </div>
 </div>
 </td>
-<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">Bakery</span></td>
+<td class="p-4"><span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">{{ __('Bakery') }}</span></td>
 <td class="p-4 text-on-surface font-semibold">$4.75</td>
-<td class="p-4 text-on-surface-variant text-body-md">Out of Stock</td>
+<td class="p-4 text-on-surface-variant text-body-md">{{ __('Out of Stock') }}</td>
 <td class="p-4">
 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-error text-label-md font-bold">
-<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Draft
-                                    </span>
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>{{ __('Draft') }}</span>
 </td>
 <td class="p-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
 <button class="p-1 hover:bg-surface-container rounded transition-colors"><span class="material-symbols-outlined text-on-surface-variant">more_vert</span></button>
@@ -154,7 +151,7 @@
 </table>
 </div>
 <div class="p-4 bg-surface-container-low flex justify-between items-center text-label-md text-on-surface-variant">
-<p>Showing 1-10 of 124 products</p>
+<p>{{ __('Showing 1-10 of 124 products') }}</p>
 <div class="flex gap-2">
 <button class="p-1 hover:bg-white rounded transition-colors border border-transparent hover:border-outline-variant/30"><span class="material-symbols-outlined">chevron_left</span></button>
 <button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-lg font-bold">1</button>
@@ -173,7 +170,7 @@
 </div>
 <div class="flex justify-between items-start">
 <div>
-<h3 class="font-title-lg text-title-lg text-on-surface">Hot Coffee</h3>
+<h3 class="font-title-lg text-title-lg text-on-surface">{{ __('Hot Coffee') }}</h3>
 <p class="text-label-md text-on-surface-variant">24 Sản phẩm</p>
 </div>
 <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">edit</span>
@@ -185,7 +182,7 @@
 </div>
 <div class="flex justify-between items-start">
 <div>
-<h3 class="font-title-lg text-title-lg text-on-surface">Cold Brew</h3>
+<h3 class="font-title-lg text-title-lg text-on-surface">{{ __('Cold Brew') }}</h3>
 <p class="text-label-md text-on-surface-variant">12 Sản phẩm</p>
 </div>
 <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">edit</span>
@@ -197,7 +194,7 @@
 </div>
 <div class="flex justify-between items-start">
 <div>
-<h3 class="font-title-lg text-title-lg text-on-surface">Premium Teas</h3>
+<h3 class="font-title-lg text-title-lg text-on-surface">{{ __('Premium Teas') }}</h3>
 <p class="text-label-md text-on-surface-variant">18 Sản phẩm</p>
 </div>
 <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">edit</span>
@@ -222,7 +219,7 @@
 <table class="w-full text-left border-collapse min-w-[800px]">
 <thead>
 <tr class="bg-surface-container-low border-b border-outline-variant/30">
-<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+<th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('ID') }}</th>
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tên Topping</th>
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Giá tiền</th>
 <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
@@ -245,7 +242,7 @@
     </td>
     <td class="p-4 text-right flex gap-2">
         <button class="text-primary hover:bg-primary/10 p-2 rounded transition-colors" onclick="editTopping({{ $topping }})"><span class="material-symbols-outlined">edit</span></button>
-        <form action="/admin/toppings/{{ $topping->id }}/delete" method="POST" onsubmit="return confirm('Xóa topping này?');" class="inline">
+        <form action="/admin/toppings/{{ $topping->id }}/delete" method="POST" onsubmit="customConfirm(event, this, 'Xóa topping này?');" class="inline">
             @csrf
             <button class="text-error hover:bg-error/10 p-2 rounded transition-colors"><span class="material-symbols-outlined">delete</span></button>
         </form>
@@ -262,18 +259,18 @@
 <div class="max-w-3xl bg-white rounded-2xl border border-outline-variant/30 shadow-sm">
 <div class="p-lg border-b border-outline-variant/30 flex justify-between items-center">
 <div>
-<h3 class="font-title-lg text-title-lg text-on-surface">Global Size Presets</h3>
-<p class="text-body-md text-on-surface-variant">Define volume and name mappings across all beverages.</p>
+<h3 class="font-title-lg text-title-lg text-on-surface">{{ __('Global Size Presets') }}</h3>
+<p class="text-body-md text-on-surface-variant">{{ __('Define volume and name mappings across all beverages.') }}</p>
 </div>
-<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-bold text-label-md shadow-sm hover:opacity-90">Add Size</button>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-bold text-label-md shadow-sm hover:opacity-90">{{ __('Add Size') }}</button>
 </div>
 <div class="divide-y divide-outline-variant/10">
 <div class="p-lg flex items-center justify-between">
 <div class="flex items-center gap-6">
 <div class="w-12 h-16 bg-surface-container-high rounded flex items-center justify-center text-primary-fixed-dim border-2 border-primary/20"><span class="material-symbols-outlined" style="font-size: 1.5rem">local_cafe</span></div>
 <div>
-<p class="font-bold text-on-surface">Small (Tall)</p>
-<p class="text-label-md text-on-surface-variant">Volume: 12 fl oz / 355 ml</p>
+<p class="font-bold text-on-surface">{{ __('Small (Tall)') }}</p>
+<p class="text-label-md text-on-surface-variant">{{ __('Volume: 12 fl oz / 355 ml') }}</p>
 </div>
 </div>
 <div class="flex gap-2">
@@ -285,8 +282,8 @@
 <div class="flex items-center gap-6">
 <div class="w-12 h-20 bg-surface-container-high rounded flex items-center justify-center text-primary-fixed-dim border-2 border-primary/20"><span class="material-symbols-outlined" style="font-size: 2rem">local_cafe</span></div>
 <div>
-<p class="font-bold text-on-surface">Medium (Grande)</p>
-<p class="text-label-md text-on-surface-variant">Volume: 16 fl oz / 473 ml</p>
+<p class="font-bold text-on-surface">{{ __('Medium (Grande)') }}</p>
+<p class="text-label-md text-on-surface-variant">{{ __('Volume: 16 fl oz / 473 ml') }}</p>
 </div>
 </div>
 <div class="flex gap-2">

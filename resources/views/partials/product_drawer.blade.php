@@ -43,20 +43,20 @@
                     
                     <!-- Stock Badge -->
                     <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-sm" id="drawerStockBadge" style="display: none;">
-                        <span class="text-xs font-semibold text-primary" id="drawerStockText">Kho: 0</span>
+                        <span class="text-xs font-semibold text-primary" id="drawerStockText">{{ __('Kho: 0') }}</span>
                     </div>
                 </section>
                 <!-- Product Info Header -->
                 <section class="px-lg pt-lg pb-md border-b border-outline-variant/10">
                     <div class="flex justify-between items-start mb-xs">
-                        <h2 id="drawerProductName" class="font-headline-md text-headline-md text-on-surface">Honey Lavender Cold Brew</h2>
+                        <h2 id="drawerProductName" class="font-headline-md text-headline-md text-on-surface">{{ __('Honey Lavender Cold Brew') }}</h2>
                         <span id="drawerProductPrice" class="font-headline-md text-headline-md text-primary">$4.20</span>
                     </div>
                     <div class="flex items-center gap-xs mb-md">
                         <span class="material-symbols-outlined text-tertiary text-sm"
                             style="font-variation-settings: 'FILL' 1;">star</span>
                         <span class="font-label-sm text-label-sm text-on-surface font-bold" id="drawerProductRating">0.0</span>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant" id="drawerProductReviews">(0 reviews)</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant" id="drawerProductReviews">{{ __('(0 reviews)') }}</span>
                     </div>
                     <p id="drawerProductDesc" class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mt-2" style="display: none;">
                     </p>
@@ -66,7 +66,7 @@
                     <!-- Size Selector -->
                     <div id="drawerSizeSection" style="display: none;">
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Size</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Kích cỡ</label>
                         <div class="flex gap-sm" id="drawerSizeSelector">
                             <!-- Dynamically generated size buttons -->
                         </div>
@@ -76,7 +76,7 @@
                     @if(isset($toppings) && $toppings->count() > 0)
                     <div id="drawerToppingSection">
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Topping</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">{{ __('Topping') }}</label>
                         <div class="flex flex-col gap-2" id="drawerToppingSelector">
                             @foreach($toppings as $topping)
                             <label class="flex items-center justify-between p-3 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer">
@@ -105,8 +105,8 @@
                     <!-- Related Products Section -->
                     <div class="pb-xl" id="drawerRelatedSection" style="display: none;">
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">You
-                            May Also Like</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">{{ __('You
+                            May Also Like') }}</label>
                         <div class="flex gap-md overflow-x-auto hide-scrollbar pb-xs" id="drawerRelatedProducts">
                             <!-- Dynamically generated related products -->
                         </div>
@@ -127,14 +127,14 @@
                             onclick="incrementQty()"><span class="material-symbols-outlined text-md">add</span></button>
                     </div>
                     <div class="text-right">
-                        <span class="text-label-sm text-on-surface-variant block">Total Price</span>
+                        <span class="text-label-sm text-on-surface-variant block">Tổng Giá</span>
                         <span class="font-headline-md text-headline-md text-on-surface" id="totalPrice">$4.20</span>
                     </div>
                 </div>
                 <button
                     onclick="addToCartFromDrawer()"
                     class="w-full py-lg bg-primary text-on-primary font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex justify-center items-center gap-md">
-                    <span>Add to Cart</span>
+                    <span>Thêm vào giỏ</span>
                     <span class="material-symbols-outlined">shopping_bag</span>
                 </button>
             </footer>
@@ -181,12 +181,31 @@
             icon.style.fontVariationSettings = isFilled ? "'FILL' 0" : "'FILL' 1";
             
             const btn = document.getElementById('favoriteBtn');
+            const productName = document.getElementById('drawerProductName').innerText;
             if (!isFilled) {
                 btn.classList.add('bg-error-container');
                 btn.classList.remove('bg-surface/90');
+                Swal.fire({
+                    title: 'Yêu thích',
+                    text: 'Bạn đã thêm ' + productName + ' vào danh sách yêu thích',
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             } else {
                 btn.classList.remove('bg-error-container');
                 btn.classList.add('bg-surface/90');
+                Swal.fire({
+                    title: 'Bỏ yêu thích',
+                    text: 'Đã bỏ ' + productName + ' khỏi danh sách yêu thích',
+                    icon: 'info',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
         }
 
@@ -258,7 +277,15 @@
                         updateCartBadge();
                     }
 
-                    // alert('Đã thêm ' + currentProductForCart.name + ' vào giỏ hàng!');
+                    Swal.fire({
+                        title: 'Thành công',
+                        text: 'Bạn đã thêm ' + currentProductForCart.name + ' vào giỏ hàng',
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
                     closeDrawer();
                 } else {
                     alert(data.message || 'Có lỗi xảy ra');

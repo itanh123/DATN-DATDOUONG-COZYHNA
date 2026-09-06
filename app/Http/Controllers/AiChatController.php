@@ -68,7 +68,7 @@ class AiChatController extends Controller
             'session_id'  => $session->id,
             'message_id'  => $assistantMsg->id, // Để frontend dùng cho feedback
             'text'        => $responsePayload['text'],
-            'type'        => $responsePayload['type'] ?? 'general',
+            'type'        => $responsePayload['type'] ?? __('general'),
             'data'        => $responsePayload['data'] ?? null,
             'used_search' => $responsePayload['used_search'] ?? false,
         ]);
@@ -198,7 +198,7 @@ class AiChatController extends Controller
 
         $itemsStr = "";
         foreach ($order->items as $it) {
-            $itemsStr .= "\n- " . ($it->product_name ?? 'Sản phẩm') . " (x" . $it->quantity . ") - " . number_format($it->unit_price, 0, ',', '.') . "đ";
+            $itemsStr .= "\n- " . ($it->product_name ?? __('Sản phẩm')) . " (x" . $it->quantity . ") - " . number_format($it->unit_price, 0, ',', '.') . "đ";
         }
 
         $replyText = "📦 **Thông tin đơn hàng #{$order->code}**:\n";

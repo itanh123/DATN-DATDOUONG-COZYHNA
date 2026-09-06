@@ -19,7 +19,7 @@
 <div class="w-8 h-8 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-on-primary-container">
 <span class="material-symbols-outlined" data-icon="person">person</span>
 </div>
-<span class="font-label-md text-label-md hidden lg:block">{{ session('username') ?? 'Admin' }}</span>
+<span class="font-label-md text-label-md hidden lg:block">{{ session('username') ?? __('Admin') }}</span>
 </div>
 </div>
 </header>
@@ -34,7 +34,7 @@
                         {{ $revenueChange >= 0 ? '+' : '' }}{{ number_format($revenueChange, 1) }}% <span class="material-symbols-outlined !text-[14px]" data-icon="{{ $revenueChange >= 0 ? 'trending_up' : 'trending_down' }}">{{ $revenueChange >= 0 ? 'trending_up' : 'trending_down' }}</span>
 </span>
 </div>
-<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-xs">Doanh thu</p>
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-xs">{{ __('Doanh thu') }}</p>
 <h3 class="font-headline-md text-headline-md">{{ number_format($revenue, 0, ',', '.') }} VNĐ</h3>
 </div>
 <div class="glass-card p-lg rounded-2xl shadow-sm hover:shadow-md transition-shadow">

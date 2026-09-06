@@ -24,12 +24,12 @@ class ReviewController extends Controller
 
         $userId = session('user_id');
         if (!$userId) {
-            return redirect('/login')->with('error', 'Bạn cần đăng nhập để đánh giá.');
+            return redirect('/login')->with('error', __('Bạn cần đăng nhập để đánh giá.'));
         }
 
         $customerProfile = \Illuminate\Support\Facades\DB::table('customer_profiles')->where('user_id', $userId)->first();
         if (!$customerProfile) {
-            return back()->with('error', 'Không tìm thấy thông tin khách hàng.');
+            return back()->with('error', __('Không tìm thấy thông tin khách hàng.'));
         }
 
         // Optional: verify that the user actually bought this product in this order
@@ -39,7 +39,7 @@ class ReviewController extends Controller
                       ->first();
 
         if (!$order) {
-            return back()->with('error', 'Không tìm thấy đơn hàng hợp lệ để đánh giá.');
+            return back()->with('error', __('Không tìm thấy đơn hàng hợp lệ để đánh giá.'));
         }
 
         // Check if review already exists for this order & product
@@ -49,7 +49,7 @@ class ReviewController extends Controller
                                        ->first();
 
         if ($existingReview) {
-            return back()->with('error', 'Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.');
+            return back()->with('error', __('Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.'));
         }
 
         $review = ProductReview::create([
@@ -63,7 +63,7 @@ class ReviewController extends Controller
 
         \App\Jobs\ProcessAiReview::dispatch($review);
 
-        return back()->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm! Hệ thống AI đang xử lý đánh giá của bạn.');
+        return back()->with('success', __('Cảm ơn bạn đã đánh giá sản phẩm! Hệ thống AI đang xử lý đánh giá của bạn.'));
     }
 
     /**
@@ -72,7 +72,7 @@ class ReviewController extends Controller
     public function index()
     {
         if (!check_permission('view_products')) {
-            return redirect('/login')->with('error', 'Không có quyền truy cập.');
+            return redirect('/login')->with('error', __('Không có quyền truy cập.'));
         }
 
         $reviews = ProductReview::with(['user', 'product'])
@@ -107,7 +107,7 @@ class ReviewController extends Controller
     public function reply(Request $request, ProductReview $review)
     {
         if (!check_permission('view_products')) {
-            return back()->with('error', 'Không có quyền truy cập.');
+            return back()->with('error', __('Không có quyền truy cập.'));
         }
 
         $request->validate([
@@ -117,6 +117,6 @@ class ReviewController extends Controller
         $review->admin_reply = $request->admin_reply;
         $review->save();
 
-        return back()->with('success', 'Đã lưu câu trả lời.');
+        return back()->with('success', __('Đã lưu câu trả lời.'));
     }
 }

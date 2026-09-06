@@ -68,13 +68,13 @@
                                 @endif
                             </td>
                             <td class="p-lg">
-                                <div class="font-title-md text-on-surface">{{ $transaction->ingredient->name ?? 'Không rõ' }}</div>
+                                <div class="font-title-md text-on-surface">{{ $transaction->ingredient->name ?? __('Không rõ') }}</div>
                             </td>
                             <td class="p-lg">
                                 <div class="font-title-lg {{ in_array($transaction->transaction_type, ['EXPORT', 'EXPIRED']) ? 'text-error' : 'text-primary' }}">
                                     {{ in_array($transaction->transaction_type, ['EXPORT', 'EXPIRED']) ? '-' : '+' }}{{ number_format($transaction->quantity, 2) }}
                                 </div>
-                                <div class="font-label-sm text-outline">{{ $transaction->ingredient->unit->name ?? '' }}</div>
+                                <div class="font-label-sm text-outline">{{ $transaction->ingredient->unit->name ?? __('') }}</div>
                             </td>
                             <td class="p-lg">
                                 <div class="flex items-center gap-2">

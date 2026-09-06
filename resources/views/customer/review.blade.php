@@ -29,7 +29,7 @@
                 </div>
                 <div>
                     <h3 class="font-title-lg text-title-lg font-bold">{{ $item->product_name }}</h3>
-                    <p class="text-sm text-on-surface-variant">Size: {{ $item->size_name ?? 'Mặc định' }}</p>
+                    <p class="text-sm text-on-surface-variant">Size: {{ $item->size_name ?? __('Mặc định') }}</p>
                 </div>
             </div>
 

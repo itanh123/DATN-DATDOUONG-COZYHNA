@@ -31,7 +31,7 @@
 
         <div class="flex items-center gap-xs mb-sm">
             <span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-            <span class="text-label-sm">{{ $product->code ?? 'N/A' }}</span>
+            <span class="text-label-sm">{{ $product->code ?? __('N/A') }}</span>
         </div>
 
         @php

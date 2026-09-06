@@ -23,7 +23,7 @@ class CartController extends Controller
     private function getRequiredIngredients(array $cartItems)
     {
         $productQuantities = [];
-        foreach ($simulatedCartItems as $item) {
+        foreach ($cartItems as $item) {
              if (empty($item['product_id']) || empty($item['quantity'])) continue;
              $pid = $item['product_id'];
              if (!isset($productQuantities[$pid])) $productQuantities[$pid] = 0;
@@ -195,7 +195,7 @@ class CartController extends Controller
         $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
 
         $cartItems = $this->getCartItems();
-        $cartItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+        $cartItemId = $productId . '_' . ($productSizeId ?? __('none')) . '_t_' . $toppingStr;
 
         if (isset($cartItems[$cartItemId])) {
             $cartItems[$cartItemId]['quantity'] += $quantity;
@@ -342,7 +342,7 @@ class CartController extends Controller
         sort($toppingIds);
         $toppingStr = empty($toppingIds) ? 'none' : implode(',', $toppingIds);
 
-        $newItemId = $productId . '_' . ($productSizeId ?? 'none') . '_t_' . $toppingStr;
+        $newItemId = $productId . '_' . ($productSizeId ?? __('none')) . '_t_' . $toppingStr;
 
         // Remove old item
         unset($cartItems[$id]);
@@ -379,7 +379,7 @@ class CartController extends Controller
     public function index()
     {
         if (!session('user_id')) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập để truy cập giỏ hàng.'));
         }
 
         $cartItemsRaw = $this->getCartItems();
@@ -483,12 +483,12 @@ class CartController extends Controller
     public function checkout()
     {
         if (!session('user_id')) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập để truy cập giỏ hàng.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập để truy cập giỏ hàng.'));
         }
 
         $checkoutItemIds = session('checkout_items', []);
         if (empty($checkoutItemIds)) {
-            return redirect()->route('cart.index')->with('error', 'Vui lòng chọn sản phẩm để thanh toán.');
+            return redirect()->route('cart.index')->with('error', __('Vui lòng chọn sản phẩm để thanh toán.'));
         }
 
         $cartItemsRaw = $this->getCartItems();
@@ -518,7 +518,7 @@ class CartController extends Controller
         }
 
         if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Không tìm thấy sản phẩm được chọn.');
+            return redirect()->route('cart.index')->with('error', __('Không tìm thấy sản phẩm được chọn.'));
         }
         $minOrderAmount = (float) \App\Models\Setting::get('min_order_amount', 0);
         if ($subtotal < $minOrderAmount) {

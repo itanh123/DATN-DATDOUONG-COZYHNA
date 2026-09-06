@@ -73,7 +73,7 @@
                                 Cấu hình quyền {{ $role->name }}
                             </button>
                             @if(!in_array($role->code, ['admin', 'customer']))
-                            <form action="/admin/roles/{{ $role->id }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa chức vụ này không?');">
+                            <form action="/admin/roles/{{ $role->id }}" method="POST" class="inline-block" onsubmit="customConfirm(event, this, 'Bạn có chắc chắn muốn xóa chức vụ này không?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="bg-error hover:bg-error/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
@@ -89,9 +89,9 @@
                         <table class="w-full text-left text-sm">
                             <thead class="bg-surface-container-low text-on-surface">
                                 <tr>
-                                    <th class="p-3 font-semibold w-16 border-b border-outline-variant/30">ID</th>
+                                    <th class="p-3 font-semibold w-16 border-b border-outline-variant/30">{{ __('ID') }}</th>
                                     <th class="p-3 font-semibold border-b border-outline-variant/30">Tên</th>
-                                    <th class="p-3 font-semibold border-b border-outline-variant/30">Email</th>
+                                    <th class="p-3 font-semibold border-b border-outline-variant/30">{{ __('Email') }}</th>
                                     <th class="p-3 font-semibold border-b border-outline-variant/30">Trạng thái</th>
                                     <th class="p-3 font-semibold border-b border-outline-variant/30">Quyền</th>
                                 </tr>
@@ -189,7 +189,7 @@
                             Hủy bỏ
                         </button>
                         <button type="button" onclick="document.getElementById('form-{{ $role->id }}').submit()" class="px-6 py-2.5 rounded-lg font-medium text-white bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95">
-                            <span class="material-symbols-outlined text-[20px]">save</span>
+                            <span class="material-symbols-outlined text-[20px]">Lưu</span>
                             Lưu cấu hình quyền
                         </button>
                     </div>

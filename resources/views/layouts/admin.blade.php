@@ -193,6 +193,39 @@
 @stack('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function customConfirm(event, element, message) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Xác nhận',
+            text: message || "Bạn có chắc chắn muốn thực hiện hành động này?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#006e1c', // primary
+            cancelButtonColor: '#6f7a6b', // outline
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Huỷ',
+            customClass: {
+                popup: 'rounded-3xl',
+                confirmButton: 'rounded-xl px-6 py-2',
+                cancelButton: 'rounded-xl px-6 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let form = element.closest('form');
+                if (form) {
+                    form.submit();
+                } else if (element.tagName.toLowerCase() === 'form') {
+                    element.submit();
+                } else if (element.tagName.toLowerCase() === 'a') {
+                    window.location.href = element.href;
+                }
+            }
+        });
+    }
+</script>
 </head>
 <body class="bg-background text-on-surface">
 
@@ -345,7 +378,7 @@
 @if($hasPermission('manage_vouchers'))
 <a class="flex items-center gap-sm px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" href="/admin/voucher">
 <span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
-<span class="font-label-md text-label-md">Voucher</span>
+<span class="font-label-md text-label-md">{{ __('Voucher') }}</span>
 </a>
 @endif
 
@@ -434,7 +467,7 @@
                                 <h4 class="font-bold">Khách gọi nhân viên!</h4>
                                 <p>${call.table_name} ${call.area_name ? ' - ' + call.area_name : ''} ${call.floor_name ? '(' + call.floor_name + ')' : ''}</p>
                             </div>
-                            <button onclick="resolveTableCall(${call.id})" class="ml-4 bg-white text-error px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">OK</button>
+                            <button onclick="resolveTableCall(${call.id})" class="ml-4 bg-white text-error px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors">{{ __('OK') }}</button>
                         `;
                         container.appendChild(div);
                     });
@@ -475,8 +508,8 @@
         if (!document.getElementById('complaint-alert-modal').classList.contains('hidden')) return;
 
         currentComplaintId = complaint.id;
-        document.getElementById('ca-order-code').innerText = complaint.order ? complaint.order.code : 'N/A';
-        document.getElementById('ca-customer-name').innerText = complaint.customer && complaint.customer.user ? complaint.customer.user.name : 'N/A';
+        document.getElementById('ca-order-code').innerText = complaint.order ? complaint.order.code : __('N/A');
+        document.getElementById('ca-customer-name').innerText = complaint.customer && complaint.customer.user ? complaint.customer.user.name : __('N/A');
         document.getElementById('ca-target').innerText = complaint.target_person || 'Không có';
         document.getElementById('ca-time').innerText = new Date(complaint.incident_time).toLocaleString('vi-VN');
         document.getElementById('ca-desc').innerText = complaint.description;

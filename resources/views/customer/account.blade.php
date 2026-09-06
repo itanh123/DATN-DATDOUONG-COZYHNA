@@ -336,7 +336,7 @@
                 @if($user->customerProfile)
                 <div class="mt-2 inline-flex items-center gap-1 bg-primary/10 text-primary rounded-full px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider">
                     <span class="material-symbols-outlined text-[14px]">workspace_premium</span>
-                    {{ $user->customerProfile->membership_level ?? 'Member' }}
+                    {{ $user->customerProfile->membership_level ?? __('Member') }}
                 </div>
                 @endif
             </div>
@@ -394,7 +394,7 @@
                         </div>
                         <button type="submit" class="btn-primary">
                             <span class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px]">save</span>
+                                <span class="material-symbols-outlined text-[18px]">Lưu</span>
                                 Lưu thay đổi
                             </span>
                         </button>
@@ -428,7 +428,7 @@
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Tên đầy đủ <span class="text-error">*</span></label>
                             <input name="full_name" type="text" required
-                                   value="{{ old('full_name', $user->full_name ?? '') }}"
+                                   value="{{ old('full_name', $user->full_name ?? __('')) }}"
                                    class="premium-input" placeholder="Nguyễn Văn A"/>
                             <div class="error-msg text-error text-[11px] mt-1 hidden">Vui lòng nhập tên đầy đủ</div>
                         </div>
@@ -438,16 +438,16 @@
                                    class="premium-input opacity-60 cursor-not-allowed" readonly/>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Email <span class="text-error">*</span></label>
+                            <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">{{ __('Email') }}<span class="text-error">*</span></label>
                             <input name="email" type="email" required
-                                   value="{{ old('email', $user->email ?? '') }}"
+                                   value="{{ old('email', $user->email ?? __('')) }}"
                                    class="premium-input" placeholder="email@example.com"/>
                             <div class="error-msg text-error text-[11px] mt-1 hidden">Email không hợp lệ</div>
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Số điện thoại <span class="text-error">*</span></label>
                             <input name="phone" type="tel" required pattern="(84|0[3|5|7|8|9])[0-9]{8}"
-                                   value="{{ old('phone', $user->phone ?? '') }}"
+                                   value="{{ old('phone', $user->phone ?? __('')) }}"
                                    class="premium-input" placeholder="09xxxxxxxx"/>
                             <div class="error-msg text-error text-[11px] mt-1 hidden">Số điện thoại không hợp lệ</div>
                         </div>
@@ -542,11 +542,11 @@
                             </div>
                         </div>
                         <div class="mt-4 pt-3 border-t border-outline-variant/30 flex justify-end gap-2">
-                            <button onclick="editAddress({{ $addr->id }}, '{{ htmlspecialchars($addr->receiver_name ?? $user->name, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->receiver_phone ?? $user->phone, ENT_QUOTES) }}', '{{ $addr->province }}', '{{ $addr->district }}', '{{ $addr->ward }}', '{{ htmlspecialchars($addr->address, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->note ?? '', ENT_QUOTES) }}', {{ $addr->is_default ? 'true' : 'false' }})" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5">
+                            <button onclick="editAddress({{ $addr->id }}, '{{ htmlspecialchars($addr->receiver_name ?? $user->name, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->receiver_phone ?? $user->phone, ENT_QUOTES) }}', '{{ $addr->province }}', '{{ $addr->district }}', '{{ $addr->ward }}', '{{ htmlspecialchars($addr->address, ENT_QUOTES) }}', '{{ htmlspecialchars($addr->note ?? __(''), ENT_QUOTES) }}', {{ $addr->is_default ? 'true' : 'false' }})" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-[16px]">edit</span>
                                 Sửa
                             </button>
-                            <form action="{{ route('customer.address.delete.post', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');">
+                            <form action="{{ route('customer.address.delete.post', $addr->id) }}" method="POST" onsubmit="customConfirm(event, this, 'Bạn có chắc muốn xóa địa chỉ này?');">
                                 @csrf
                                 <button type="submit" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-error hover:bg-error-container hover:text-on-error-container transition-colors flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
@@ -660,7 +660,7 @@
         <section id="content-membership" class="hidden space-y-5">
             @php
                 $profile = $user->customerProfile;
-                $level = $profile?->membership_level ?? 'Member';
+                $level = $profile?->membership_level ?? __('Member');
                 $points = $profile?->loyalty_points ?? 0;
                 $totalSpent = $profile?->total_spent ?? 0;
                 $totalOrders = $profile?->total_orders ?? 0;
@@ -779,7 +779,7 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">Số điện thoại <span class="text-error">*</span></label>
-                        <input id="receiver_phone_input" name="receiver_phone" type="tel" required pattern="(84|0[3|5|7|8|9])[0-9]{8}" class="premium-input" placeholder="VD: 0912345678"/>
+                        <input id="receiver_phone_input" name="receiver_phone" type="tel" required pattern="(84|0[3|5|7|8|9])[0-9]{8}" class="premium-input" placeholder="{{ __('VD: 0912345678') }}"/>
                         <div class="error-msg text-error text-[11px] mt-1 hidden">Số điện thoại không hợp lệ</div>
                     </div>
                 </div>
@@ -1148,7 +1148,7 @@ function openAddressModal() {
     
     // Suggest user's name and phone
     document.getElementById('receiver_name_input').value = '{{ htmlspecialchars($user->name, ENT_QUOTES) }}';
-    document.getElementById('receiver_phone_input').value = '{{ htmlspecialchars($user->phone ?? "", ENT_QUOTES) }}';
+    document.getElementById('receiver_phone_input').value = '{{ htmlspecialchars($user->phone ?? __(""), ENT_QUOTES) }}';
     
     document.getElementById('district_select').innerHTML = '<option value="">Chọn Quận/Huyện</option>';
     document.getElementById('district_select').disabled = true;

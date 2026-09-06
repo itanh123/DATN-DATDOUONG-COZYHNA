@@ -26,18 +26,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>COZYHNA COFFEE</h1>
+        <h1>{{ __('COZYHNA COFFEE') }}</h1>
         <p>123 Đường Cầu Giấy, Quận Cầu Giấy, Hà Nội</p>
         <p>Điện thoại: 0846.146.594 | Email: hi@cozyhna.com</p>
-        <p>Website: www.cozyhna.com</p>
+        <p>{{ __('Website: www.cozyhna.com') }}</p>
     </div>
 
     <div class="row">
         <div class="col-half">
             <div class="section-title">THÔNG TIN KHÁCH HÀNG</div>
             @if($order->customer_id && isset($customer))
-                <p><strong>Khách hàng:</strong> {{ $customer->name ?? $customer->username ?? 'Khách hàng' }}</p>
-                @if($customer->email) <p><strong>Email:</strong> {{ $customer->email }}</p> @endif
+                <p><strong>Khách hàng:</strong> {{ $customer->name ?? $customer->username ?? __('Khách hàng') }}</p>
+                @if($customer->email) <p><strong>{{ __('Email:') }}</strong> {{ $customer->email }}</p> @endif
                 @if($customer->phone) <p><strong>SĐT:</strong> {{ $customer->phone }}</p> @endif
             @endif
             
@@ -67,7 +67,7 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th width="5%" class="text-center">STT</th>
+                <th width="5%" class="text-center">{{ __('STT') }}</th>
                 <th width="45%">Sản phẩm</th>
                 <th width="15%" class="text-center">Số lượng</th>
                 <th width="15%" class="text-right">Đơn giá</th>
@@ -78,7 +78,7 @@
             @foreach($items as $index => $item)
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
-                <td>{{ $item->product_name }} - Size {{ $item->size_name ?? 'M' }}</td>
+                <td>{{ $item->product_name }} - Size {{ $item->size_name ?? __('M') }}</td>
                 <td class="text-center">{{ $item->quantity }}</td>
                 <td class="text-right">{{ number_format($item->unit_price, 0, ',', '.') }}đ</td>
                 <td class="text-right">{{ number_format($item->total_price, 0, ',', '.') }}đ</td>

@@ -102,7 +102,7 @@
                         <tr class="border-t border-outline-variant/10 hover:bg-surface-container-low/50 transition-colors">
                             <td class="px-xl py-md">
                                 <div class="flex items-center gap-sm">
-                                    <span class="material-symbols-outlined text-outline text-[20px]">description</span>
+                                    <span class="material-symbols-outlined text-outline text-[20px]">Mô tả</span>
                                     <span class="font-body-md text-on-surface">{{ $backup['filename'] }}</span>
                                 </div>
                             </td>

@@ -25,7 +25,7 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="p-4 font-semibold text-gray-600 text-sm">ID</th>
+                        <th class="p-4 font-semibold text-gray-600 text-sm">{{ __('ID') }}</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Khách hàng</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Sản phẩm</th>
                         <th class="p-4 font-semibold text-gray-600 text-sm">Đánh giá</th>
@@ -39,8 +39,8 @@
                     @forelse($reviews as $review)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="p-4 text-sm text-gray-600">#{{ $review->id }}</td>
-                        <td class="p-4 text-sm font-medium text-gray-800">{{ $review->user->name ?? 'N/A' }}</td>
-                        <td class="p-4 text-sm text-gray-600">{{ $review->product->name ?? 'N/A' }}</td>
+                        <td class="p-4 text-sm font-medium text-gray-800">{{ $review->user->name ?? __('N/A') }}</td>
+                        <td class="p-4 text-sm text-gray-600">{{ $review->product->name ?? __('N/A') }}</td>
                         <td class="p-4 text-sm text-yellow-500 font-bold">{{ $review->rating }} <span class="material-symbols-outlined text-sm align-middle" style="font-variation-settings: 'FILL' 1;">star</span></td>
                         <td class="p-4 text-sm text-gray-600 max-w-xs">
                             <p class="truncate" title="{{ $review->comment }}">{{ $review->comment ?: '(Không có)' }}</p>

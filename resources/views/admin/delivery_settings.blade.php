@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
             row.className = 'flex items-center gap-2';
             row.innerHTML = `
                 <span class="text-sm">Từ 0 đến </span>
-                <input type="number" min="0" step="0.1" value="${tier.max_km}" onchange="updateTier(${index}, 'max_km', this.value)" class="w-20 p-2 rounded-lg border border-outline-variant text-sm" placeholder="Km">
+                <input type="number" min="0" step="0.1" value="${tier.max_km}" onchange="updateTier(${index}, 'max_km', this.value)" class="w-20 p-2 rounded-lg border border-outline-variant text-sm" placeholder="{{ __('Km') }}">
                 <span class="text-sm">km có phí: </span>
                 <input type="number" min="0" step="1000" value="${tier.fee}" onchange="updateTier(${index}, 'fee', this.value)" class="w-32 p-2 rounded-lg border border-outline-variant text-sm" placeholder="VNĐ">
                 <button type="button" onclick="removeTier(${index})" class="text-error hover:bg-error/10 p-2 rounded-lg">

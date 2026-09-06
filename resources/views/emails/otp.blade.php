@@ -6,7 +6,7 @@
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
-        <h2 style="color: #006400; margin-top: 0;">CozyHNA Coffee</h2>
+        <h2 style="color: #006400; margin-top: 0;">{{ __('CozyHNA Coffee') }}</h2>
         <p>Xin chào,</p>
         <p>Bạn đã yêu cầu <strong>{{ $reason }}</strong> tại hệ thống của chúng tôi.</p>
         <p>Đây là mã xác nhận OTP của bạn:</p>

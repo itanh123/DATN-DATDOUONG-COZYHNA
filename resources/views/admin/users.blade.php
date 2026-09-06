@@ -58,7 +58,7 @@
                         @error('name') <span class="text-error text-xs">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block font-label-md mb-1 text-on-surface-variant">Email</label>
+                        <label class="block font-label-md mb-1 text-on-surface-variant">{{ __('Email') }}</label>
                         <input type="email" name="email" required value="{{ old('email') }}" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:border-primary focus:ring-primary">
                         @error('email') <span class="text-error text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -132,7 +132,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
-                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('ID') }}</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Tên & Email</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Số điện thoại</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Quyền hiện tại</th>
@@ -208,7 +208,7 @@
                                         </button>
                                     </form>
                                 @elseif($user->id == session('user_id') && $user->google_id)
-                                    <span class="text-sm text-on-surface-variant italic">Google Auth</span>
+                                    <span class="text-sm text-on-surface-variant italic">{{ __('Google Auth') }}</span>
                                 @else
                                     <span class="text-sm text-outline-variant italic">Không khả dụng</span>
                                 @endif
@@ -244,7 +244,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
-                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+                            <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('ID') }}</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Tên & Email</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Số điện thoại</th>
                             <th class="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider">Quyền hiện tại</th>
@@ -302,7 +302,7 @@
                                         </button>
                                     </form>
                                 @elseif($user->id == session('user_id') && $user->google_id)
-                                    <span class="text-sm text-on-surface-variant italic">Google Auth</span>
+                                    <span class="text-sm text-on-surface-variant italic">{{ __('Google Auth') }}</span>
                                 @else
                                     <span class="text-sm text-outline-variant italic">Không khả dụng</span>
                                 @endif

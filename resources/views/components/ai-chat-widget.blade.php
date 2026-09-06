@@ -40,10 +40,10 @@
         <div id="ai-chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-surface-container-low/40 text-sm">
             <!-- Welcome Message -->
             <div class="flex items-start gap-2 max-w-[85%]">
-                <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">AI</div>
+                <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">{{ __('AI') }}</div>
                 <div class="bg-surface-container-lowest p-3 rounded-2xl rounded-tl-none border border-outline-variant/20 shadow-sm text-on-surface">
                     <p class="font-semibold text-primary mb-1">👋 Xin chào!</p>
-                    <p>Tôi là <b>AI Trợ Lý CozyHNA</b>. Bạn cần tư vấn đồ uống ngon, hướng dẫn chuyển khoản <b>VietQR</b> hay kiểm tra đơn hàng?</p>
+                    <p>Tôi là <b>AI Trợ Lý CozyHNA</b>. Bạn cần tư vấn đồ uống ngon, hướng dẫn chuyển khoản <b>{{ __('VietQR') }}</b> hay kiểm tra đơn hàng?</p>
                 </div>
             </div>
 
@@ -269,7 +269,7 @@
             }
 
             wrapper.innerHTML = `
-                <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">AI</div>
+                <div class="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-xs flex-shrink-0 mt-1">{{ __('AI') }}</div>
                 <div class="bg-surface-container-lowest p-3 rounded-2xl rounded-tl-none border border-outline-variant/20 shadow-sm text-on-surface leading-relaxed">
                     ${formattedText}
                     ${searchBadgeHtml}

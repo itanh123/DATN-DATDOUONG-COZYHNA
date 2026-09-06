@@ -18,7 +18,7 @@
                 <h1 class="text-2xl font-bold text-on-surface mb-2">Cổng Thanh Toán Ảo</h1>
                 <p class="text-on-surface-variant text-sm">
                     Mô phỏng giao dịch qua 
-                    <strong class="text-primary">{{ strtoupper($paymentMethod ?? 'Online') }}</strong>
+                    <strong class="text-primary">{{ strtoupper($paymentMethod ?? __('Online')) }}</strong>
                 </p>
             </div>
 

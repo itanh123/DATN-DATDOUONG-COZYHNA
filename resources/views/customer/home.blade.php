@@ -122,7 +122,7 @@
                                 <div class="flex justify-between items-start mb-1">
                                     <div class="font-title-md font-bold text-on-surface">{{ $voucher->name }}</div>
                                     @if($voucher->used_count > 10)
-                                        <span class="bg-error/10 text-error text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap">HOT</span>
+                                        <span class="bg-error/10 text-error text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap">{{ __('HOT') }}</span>
                                     @endif
                                 </div>
                                 
@@ -130,7 +130,7 @@
                                 
                                 <div class="flex justify-between items-center mt-2 pt-3 border-t border-outline-variant/20 border-dashed">
                                     <span class="font-mono bg-surface-container px-2 py-1 rounded text-primary font-bold text-label-md select-all">{{ $voucher->code }}</span>
-                                    <button onclick="navigator.clipboard.writeText('{{ $voucher->code }}'); const t = this.innerHTML; this.innerHTML = '<span class=\'material-symbols-outlined text-[18px]\'>check</span>'; setTimeout(() => this.innerHTML = t, 2000);" class="text-primary hover:text-primary/80 transition-colors flex items-center bg-primary/10 p-1.5 rounded-lg" title="Copy mã">
+                                    <button onclick="navigator.clipboard.writeText('{{ $voucher->code }}'); const t = this.innerHTML; this.innerHTML = '<span class=\'material-symbols-outlined text-[18px]\'>{{ __('check') }}</span>'; setTimeout(() => this.innerHTML = t, 2000);" class="text-primary hover:text-primary/80 transition-colors flex items-center bg-primary/10 p-1.5 rounded-lg" title="Copy mã">
                                         <span class="material-symbols-outlined text-[18px]">content_copy</span>
                                     </button>
                                 </div>

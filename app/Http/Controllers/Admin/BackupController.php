@@ -78,7 +78,7 @@ class BackupController extends Controller
         }
 
         if (!$success) {
-            return redirect('/admin/backup')->with('error', 'Lỗi không thể tạo bản sao lưu MySQL. Vui lòng kiểm tra mysqldump.');
+            return redirect('/admin/backup')->with('error', __('Lỗi không thể tạo bản sao lưu MySQL. Vui lòng kiểm tra mysqldump.'));
         }
 
         return response()->download($destination, $filename)->deleteFileAfterSend(false);
@@ -95,7 +95,7 @@ class BackupController extends Controller
         $backupFile = $this->backupPath . DIRECTORY_SEPARATOR . $filename;
 
         if (!File::exists($backupFile)) {
-            return redirect('/admin/backup')->with('error', 'Bản sao lưu không tồn tại.');
+            return redirect('/admin/backup')->with('error', __('Bản sao lưu không tồn tại.'));
         }
 
         // --- Execute restore via mysql ---
@@ -122,7 +122,7 @@ class BackupController extends Controller
         }
 
         if (!$success) {
-            return redirect('/admin/backup')->with('error', 'Lỗi không thể khôi phục MySQL. Vui lòng kiểm tra lệnh mysql.');
+            return redirect('/admin/backup')->with('error', __('Lỗi không thể khôi phục MySQL. Vui lòng kiểm tra lệnh mysql.'));
         }
 
         return redirect('/admin/backup')->with('success', 'Đã khôi phục thành công từ bản sao lưu "' . $filename . '".');
@@ -140,7 +140,7 @@ class BackupController extends Controller
         $file = $request->file('backup_file');
 
         if ($file->getClientOriginalExtension() !== 'sql') {
-            return redirect('/admin/backup')->with('error', 'Chỉ chấp nhận file có đuôi .sql');
+            return redirect('/admin/backup')->with('error', __('Chỉ chấp nhận file có đuôi .sql'));
         }
 
         $filename = 'uploaded_' . date('Y-m-d_H-i-s') . '.sql';
@@ -171,10 +171,10 @@ class BackupController extends Controller
         }
 
         if (!$success) {
-            return redirect('/admin/backup')->with('error', 'Lỗi không thể khôi phục MySQL từ file upload.');
+            return redirect('/admin/backup')->with('error', __('Lỗi không thể khôi phục MySQL từ file upload.'));
         }
 
-        return redirect('/admin/backup')->with('success', 'Đã tải lên và khôi phục thành công từ file upload.');
+        return redirect('/admin/backup')->with('success', __('Đã tải lên và khôi phục thành công từ file upload.'));
     }
 
     /**
@@ -186,7 +186,7 @@ class BackupController extends Controller
         $filePath = $this->backupPath . DIRECTORY_SEPARATOR . $filename;
 
         if (!File::exists($filePath)) {
-            return redirect('/admin/backup')->with('error', 'File không tồn tại.');
+            return redirect('/admin/backup')->with('error', __('File không tồn tại.'));
         }
 
         return response()->download($filePath, $filename);
@@ -205,7 +205,7 @@ class BackupController extends Controller
             return redirect('/admin/backup')->with('success', 'Đã xoá bản sao lưu "' . $filename . '".');
         }
 
-        return redirect('/admin/backup')->with('error', 'File không tồn tại.');
+        return redirect('/admin/backup')->with('error', __('File không tồn tại.'));
     }
 
     /**

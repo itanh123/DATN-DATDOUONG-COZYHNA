@@ -166,8 +166,8 @@
         <div class="mb-2xl px-sm shrink-0 flex items-center gap-3">
             <img src="{{ asset('images/logo.png') }}" alt="CozyHNA Logo" class="h-12 object-contain">
             <div>
-                <h1 class="font-headline-md text-headline-md font-bold text-primary leading-tight">CozyHNA</h1>
-                <p class="font-label-md text-label-md text-on-surface-variant">Management Portal</p>
+                <h1 class="font-headline-md text-headline-md font-bold text-primary leading-tight">{{ __('CozyHNA') }}</h1>
+                <p class="font-label-md text-label-md text-on-surface-variant">{{ __('Management Portal') }}</p>
             </div>
         </div>
         <nav class="flex-1 flex flex-col gap-xs overflow-y-auto min-h-0 pr-1">
@@ -175,69 +175,67 @@
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/dashboard') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">dashboard</span>
-                <span class="font-label-md text-label-md">Dashboard</span>
+                <span class="font-label-md text-label-md">Bảng điều khiển</span>
             </a>
 
             <a href="/admin/orders"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/orders*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">receipt_long</span>
-                <span class="font-label-md text-label-md">Orders</span>
+                <span class="font-label-md text-label-md">{{ __('Orders') }}</span>
             </a>
 
             <a href="/admin/product"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/product*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">inventory_2</span>
-                <span class="font-label-md text-label-md">Products</span>
+                <span class="font-label-md text-label-md">Sản phẩm</span>
             </a>
 
             <a href="/admin/inventory"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/inventory*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
-                <span class="material-symbols-outlined">inventory</span>
-                <span class="font-label-md text-label-md">Inventory</span>
+                <span class="material-symbols-outlined">Kho</span>
+                <span class="font-label-md text-label-md">{{ __('Kho') }}</span>
             </a>
 
             <a href="/admin/customers"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/customers*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">group</span>
-                <span class="font-label-md text-label-md">Customers</span>
+                <span class="font-label-md text-label-md">{{ __('Customers') }}</span>
             </a>
 
             <a href="/admin/shippers"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/shippers*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">local_shipping</span>
-                <span class="font-label-md text-label-md">Shippers</span>
+                <span class="font-label-md text-label-md">{{ __('Shippers') }}</span>
             </a>
 
             <a href="/admin/settings"
                 class="flex items-center gap-sm px-md py-sm rounded-lg transition-all
 {{ request()->is('admin/settings*') ? 'bg-secondary-container/30 text-secondary border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:bg-surface-container-high' }}">
                 <span class="material-symbols-outlined">settings</span>
-                <span class="font-label-md text-label-md">Settings</span>
+                <span class="font-label-md text-label-md">{{ __('Settings') }}</span>
             </a>
         </nav>
 
         <button
             class="mt-md w-full py-sm bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-xs hover:opacity-90 active:scale-95 transition-all shrink-0">
-            <span class="material-symbols-outlined" data-icon="add">add</span>
-            New Order
-        </button>
+            <span class="material-symbols-outlined" data-icon="add">add</span>{{ __('New Order') }}</button>
 
         <div class="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs shrink-0">
             <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all"
                 href="#">
                 <span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
-                <span class="font-label-md text-label-md">Support</span>
+                <span class="font-label-md text-label-md">{{ __('Support') }}</span>
             </a>
 
             <a class="flex items-center gap-sm px-md py-sm text-on-surface-variant hover:bg-surface-container transition-all"
                 href="/logout">
                 <span class="material-symbols-outlined" data-icon="logout">logout</span>
-                <span class="font-label-md text-label-md">Logout</span>
+                <span class="font-label-md text-label-md">{{ __('Logout') }}</span>
             </a>
         </div>
     </aside>
@@ -253,22 +251,22 @@
         <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform active:scale-90"
             href="/admin/dashboard">
             <span class="material-symbols-outlined" data-icon="home">home</span>
-            <span class="font-label-sm text-label-sm">Home</span>
+            <span class="font-label-sm text-label-sm">{{ __('Home') }}</span>
         </a>
         <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
             href="#">
             <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
-            <span class="font-label-sm text-label-sm">Order</span>
+            <span class="font-label-sm text-label-sm">{{ __('Order') }}</span>
         </a>
         <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
             href="#">
             <span class="material-symbols-outlined" data-icon="history">history</span>
-            <span class="font-label-sm text-label-sm">History</span>
+            <span class="font-label-sm text-label-sm">{{ __('History') }}</span>
         </a>
         <a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
             href="#">
             <span class="material-symbols-outlined" data-icon="person">person</span>
-            <span class="font-label-sm text-label-sm">Profile</span>
+            <span class="font-label-sm text-label-sm">{{ __('Profile') }}</span>
         </a>
     </nav>
 </body>

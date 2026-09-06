@@ -68,6 +68,6 @@ class DeliverySettingController extends Controller
             Setting::whereIn('key', ['store_lat', 'store_lon'])->delete();
         }
 
-        return redirect()->back()->with('success', 'Đã cập nhật cài đặt giao hàng thành công!');
+        return redirect()->back()->with('success', __('Đã cập nhật cài đặt giao hàng thành công!'));
     }
 }

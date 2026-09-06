@@ -8,7 +8,7 @@
     <section class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary-container">
         <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/40 to-transparent"></div>
         <div class="relative z-20 w-full h-full flex flex-col justify-center p-2xl text-on-primary text-center">
-            <h1 class="font-display-lg text-display-lg tracking-tight mb-md">CozyHNA</h1>
+            <h1 class="font-display-lg text-display-lg tracking-tight mb-md">{{ __('CozyHNA') }}</h1>
             <p class="font-headline-md text-headline-md opacity-90">Khôi phục quyền truy cập vào tài khoản của bạn.</p>
         </div>
         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB88XIx9DuZ-3tBGD0O3FcJxJ0w1nvOdGTdIcpLa30Efw6guthGbjOjHWVeG9WbBKb0ZmCCMmnRI7YhEZ9AoLWEUmfKMR81AzXwqVS6fXnZVHMzhBNf3Hkf80wBK90EsM3NH2mJBk_cdB9R4QNaUDAhts--Dn2s26Jii5Fs2e_e0CJ7zuYG4L4hobBIs-YxC51zF01fQ6Bx2WHhib6i0t_54uQhCuM--HH8who0imT3WPyg2Wc21fttm1taLoHpv4brg3yUyeMJ'); opacity: 0.5;"></div>
@@ -34,7 +34,7 @@
             <form id="step-1-form" class="space-y-md" onsubmit="sendOtp(event)">
                 @csrf
                 <div>
-                    <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email Address</label>
+                    <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">{{ __('Email Address') }}</label>
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">mail</span>
                         <input id="email-input" name="email" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="name@example.com" type="email" required/>

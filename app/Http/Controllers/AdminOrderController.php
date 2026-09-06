@@ -16,7 +16,7 @@ class AdminOrderController extends Controller
     public function index(Request $request)
     {
         if (!check_permission('view_orders')) {
-            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
+            return redirect('/login')->with('error', __('Bạn không có quyền truy cập trang này.'));
         }
 
         $query = Order::with(['customer.user', 'items.productSize.product', 'items.productSize.size', 'items.toppings.topping', 'shipper.user', 'payment']);
@@ -111,7 +111,7 @@ class AdminOrderController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Không có quyền truy cập.'], 401);
             }
-            return redirect('/login')->with('error', 'Bạn không có quyền truy cập.');
+            return redirect('/login')->with('error', __('Bạn không có quyền truy cập.'));
         }
 
         $request->validate([
@@ -157,7 +157,7 @@ class AdminOrderController extends Controller
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['error' => 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.'], 400);
                 }
-                return redirect()->back()->with('error', 'Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.');
+                return redirect()->back()->with('error', __('Trạng thái chuyển tiếp không hợp lệ hoặc bạn không có quyền.'));
             }
         }
 
@@ -224,7 +224,7 @@ class AdminOrderController extends Controller
             return response()->json(['success' => true, 'message' => 'Cập nhật trạng thái thành công']);
         }
 
-        return redirect()->back()->with('success', 'Trạng thái đơn hàng đã được cập nhật!');
+        return redirect()->back()->with('success', __('Trạng thái đơn hàng đã được cập nhật!'));
     }
 
     public function assignShipper(Request $request, $id)
@@ -258,7 +258,7 @@ class AdminOrderController extends Controller
             return response()->json(['success' => true, 'message' => 'Gán Shipper thành công']);
         }
 
-        return redirect()->back()->with('success', 'Gán Shipper thành công');
+        return redirect()->back()->with('success', __('Gán Shipper thành công'));
     }
 
     public function checkNew(Request $request)
@@ -287,24 +287,24 @@ class AdminOrderController extends Controller
             $customer = $order->customer->user ?? $order->customer;
         } else {
             $customer = new \stdClass();
-            $customer->name = $order->receiver_name ?? 'Khách vãng lai';
-            $customer->phone = $order->receiver_phone ?? '';
+            $customer->name = $order->receiver_name ?? __('Khách vãng lai');
+            $customer->phone = $order->receiver_phone ?? __('');
             $customer->email = '';
         }
 
         $address = $order->address;
         if (!$address && $order->delivery_address) {
             $address = new \stdClass();
-            $address->receiver_name = $order->receiver_name ?? ($customer->name ?? 'Khách');
-            $address->receiver_phone = $order->receiver_phone ?? ($customer->phone ?? '');
+            $address->receiver_name = $order->receiver_name ?? ($customer->name ?? __('Khách'));
+            $address->receiver_phone = $order->receiver_phone ?? ($customer->phone ?? __(''));
             $address->address = $order->delivery_address;
         }
 
         $items = collect();
         foreach ($order->items as $item) {
             $i = new \stdClass();
-            $i->product_name = $item->product_name ?? ($item->productSize->product->name ?? 'Sản phẩm');
-            $i->size_name = $item->size_name ?? ($item->productSize->size->name ?? '');
+            $i->product_name = $item->product_name ?? ($item->productSize->product->name ?? __('Sản phẩm'));
+            $i->size_name = $item->size_name ?? ($item->productSize->size->name ?? __(''));
             $i->quantity = $item->quantity;
             $i->unit_price = $item->unit_price;
             $i->total_price = $item->quantity * $item->unit_price;

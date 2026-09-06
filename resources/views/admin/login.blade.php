@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>CozyHNA - Admin Portal</title>
+    <title>{{ __('CozyHNA - Admin Portal') }}</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
         rel="stylesheet" />
@@ -178,8 +178,8 @@
         <!-- Glass Card -->
         <div class="relative z-10 w-full max-w-[420px] mx-4 p-8 rounded-3xl backdrop-blur-md bg-white/20 border border-white/30 shadow-2xl">
             <div class="form-transition" id="authContent">
-                <h2 class="text-3xl font-bold text-white mb-2">Admin Login</h2>
-                <p class="text-white/90 text-sm mb-8">Welcome back please login to your portal</p>
+                <h2 class="text-3xl font-bold text-white mb-2">{{ __('Admin Login') }}</h2>
+                <p class="text-white/90 text-sm mb-8">{{ __('Welcome back please login to your portal') }}</p>
 
                 <form id="authForm" class="space-y-4" method="POST" action="/login/admin">
                     @csrf
@@ -200,14 +200,14 @@
 
                     <div>
                         <div class="relative">
-                            <input name="email" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" placeholder="Email Address" type="email" value="{{ old('email') }}" required/>
+                            <input name="email" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" placeholder="{{ __('Email Address') }}" type="email" value="{{ old('email') }}" required/>
                             <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/80">mail</span>
                         </div>
                     </div>
                     
                     <div>
                         <div class="relative">
-                            <input name="password" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" id="passwordInput" placeholder="Password" type="password" required/>
+                            <input name="password" class="w-full bg-transparent border border-white/50 rounded-xl px-4 py-3 text-white placeholder-white/80 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all" id="passwordInput" placeholder="{{ __('Password') }}" type="password" required/>
                             <button class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors" onclick="togglePasswordVisibility()" type="button">
                                 <span class="material-symbols-outlined" id="passIcon">visibility_off</span>
                             </button>
@@ -217,18 +217,17 @@
                     <div class="flex justify-between items-center mt-2">
                         <div class="flex items-center gap-2">
                             <input class="w-4 h-4 rounded border-white/50 bg-transparent text-[#39b54a] focus:ring-[#39b54a]" type="checkbox" name="remember"/>
-                            <label class="text-sm text-white/90">Remember me</label>
+                            <label class="text-sm text-white/90">{{ __('Remember me') }}</label>
                         </div>
-                        <a class="text-sm text-white/90 hover:underline transition-opacity" href="/forgot-password">Forgot password?</a>
+                        <a class="text-sm text-white/90 hover:underline transition-opacity" href="/forgot-password">{{ __('Forgot password?') }}</a>
                     </div>
 
                     <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#8cc63f] to-[#39b54a] text-white font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all mt-6" id="submitBtn">
-                        <span>Login</span>
+                        <span>{{ __('Login') }}</span>
                     </button>
                 </form>
                 
-                <div class="mt-8 text-center text-xs text-white/70">
-                    Created by <span class="font-bold text-white/90">CozyHNA</span>
+                <div class="mt-8 text-center text-xs text-white/70">{{ __('Created by') }}<span class="font-bold text-white/90">{{ __('CozyHNA') }}</span>
                 </div>
             </div>
         </div>

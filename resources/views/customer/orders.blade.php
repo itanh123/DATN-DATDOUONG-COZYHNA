@@ -29,7 +29,7 @@
         <div class="space-y-lg">
             @foreach($orders as $order)
             @php
-                $statusUpper = strtoupper($order->order_status ?? $order->status ?? 'PENDING');
+                $statusUpper = strtoupper($order->order_status ?? $order->status ?? __('PENDING'));
                 $isUnpaid = ($order->payment && $order->payment->payment_status === 'PENDING') || $statusUpper === 'PENDING';
             @endphp
             <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -104,7 +104,7 @@
                                 @endif
                             </div>
                             <div class="flex-grow">
-                                <p class="font-body-lg text-body-lg font-bold text-on-surface">{{ $item->product_name ?? 'Sản phẩm' }}</p>
+                                <p class="font-body-lg text-body-lg font-bold text-on-surface">{{ $item->product_name ?? __('Sản phẩm') }}</p>
                                 <p class="font-label-md text-label-md text-on-surface-variant">
                                     {{ $item->size_name ? 'Size ' . $item->size_name : '' }} × {{ $item->quantity }}
                                 </p>
@@ -173,7 +173,7 @@
             <div class="space-y-2 text-left bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/30 text-xs">
                 <div class="flex justify-between items-center">
                     <span class="text-on-surface-variant">Ngân hàng:</span>
-                    <span class="font-bold text-on-surface" id="modal-bank-name">MBBank</span>
+                    <span class="font-bold text-on-surface" id="modal-bank-name">{{ __('MBBank') }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-on-surface-variant">Số tài khoản:</span>
@@ -186,7 +186,7 @@
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-on-surface-variant">Chủ tài khoản:</span>
-                    <span class="font-bold text-on-surface" id="modal-account-name">COZYHNA COFFEE AND TEA</span>
+                    <span class="font-bold text-on-surface" id="modal-account-name">{{ __('COZYHNA COFFEE AND TEA') }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-on-surface-variant">Số tiền:</span>
@@ -195,7 +195,7 @@
                 <div class="flex justify-between items-center bg-amber-50 p-2 rounded-xl border border-amber-200">
                     <span class="text-amber-900 font-semibold">Nội dung chuyển:</span>
                     <div class="flex items-center gap-1">
-                        <span class="font-bold font-mono text-amber-900 text-sm" id="modal-transfer-note">ORD-XXXX</span>
+                        <span class="font-bold font-mono text-amber-900 text-sm" id="modal-transfer-note">{{ __('ORD-XXXX') }}</span>
                         <button onclick="copyText('modal-transfer-note')" class="p-1 text-amber-900 hover:bg-amber-200 rounded" title="Sao chép">
                             <span class="material-symbols-outlined text-sm">content_copy</span>
                         </button>

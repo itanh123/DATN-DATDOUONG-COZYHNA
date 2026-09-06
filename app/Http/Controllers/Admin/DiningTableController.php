@@ -30,7 +30,7 @@ class DiningTableController extends Controller
             $roleId = DB::table('roles')->where('code', 'customer')->value('id');
 
             if (!$roleId) {
-                return back()->with('error', 'Chưa có role customer trong hệ thống!');
+                return back()->with('error', __('Chưa có role customer trong hệ thống!'));
             }
 
             $username = 'table_' . time() . '_' . rand(100, 999);
@@ -63,7 +63,7 @@ class DiningTableController extends Controller
             ]);
 
             DB::commit();
-            return back()->with('success', 'Đã thêm bàn mới thành công!');
+            return back()->with('success', __('Đã thêm bàn mới thành công!'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi: ' . $e->getMessage());
@@ -81,7 +81,7 @@ class DiningTableController extends Controller
             }
             $table->delete();
             DB::commit();
-            return back()->with('success', 'Đã xóa bàn thành công!');
+            return back()->with('success', __('Đã xóa bàn thành công!'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi: ' . $e->getMessage());
@@ -93,6 +93,6 @@ class DiningTableController extends Controller
         $table->update([
             'qr_token' => Str::random(32)
         ]);
-        return back()->with('success', 'Đã tạo lại mã QR mới!');
+        return back()->with('success', __('Đã tạo lại mã QR mới!'));
     }
 }

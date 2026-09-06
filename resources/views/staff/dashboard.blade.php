@@ -52,7 +52,7 @@
                     <div class="flex items-center gap-sm mb-md pb-md border-b border-outline-variant/20">
                         <span class="material-symbols-outlined text-on-surface-variant text-[20px]">person</span>
                         <div>
-                            <p class="font-body-md text-body-md font-medium">{{ $order->customer->full_name ?? 'Khách hàng' }}</p>
+                            <p class="font-body-md text-body-md font-medium">{{ $order->customer->full_name ?? __('Khách hàng') }}</p>
                             @if($order->delivery_address)
                                 <p class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[200px]">{{ $order->delivery_address }}</p>
                             @endif
@@ -63,7 +63,7 @@
                     <div class="space-y-xs mb-md">
                         @foreach($order->items as $item)
                         <div class="flex justify-between text-body-md">
-                            <span class="text-on-surface">{{ $item->productSize->product->name ?? 'SP' }} ({{ $item->productSize->size->name ?? '' }}) × {{ $item->quantity }}</span>
+                            <span class="text-on-surface">{{ $item->productSize->product->name ?? __('SP') }} ({{ $item->productSize->size->name ?? __('') }}) × {{ $item->quantity }}</span>
                             <span class="text-primary font-bold flex-shrink-0 ml-sm">{{ number_format($item->total_price, 0, ',', '.') }}đ</span>
                         </div>
                         @endforeach
@@ -120,7 +120,7 @@
                     <div class="space-y-xs mb-md">
                         @foreach($order->items as $item)
                         <div class="flex justify-between text-body-md">
-                            <span class="text-on-surface">{{ $item->productSize->product->name ?? 'SP' }} ({{ $item->productSize->size->name ?? '' }}) × {{ $item->quantity }}</span>
+                            <span class="text-on-surface">{{ $item->productSize->product->name ?? __('SP') }} ({{ $item->productSize->size->name ?? __('') }}) × {{ $item->quantity }}</span>
                         </div>
                         @endforeach
                     </div>
@@ -176,7 +176,7 @@
                         <div>
                             @if($order->shipper)
                                 <p class="font-body-md font-medium">{{ $order->shipper->full_name }}</p>
-                                <p class="font-label-sm text-on-surface-variant">SĐT: {{ $order->shipper->phone ?? 'Chưa cập nhật' }}</p>
+                                <p class="font-label-sm text-on-surface-variant">SĐT: {{ $order->shipper->phone ?? __('Chưa cập nhật') }}</p>
                             @else
                                 <p class="font-body-md text-on-surface-variant italic">Chưa có Shipper nhận</p>
                             @endif

@@ -106,7 +106,7 @@ class PaymentController extends Controller
             ->first();
 
         if (!$order) {
-            return redirect()->route('customer.orders')->with('error', 'Không tìm thấy đơn hàng.');
+            return redirect()->route('customer.orders')->with('error', __('Không tìm thấy đơn hàng.'));
         }
         
         $paymentMethod = $order->payment ? $order->payment->payment_method : 'online';
@@ -122,7 +122,7 @@ class PaymentController extends Controller
         $order = Order::where('order_code', $orderCode)->first();
 
         if (!$order) {
-            return redirect()->route('customer.orders')->with('error', 'Đơn hàng không tồn tại');
+            return redirect()->route('customer.orders')->with('error', __('Đơn hàng không tồn tại'));
         }
 
         $status = $request->input('status'); // 'success' or 'failed'
@@ -152,7 +152,7 @@ class PaymentController extends Controller
                 }
             });
 
-            return redirect()->route('customer.orders')->with('success', 'Thanh toán điện tử thành công! Đơn hàng đã được ghi nhận.');
+            return redirect()->route('customer.orders')->with('success', __('Thanh toán điện tử thành công! Đơn hàng đã được ghi nhận.'));
         } else {
             DB::transaction(function () use ($order) {
                 Payment::where('order_id', $order->id)->update([
@@ -178,7 +178,7 @@ class PaymentController extends Controller
                 }
             });
 
-            return redirect()->route('customer.orders')->with('error', 'Thanh toán trực tuyến thất bại hoặc đã bị hủy. Đơn hàng đã được hủy.');
+            return redirect()->route('customer.orders')->with('error', __('Thanh toán trực tuyến thất bại hoặc đã bị hủy. Đơn hàng đã được hủy.'));
         }
     }
 
@@ -276,7 +276,7 @@ class PaymentController extends Controller
         $order = Order::where('order_code', $orderCode)->first();
 
         if (!$order) {
-            return redirect()->route('customer.orders')->with('error', 'Đơn hàng không tồn tại.');
+            return redirect()->route('customer.orders')->with('error', __('Đơn hàng không tồn tại.'));
         }
 
         if ($secureHash == $vnp_SecureHash) {
@@ -304,7 +304,7 @@ class PaymentController extends Controller
                         ]);
                     }
                 });
-                return redirect()->route('customer.orders')->with('success', 'Thanh toán VNPAY thành công!');
+                return redirect()->route('customer.orders')->with('success', __('Thanh toán VNPAY thành công!'));
             } else {
                 DB::transaction(function () use ($order) {
                     Payment::where('order_id', $order->id)->update([
@@ -329,10 +329,10 @@ class PaymentController extends Controller
                         ]);
                     }
                 });
-                return redirect()->route('customer.orders')->with('error', 'Thanh toán VNPAY bị hủy hoặc thất bại.');
+                return redirect()->route('customer.orders')->with('error', __('Thanh toán VNPAY bị hủy hoặc thất bại.'));
             }
         } else {
-            return redirect()->route('customer.orders')->with('error', 'Chữ ký thanh toán không hợp lệ.');
+            return redirect()->route('customer.orders')->with('error', __('Chữ ký thanh toán không hợp lệ.'));
         }
     }
 }

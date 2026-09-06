@@ -199,6 +199,39 @@
         animation: slideInRightFadeOut 5s ease-out forwards;
     }
 </style>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function customConfirm(event, element, message) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Xác nhận',
+            text: message || "Bạn có chắc chắn muốn thực hiện hành động này?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#006e1c', // primary
+            cancelButtonColor: '#6f7a6b', // outline
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Huỷ',
+            customClass: {
+                popup: 'rounded-3xl',
+                confirmButton: 'rounded-xl px-6 py-2',
+                cancelButton: 'rounded-xl px-6 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let form = element.closest('form');
+                if (form) {
+                    form.submit();
+                } else if (element.tagName.toLowerCase() === 'form') {
+                    element.submit();
+                } else if (element.tagName.toLowerCase() === 'a') {
+                    window.location.href = element.href;
+                }
+            }
+        });
+    }
+</script>
 </head>
 <body class="bg-surface text-on-surface">
 <!-- Top Navigation Bar -->
@@ -499,12 +532,34 @@
                             icon.style.fontVariationSettings = "'FILL' 1";
                             icon.classList.add('text-error');
                         });
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Thành công',
+                                text: 'Đã thêm vào danh sách yêu thích',
+                                icon: 'success',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
                     } else if (data.status === 'removed') {
                         window.favoriteProductIds = window.favoriteProductIds.filter(id => id !== pIdInt);
                         icons.forEach(icon => {
                             icon.style.fontVariationSettings = "'FILL' 0";
                             icon.classList.remove('text-error');
                         });
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Thành công',
+                                text: 'Đã xóa khỏi danh sách yêu thích',
+                                icon: 'info',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
                     }
                     updateFavoriteBadge();
                 })

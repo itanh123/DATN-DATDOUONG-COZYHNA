@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>CozyHNA | Premium Beverages</title>
+    <title>{{ __('CozyHNA | Premium Beverages') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
@@ -175,15 +175,15 @@
     <header
         class="fixed top-0 w-full h-16 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md border-b border-outline-variant/30 z-50 flex justify-between items-center px-4 md:px-lg max-w-container-max mx-auto left-0 right-0 shadow-sm">
         <div class="flex items-center gap-xl">
-            <span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
+            <span class="font-title-lg text-title-lg font-bold text-primary">{{ __('CozyHNA') }}</span>
             <nav class="hidden md:flex gap-lg">
-                <a class="font-body-lg text-body-lg text-primary border-b-2 border-primary pb-1" href="#">Menu</a>
+                <a class="font-body-lg text-body-lg text-primary border-b-2 border-primary pb-1" href="#">{{ __('Menu') }}</a>
                 <a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors"
-                    href="#">Rewards</a>
+                    href="#">{{ __('Rewards') }}</a>
                 <a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors"
-                    href="#">Orders</a>
+                    href="#">{{ __('Orders') }}</a>
                 <a class="font-body-lg text-body-lg text-on-surface-variant hover:text-primary transition-colors"
-                    href="#">About</a>
+                    href="#">{{ __('About') }}</a>
             </nav>
         </div>
         <div class="flex items-center gap-md">
@@ -191,7 +191,7 @@
                 class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/20">
                 <span class="material-symbols-outlined text-outline text-[20px]">search</span>
                 <input class="bg-transparent border-none focus:ring-0 text-body-md w-48 ml-2"
-                    placeholder="Search beverages..." type="text" />
+                    placeholder="{{ __('Search beverages...') }}" type="text" />
             </div>
             <button
                 class="material-symbols-outlined text-primary p-2 hover:bg-surface-container-low rounded-full transition-colors active:scale-95"
@@ -210,19 +210,18 @@
             <div class="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent"></div>
             <div class="relative h-full max-w-container-max mx-auto px-lg flex flex-col justify-center text-white">
                 <span
-                    class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-md font-label-md inline-block w-fit mb-md">Summer
-                    Specials</span>
-                <h1 class="font-display-lg text-display-lg max-w-xl leading-tight mb-md">Elevate Your Morning Ritual.
-                </h1>
-                <p class="font-body-lg text-body-lg max-w-md mb-xl opacity-90">Experience the purest organic blends,
-                    crafted with artisanal precision for the discerning palate.</p>
+                    class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-md font-label-md inline-block w-fit mb-md">{{ __('Summer
+                    Specials') }}</span>
+                <h1 class="font-display-lg text-display-lg max-w-xl leading-tight mb-md">{{ __('Elevate Your Morning Ritual.') }}</h1>
+                <p class="font-body-lg text-body-lg max-w-md mb-xl opacity-90">{{ __('Experience the purest organic blends,
+                    crafted with artisanal precision for the discerning palate.') }}</p>
                 <div class="flex gap-md">
                     <button
-                        class="bg-primary hover:bg-primary/90 text-white px-xl py-md rounded-xl font-headline-md transition-all shadow-lg active:scale-95">Order
-                        Now</button>
+                        class="bg-primary hover:bg-primary/90 text-white px-xl py-md rounded-xl font-headline-md transition-all shadow-lg active:scale-95">{{ __('Order
+                        Now') }}</button>
                     <button
-                        class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-xl py-md rounded-xl font-headline-md transition-all active:scale-95">View
-                        Menu</button>
+                        class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-xl py-md rounded-xl font-headline-md transition-all active:scale-95">{{ __('View
+                        Menu') }}</button>
                 </div>
             </div>
         </section>
@@ -230,23 +229,23 @@
             <!-- Category Chips -->
             <div class="flex gap-md overflow-x-auto no-scrollbar py-xl -mx-lg px-lg">
                 <button
-                    class="bg-primary text-on-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">All
-                    Drinks</button>
+                    class="bg-primary text-on-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('All
+                    Drinks') }}</button>
                 <button
-                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Signature
-                    Lattes</button>
+                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('Signature
+                    Lattes') }}</button>
                 <button
-                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Cold
-                    Brews</button>
+                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('Cold
+                    Brews') }}</button>
                 <button
-                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Organic
-                    Teas</button>
+                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('Organic
+                    Teas') }}</button>
                 <button
-                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Fruit
-                    Refreshers</button>
+                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('Fruit
+                    Refreshers') }}</button>
                 <button
-                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">Vegan
-                    Shakes</button>
+                    class="bg-white border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary px-xl py-md rounded-full font-label-md whitespace-nowrap active:scale-95 transition-transform">{{ __('Vegan
+                    Shakes') }}</button>
             </div>
             <!-- Flash Sale Bento Grid -->
             <section class="mb-2xl">
@@ -254,21 +253,21 @@
                 <div class="flex justify-between items-end mb-xl">
 
                     <div>
-                        <h2 class="font-headline-lg text-headline-lg text-on-surface">Flash Sale</h2>
-                        <p class="text-on-surface-variant font-body-md">Limited time offers ending soon.</p>
+                        <h2 class="font-headline-lg text-headline-lg text-on-surface">{{ __('Flash Sale') }}</h2>
+                        <p class="text-on-surface-variant font-body-md">{{ __('Limited time offers ending soon.') }}</p>
                     </div>
                     <div class="flex gap-sm" id="countdown">
                         <div class="bg-error-container text-on-error-container p-2 rounded-lg text-center min-w-[50px]">
                             <div class="font-bold text-lg" id="hours">02</div>
-                            <div class="text-[10px] uppercase">Hrs</div>
+                            <div class="text-[10px] uppercase">{{ __('Hrs') }}</div>
                         </div>
                         <div class="bg-error-container text-on-error-container p-2 rounded-lg text-center min-w-[50px]">
                             <div class="font-bold text-lg" id="minutes">45</div>
-                            <div class="text-[10px] uppercase">Min</div>
+                            <div class="text-[10px] uppercase">{{ __('Min') }}</div>
                         </div>
                         <div class="bg-error-container text-on-error-container p-2 rounded-lg text-center min-w-[50px]">
                             <div class="font-bold text-lg" id="seconds">12</div>
-                            <div class="text-[10px] uppercase">Sec</div>
+                            <div class="text-[10px] uppercase">{{ __('Sec') }}</div>
                         </div>
                     </div>
                 </div>
@@ -280,16 +279,16 @@
                             <span
                                 class="text-secondary font-label-md bg-secondary-container px-3 py-1 rounded-full">-40%
                                 Off</span>
-                            <h3 class="font-headline-md text-headline-md text-on-surface">Honey Lavender Cold Brew</h3>
-                            <p class="text-on-surface-variant font-body-md">Our signature brew with floral notes and
-                                natural honey.</p>
+                            <h3 class="font-headline-md text-headline-md text-on-surface">{{ __('Honey Lavender Cold Brew') }}</h3>
+                            <p class="text-on-surface-variant font-body-md">{{ __('Our signature brew with floral notes and
+                                natural honey.') }}</p>
                             <div class="flex items-center gap-md">
                                 <span class="font-headline-md text-primary">$4.20</span>
                                 <span class="text-on-surface-variant/60 line-through text-body-md">$7.00</span>
                             </div>
                             <button
-                                class="bg-primary text-white w-full py-md rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-95">Add
-                                to Order</button>
+                                class="bg-primary text-white w-full py-md rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-95">{{ __('Add
+                                to Order') }}</button>
                         </div>
                         <div class="w-full md:w-1/2 h-64 bg-cover bg-center rounded-xl shadow-lg transform group-hover:scale-105 transition-transform duration-500"
                             data-alt="A top-down view of a modern cold brew coffee with subtle purple lavender sprigs and golden honey drizzled on the side. The lighting is crisp and bright, highlighting the condensation on the glass. The background is a clean white marble surface with premium aesthetic vibes."
@@ -303,7 +302,7 @@
                             data-alt="A close-up shot of a vibrant red strawberry hibiscus tea in a tall glass with floating strawberry slices. Minimalist white background, bright lighting, high-end beverage photography style."
                             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-90YbFgV3AT2wRJAa1E9Cs1PFazrggOXNWGYB7Cl4gP48QIXZNIoy2dVy_yYc91V6I5Y8bJOstosJ_C25P7WEvkHr_XbK7n153Tsg8p434_eHAIX-v9mOXHKTEkqwBi_zlaphgVd_vxGOj8_6jHMqNS-lzIcVyNFM-KPEM9IN2UqHjJtIOPoGmLxoI9vrl6x1HjR1MkhN5eWcVOdQrzrig_fUPZihpRM7cvYVJ3x6vtPWj6CPpAezHCHGfE67zqt1Bz3DrtSL')">
                         </div>
-                        <h4 class="font-title-lg text-title-lg mb-xs">Strawberry Hibiscus</h4>
+                        <h4 class="font-title-lg text-title-lg mb-xs">{{ __('Strawberry Hibiscus') }}</h4>
                         <p class="text-on-surface-variant text-body-md mb-md">Zesty &amp; caffeine-free</p>
                         <div class="mt-auto flex justify-between items-center">
                             <span class="text-primary font-bold">$3.50</span>
@@ -319,8 +318,8 @@
                             data-alt="A minimalist photograph of a steaming hot white chocolate mocha in a ceramic cup with a delicate leaf-shaped latte art. Soft window lighting, neutral colors, cozy premium atmosphere."
                             style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbXCmgeyKxE1uow2B5nT-Scs6v42a_jf0NsfDbC6jmyFdiEkAu1rVEw7iTLloMfYLyl7yCT9CanezCGWn_L4t9Anq6ejl4lplbsBTh6cag0tsMYUH96y83SmzIqZ5Vo--RdJOgTCZr_YP1CA6biHh1pnOiB_TyH0mBdtdrS1RYTmKieyiT8BbrPZY7cr6mEqdPPnObLEsxaKcGZtRGvzESPCw3PDv2T025A8i0PzhxTSfijH-HTwZWnl34MIlQzYrFQltrx7w7')">
                         </div>
-                        <h4 class="font-title-lg text-title-lg mb-xs">White Mocha</h4>
-                        <p class="text-on-surface-variant text-body-md mb-md">Smooth velvety blend</p>
+                        <h4 class="font-title-lg text-title-lg mb-xs">{{ __('White Mocha') }}</h4>
+                        <p class="text-on-surface-variant text-body-md mb-md">{{ __('Smooth velvety blend') }}</p>
                         <div class="mt-auto flex justify-between items-center">
                             <span class="text-primary font-bold">$4.50</span>
                             <button
@@ -334,8 +333,8 @@
             <!-- Best Sellers Section -->
             <section class="mb-2xl">
                 <div class="flex justify-between items-center mb-xl">
-                    <h2 class="font-headline-lg text-headline-lg">Best Sellers</h2>
-                    <a class="text-primary font-label-md hover:underline" href="#">View All</a>
+                    <h2 class="font-headline-lg text-headline-lg">{{ __('Best Sellers') }}</h2>
+                    <a class="text-primary font-label-md hover:underline" href="#">{{ __('View All') }}</a>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-lg">
@@ -353,12 +352,12 @@
                         class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent">
                     </div>
                     <div class="relative z-10 text-white max-w-lg">
-                        <h2 class="font-headline-lg text-headline-lg mb-sm">Join CozyHNA Rewards</h2>
+                        <h2 class="font-headline-lg text-headline-lg mb-sm">{{ __('Join CozyHNA Rewards') }}</h2>
                         <p class="font-body-lg opacity-80 mb-md">Earn 2 points for every $1 spent. Get a free drink on
                             your birthday!</p>
                         <button
-                            class="bg-white text-primary px-lg py-sm rounded-full font-bold hover:bg-opacity-90 transition-all active:scale-95">Learn
-                            More</button>
+                            class="bg-white text-primary px-lg py-sm rounded-full font-bold hover:bg-opacity-90 transition-all active:scale-95">{{ __('Learn
+                            More') }}</button>
                     </div>
                     <div class="absolute right-0 top-0 h-full w-1/3 bg-cover bg-center hidden md:block"
                         data-alt="A detailed flat-lay illustration of various digital reward icons, coffee beans, and points symbols in a premium minimalist green and white palette. Cohesive with a modern app design aesthetic."
@@ -370,7 +369,7 @@
             <section class="mb-2xl grid grid-cols-1 md:grid-cols-12 gap-xl">
                 <div class="md:col-span-8">
                     <div class="flex justify-between items-center mb-xl">
-                        <h2 class="font-headline-lg text-headline-lg">New Arrivals</h2>
+                        <h2 class="font-headline-lg text-headline-lg">{{ __('New Arrivals') }}</h2>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-lg">
                         <div
@@ -380,10 +379,10 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBa6eHNVlEDo8lB6YZq4FQMKvZSPD8CVhviiiR5H9Fnnn8xproTescX3C-aPke_USIrKFtYcLeHLGh_BIaWEm6eSrl2_RiRzkiCKKNzcy8HwRrFUEq3UeXYmMx9iK-FGdEG9P4JKoo8cI7JAEmjSS0wJvOZtl_S5jwo8fU9nHf1q3NrbpGjVGpxpjOu2gc_e0Ttb_rcGXjp6WyRaKJax-3G6duCUeeoi19zGvSY2P7a9ojFnvIspbWnQ34GKFF8-yyPDx3z7IS9')">
                             </div>
                             <div class="flex flex-col justify-center">
-                                <span class="text-primary font-label-md mb-base">Just Launched</span>
-                                <h3 class="font-title-lg text-title-lg mb-base">Peach Oolong Cloud</h3>
-                                <p class="text-on-surface-variant text-body-md line-clamp-2">Light oolong topped with
-                                    creamy peach cold foam.</p>
+                                <span class="text-primary font-label-md mb-base">{{ __('Just Launched') }}</span>
+                                <h3 class="font-title-lg text-title-lg mb-base">{{ __('Peach Oolong Cloud') }}</h3>
+                                <p class="text-on-surface-variant text-body-md line-clamp-2">{{ __('Light oolong topped with
+                                    creamy peach cold foam.') }}</p>
                                 <div class="mt-md flex items-center justify-between">
                                     <span class="font-bold text-primary">$6.75</span>
                                     <button
@@ -398,8 +397,8 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDUhWioD4sE3ZRqqZ-KEmEMA9ta8ZgpLGGc5COWB5eyYof7Za1Im4IpN2fokzu-X3xPA7eA5mkjbOWl_juljI4mX-Z3dDilQ_n_6VTHKtqDyhg8upxu9MGUoBDxOlctdpVL1BfX11eLjWlKFt3u0Cx6uxFtWsPRogr4mRQPkLlrwafI1XaHj9nNq580azXRaJiUWjlPCQCl3npd4w_44ldq2sGiWjJCHTx6XSxewVEWGJ5IKBsNNSH_O2_29dklKlzfEwgFbll5')">
                             </div>
                             <div class="flex flex-col justify-center">
-                                <span class="text-primary font-label-md mb-base">Premium Choice</span>
-                                <h3 class="font-title-lg text-title-lg mb-base">Midnight Truffle Mocha</h3>
+                                <span class="text-primary font-label-md mb-base">{{ __('Premium Choice') }}</span>
+                                <h3 class="font-title-lg text-title-lg mb-base">{{ __('Midnight Truffle Mocha') }}</h3>
                                 <p class="text-on-surface-variant text-body-md line-clamp-2">70% single-origin cacao
                                     with a hint of sea salt.</p>
                                 <div class="mt-md flex items-center justify-between">
@@ -412,7 +411,7 @@
                     </div>
                 </div>
                 <div class="md:col-span-4 bg-surface-container-low rounded-3xl p-xl border border-outline-variant/10">
-                    <h2 class="font-title-lg text-title-lg mb-xl">Recommended for You</h2>
+                    <h2 class="font-title-lg text-title-lg mb-xl">{{ __('Recommended for You') }}</h2>
                     <div class="space-y-lg">
                         <div class="flex items-center gap-md">
                             <div class="w-16 h-16 rounded-xl bg-cover bg-center"
@@ -420,7 +419,7 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDo6Z3GxYkI383c2qCRz4jaLK_7_YV2M4F02uFRF3h9s3auPjiai_0J6nPn8Z26mFRqqf9XD6Sph9_4V2GnoCImQHptjiTihtIVFD-E7gqj9zV7EyIx4MTXRCjqC6sJJdebnK3luiyaVL_JXUURKLkt8w0svI4D4BHbXlk55MkXqSS8hDHITlZLFXEmb4cy4do-ckOlcC87u1CVMejkjHvwPnT1ZKP86abwZJ20agtj0wk8bp2VjnNecJQ9ApcTCJfPNRtZ_tVx')">
                             </div>
                             <div class="flex-1">
-                                <p class="font-bold text-body-lg">Coconut Flat White</p>
+                                <p class="font-bold text-body-lg">{{ __('Coconut Flat White') }}</p>
                                 <p class="text-label-md text-on-surface-variant">$5.25</p>
                             </div>
                             <button class="material-symbols-outlined text-outline">add</button>
@@ -431,7 +430,7 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDIlkSP1DVfOPprBoJq0TN3Z-nPrzotbljnJ0uJlQKsN4peRZWKlqMokR8LULLJy5H-Go5XPKe_ruNMsFw8DEgsWs9ucwm17Gvsj7R60sNXgWZLYy4hF7f6Eta8DuGRHsQwOn4PXEPO1JRYRbEXGXe7XQkErWnpu3pAIsmWNayBbL1ypLu-uvL05VkRpr4vBhIX6E-E6B4ZEnCrVF1VMONnAKAP5WWcwzToxZw3Zt91djAVHY5M65uVQZhlmGqtfwxymQ2RbgHM')">
                             </div>
                             <div class="flex-1">
-                                <p class="font-bold text-body-lg">Artisanal Chai Latte</p>
+                                <p class="font-bold text-body-lg">{{ __('Artisanal Chai Latte') }}</p>
                                 <p class="text-label-md text-on-surface-variant">$5.50</p>
                             </div>
                             <button class="material-symbols-outlined text-outline">add</button>
@@ -442,31 +441,30 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDpSRl2ijxJyu4iipxiHtdiU608TS1c6lVZNTSs3bSIdlupfKS1TDAU0RzR6TKth0qj0ndwif7xKpG_OiJ4L9ZsGaY73K4ezC9f9EFMda2bbkNrigyyk1PaT9JOieIS-7fO3MzYGLkHy6_hoIgtX3NBJLvKQV-UdyAW9iFvuYInRlUIVO9HvSxEp0Kf_Sv_5DZydvW5sjGJYD8KGt6iwxxlfzWBYyUbc5hBz5Wo2iD86cC5NfnTD9sFO9gO1YJUVE7ziM5DYAcP')">
                             </div>
                             <div class="flex-1">
-                                <p class="font-bold text-body-lg">Ginger Lemon Infusion</p>
+                                <p class="font-bold text-body-lg">{{ __('Ginger Lemon Infusion') }}</p>
                                 <p class="text-label-md text-on-surface-variant">$4.00</p>
                             </div>
                             <button class="material-symbols-outlined text-outline">add</button>
                         </div>
                     </div>
                     <button
-                        class="w-full mt-xl py-md border-2 border-primary/20 rounded-xl text-primary font-bold hover:bg-primary/5 transition-colors">See
-                        Personal Mix</button>
+                        class="w-full mt-xl py-md border-2 border-primary/20 rounded-xl text-primary font-bold hover:bg-primary/5 transition-colors">{{ __('See
+                        Personal Mix') }}</button>
                 </div>
             </section>
             <!-- Nearby Stores Section -->
             <section class="mb-2xl">
                 <div class="flex justify-between items-center mb-xl">
-                    <h2 class="font-headline-lg text-headline-lg">Nearby Stores</h2>
+                    <h2 class="font-headline-lg text-headline-lg">{{ __('Nearby Stores') }}</h2>
                     <button class="flex items-center gap-base text-primary font-label-md">
-                        <span class="material-symbols-outlined text-[18px]">my_location</span> Use Current Location
-                    </button>
+                        <span class="material-symbols-outlined text-[18px]">my_location</span>{{ __('Use Current Location') }}</button>
                 </div>
                 <div class="flex flex-col md:flex-row gap-lg h-[400px]">
                     <div class="w-full md:w-1/3 space-y-md overflow-y-auto pr-md no-scrollbar">
                         <div class="bg-white p-lg rounded-2xl border border-primary shadow-sm ring-1 ring-primary/20">
                             <div class="flex justify-between mb-base">
-                                <h3 class="font-bold">CozyHNA - Downtown Core</h3>
-                                <span class="text-primary text-label-sm">Open</span>
+                                <h3 class="font-bold">{{ __('CozyHNA - Downtown Core') }}</h3>
+                                <span class="text-primary text-label-sm">{{ __('Open') }}</span>
                             </div>
                             <p class="text-body-md text-on-surface-variant mb-md">124 Premium St, West Side</p>
                             <div class="flex items-center gap-xl text-label-md">
@@ -474,14 +472,14 @@
                                         class="material-symbols-outlined text-[16px]">directions_walk</span> 5
                                     min</span>
                                 <span class="flex items-center gap-xs"><span
-                                        class="material-symbols-outlined text-[16px]">bolt</span> Ready in 8 min</span>
+                                        class="material-symbols-outlined text-[16px]">bolt</span>{{ __('Ready in 8 min') }}</span>
                             </div>
                         </div>
                         <div
                             class="bg-white p-lg rounded-2xl border border-outline-variant/30 hover:border-primary/50 transition-colors">
                             <div class="flex justify-between mb-base">
-                                <h3 class="font-bold">CozyHNA - Garden Plaza</h3>
-                                <span class="text-primary text-label-sm">Open</span>
+                                <h3 class="font-bold">{{ __('CozyHNA - Garden Plaza') }}</h3>
+                                <span class="text-primary text-label-sm">{{ __('Open') }}</span>
                             </div>
                             <p class="text-body-md text-on-surface-variant mb-md">45 Green Blvd, South District</p>
                             <div class="flex items-center gap-xl text-label-md">
@@ -489,14 +487,14 @@
                                         class="material-symbols-outlined text-[16px]">directions_car</span> 12
                                     min</span>
                                 <span class="flex items-center gap-xs"><span
-                                        class="material-symbols-outlined text-[16px]">bolt</span> Ready in 15 min</span>
+                                        class="material-symbols-outlined text-[16px]">bolt</span>{{ __('Ready in 15 min') }}</span>
                             </div>
                         </div>
                         <div
                             class="bg-white p-lg rounded-2xl border border-outline-variant/30 hover:border-primary/50 transition-colors opacity-70">
                             <div class="flex justify-between mb-base">
-                                <h3 class="font-bold">CozyHNA - Waterfront</h3>
-                                <span class="text-error text-label-sm">Closing Soon</span>
+                                <h3 class="font-bold">{{ __('CozyHNA - Waterfront') }}</h3>
+                                <span class="text-error text-label-sm">{{ __('Closing Soon') }}</span>
                             </div>
                             <p class="text-body-md text-on-surface-variant mb-md">88 Harbor Way, East Pier</p>
                             <div class="flex items-center gap-xl text-label-md">
@@ -504,7 +502,7 @@
                                         class="material-symbols-outlined text-[16px]">directions_walk</span> 20
                                     min</span>
                                 <span class="flex items-center gap-xs"><span
-                                        class="material-symbols-outlined text-[16px]">bolt</span> Ready in 5 min</span>
+                                        class="material-symbols-outlined text-[16px]">bolt</span>{{ __('Ready in 5 min') }}</span>
                             </div>
                         </div>
                     </div>
@@ -529,7 +527,7 @@
             </section>
             <!-- Customer Reviews Carousel -->
             <section class="mb-2xl pb-xl">
-                <h2 class="font-headline-lg text-headline-lg text-center mb-2xl">From Our Community</h2>
+                <h2 class="font-headline-lg text-headline-lg text-center mb-2xl">{{ __('From Our Community') }}</h2>
                 <div class="flex gap-lg overflow-x-auto no-scrollbar -mx-lg px-lg">
                     <div class="min-w-[300px] bg-white p-xl rounded-3xl border border-outline-variant/20 shadow-sm">
                         <div class="flex items-center gap-md mb-lg">
@@ -538,7 +536,7 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCqDJBMSdyDepeMrePkCzFRuQlsUAaF5JqE8nN-PkWHpElIbsRlVYA5g2cMAap5afA72qQv4mefYFylUSHLa9T_bNSs1lSAqji25WTUWXyyqJ6TZ6e-Mp__5Q1O_pjXf61jB8hyB2ftOTG09yZkhtAMG0MHcldyYWWxqpETK6PBjt8EOsZbmm8CBi86WbZ_gpmqtxWDz_f3WwvlTtE6ntkk9oOMKmU1UPN_UKndg3n-rwk6w2QeUtp2_0si2uCZJ34hfm3ym8Jd')">
                             </div>
                             <div>
-                                <p class="font-bold">Sarah Jenkins</p>
+                                <p class="font-bold">{{ __('Sarah Jenkins') }}</p>
                                 <div class="flex text-tertiary">
                                     <span class="material-symbols-outlined text-[16px]"
                                         style="font-variation-settings: 'FILL' 1;">star</span>
@@ -563,7 +561,7 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBcnfh2xr2UaEragR_HGrXCX0ihQKAKnV62VrP_u2FAZqLz6D7MWobvHUClJyJ1g3VlDh3d4CFS9Io6BFqsXgYfxlxfRKS0_SqSkT7RISjbyKK-GYjogBLN3zGMCsaTQR0B6LH4e7ZaPxxWQ83BiGZWQ17Y9iypeYDMi7RJCysHmbSiQAWBftIoxoD984EPGVIMqeNvveWw0VQGr9AFGModg46ZxsNSyRMTIOS9X8u6huGhQHluLmEtkuufRn7JHTxyB1i-AYh_')">
                             </div>
                             <div>
-                                <p class="font-bold">Mark Thompson</p>
+                                <p class="font-bold">{{ __('Mark Thompson') }}</p>
                                 <div class="flex text-tertiary">
                                     <span class="material-symbols-outlined text-[16px]"
                                         style="font-variation-settings: 'FILL' 1;">star</span>
@@ -588,7 +586,7 @@
                                 style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjz3WkQwhsh3Uw5mdykPnktriiVKaDIsbonUDd90YPCreD_BuAtNOSQGQAdb48lyO3ySxt28XbyEYFDd4Vbm4tsS6pLbVd2wBI43cFDhwOGhjdd_F8OCRDZBFLaMW8JZPCHyy6KYLMXLyJCcd5r-D5UeWMRbnQ5l3cmGLM8a6nM0lixPzI3rittha8M_99Tm4Pz6qkYKp8iQxXGLcKaj4RoV4QMxfYJgeYy5cr3u3Tq6r58SnRx-F-Rbo-BHSd0OCVPAx75vmE')">
                             </div>
                             <div>
-                                <p class="font-bold">Elena Rodriguez</p>
+                                <p class="font-bold">{{ __('Elena Rodriguez') }}</p>
                                 <div class="flex text-tertiary">
                                     <span class="material-symbols-outlined text-[16px]"
                                         style="font-variation-settings: 'FILL' 1;">star</span>
@@ -615,31 +613,31 @@
         <button
             class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 active:scale-90 transition-transform">
             <span class="material-symbols-outlined" data-icon="home">home</span>
-            <span class="font-label-sm text-label-sm">Home</span>
+            <span class="font-label-sm text-label-sm">{{ __('Home') }}</span>
         </button>
         <button
             class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
             <span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
-            <span class="font-label-sm text-label-sm">Order</span>
+            <span class="font-label-sm text-label-sm">{{ __('Order') }}</span>
         </button>
         <button
             class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
             <span class="material-symbols-outlined" data-icon="history">history</span>
-            <span class="font-label-sm text-label-sm">History</span>
+            <span class="font-label-sm text-label-sm">{{ __('History') }}</span>
         </button>
         <button
             class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-transform">
             <span class="material-symbols-outlined" data-icon="person">person</span>
-            <span class="font-label-sm text-label-sm">Profile</span>
+            <span class="font-label-sm text-label-sm">{{ __('Profile') }}</span>
         </button>
     </nav>
     <!-- Footer (Desktop) -->
     <footer class="hidden md:block bg-surface-container-low border-t border-outline-variant/30 py-2xl">
         <div class="max-w-container-max mx-auto px-lg grid grid-cols-4 gap-2xl">
             <div class="col-span-1">
-                <span class="font-title-lg text-title-lg font-bold text-primary mb-md block">CozyHNA</span>
-                <p class="text-on-surface-variant text-body-md mb-xl">Crafting premium moments, one sip at a time. Join
-                    our community of beverage enthusiasts.</p>
+                <span class="font-title-lg text-title-lg font-bold text-primary mb-md block">{{ __('CozyHNA') }}</span>
+                <p class="text-on-surface-variant text-body-md mb-xl">{{ __('Crafting premium moments, one sip at a time. Join
+                    our community of beverage enthusiasts.') }}</p>
                 <div class="flex gap-md">
                     <button
                         class="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-outline-variant/30 hover:border-primary transition-colors">
@@ -659,40 +657,38 @@
                 </div>
             </div>
             <div>
-                <h4 class="font-bold mb-lg">Company</h4>
+                <h4 class="font-bold mb-lg">{{ __('Company') }}</h4>
                 <ul class="space-y-md text-on-surface-variant text-body-md">
-                    <li><a class="hover:text-primary" href="#">About Us</a></li>
-                    <li><a class="hover:text-primary" href="#">Careers</a></li>
-                    <li><a class="hover:text-primary" href="#">Sourcing</a></li>
-                    <li><a class="hover:text-primary" href="#">Press</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('About Us') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Careers') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Sourcing') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Press') }}</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="font-bold mb-lg">Support</h4>
+                <h4 class="font-bold mb-lg">{{ __('Support') }}</h4>
                 <ul class="space-y-md text-on-surface-variant text-body-md">
-                    <li><a class="hover:text-primary" href="#">Help Center</a></li>
-                    <li><a class="hover:text-primary" href="#">Delivery</a></li>
-                    <li><a class="hover:text-primary" href="#">Contact Us</a></li>
-                    <li><a class="hover:text-primary" href="#">Accessibility</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Help Center') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Delivery') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Contact Us') }}</a></li>
+                    <li><a class="hover:text-primary" href="#">{{ __('Accessibility') }}</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="font-bold mb-lg">Newsletter</h4>
-                <p class="text-on-surface-variant text-body-md mb-lg">Get the latest news and offers delivered to your
-                    inbox.</p>
+                <h4 class="font-bold mb-lg">{{ __('Newsletter') }}</h4>
+                <p class="text-on-surface-variant text-body-md mb-lg">{{ __('Get the latest news and offers delivered to your
+                    inbox.') }}</p>
                 <div class="flex gap-base">
                     <input
                         class="bg-white border border-outline-variant/30 rounded-xl px-4 py-2 flex-1 focus:ring-primary focus:border-primary"
-                        placeholder="Email address" type="email" />
+                        placeholder="{{ __('Email address') }}" type="email" />
                     <button
-                        class="bg-primary text-white px-lg py-2 rounded-xl font-bold active:scale-95 transition-transform">Join</button>
+                        class="bg-primary text-white px-lg py-2 rounded-xl font-bold active:scale-95 transition-transform">{{ __('Join') }}</button>
                 </div>
             </div>
         </div>
         <div
-            class="max-w-container-max mx-auto px-lg mt-2xl pt-xl border-t border-outline-variant/10 text-center text-label-md text-on-surface-variant">
-            © 2024 CozyHNA. All rights reserved.
-        </div>
+            class="max-w-container-max mx-auto px-lg mt-2xl pt-xl border-t border-outline-variant/10 text-center text-label-md text-on-surface-variant">{{ __('© 2024 CozyHNA. All rights reserved.') }}</div>
     </footer>
     <script>
     // Countdown Timer Logic

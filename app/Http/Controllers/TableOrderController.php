@@ -14,7 +14,7 @@ class TableOrderController extends Controller
         $table = \App\Models\RestaurantTable::where('qr_token', $token)->where('status', '!=', 'disabled')->first();
 
         if (!$table) {
-            return redirect('/')->with('error', 'Mã QR không hợp lệ hoặc bàn đã bị vô hiệu hóa.');
+            return redirect('/')->with('error', __('Mã QR không hợp lệ hoặc bàn đã bị vô hiệu hóa.'));
         }
 
         // Cập nhật trạng thái bàn thành "Có khách" nếu đang trống
@@ -76,12 +76,12 @@ class TableOrderController extends Controller
         $tableId = session('table_id');
 
         if (!$userId || !$isTableOrder || !$tableId) {
-            return redirect('/login')->with('error', 'Vui lòng quét lại mã QR tại bàn.');
+            return redirect('/login')->with('error', __('Vui lòng quét lại mã QR tại bàn.'));
         }
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
         if (!$customerProfile) {
-            return redirect('/')->with('error', 'Lỗi dữ liệu tài khoản bàn.');
+            return redirect('/')->with('error', __('Lỗi dữ liệu tài khoản bàn.'));
         }
 
         $cartItemsRaw = session('cart', []);
@@ -95,7 +95,7 @@ class TableOrderController extends Controller
         }
 
         if (empty($cartItems)) {
-            return redirect('/customer/cart')->with('error', 'Không có sản phẩm nào được chọn để thanh toán.');
+            return redirect('/customer/cart')->with('error', __('Không có sản phẩm nào được chọn để thanh toán.'));
         }
 
         $subtotal = 0;
@@ -197,7 +197,7 @@ class TableOrderController extends Controller
 
             DB::commit();
 
-            return redirect('/table/order/success')->with('success', 'Đã đặt món thành công!');
+            return redirect('/table/order/success')->with('success', __('Đã đặt món thành công!'));
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect('/customer/cart')->with('error', 'Có lỗi xảy ra khi đặt món: ' . $e->getMessage());

@@ -12,7 +12,7 @@
 
     @if ($errors->any())
         <div class="mb-lg px-xl py-lg bg-error-container/20 border border-error-container text-error rounded-xl">
-            <div class="font-semibold mb-2">There are some problems with your submission:</div>
+            <div class="font-semibold mb-2">{{ __('There are some problems with your submission:') }}</div>
             <ul class="list-disc pl-6">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -24,7 +24,7 @@
     <div class="flex flex-col xl:flex-row xl:items-center justify-between mb-xl gap-4">
 
         <div class="flex flex-col md:flex-row md:items-center gap-4 max-w-full">
-            <h2 class="font-headline-md text-headline-md text-on-surface shrink-0">Product Management</h2>
+            <h2 class="font-headline-md text-headline-md text-on-surface shrink-0">Quản lý Sản phẩm</h2>
             <div class="hidden md:block h-6 w-px bg-outline-variant/50 shrink-0"></div>
             <div class="flex bg-surface-container-low p-1 rounded-lg overflow-x-auto max-w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
                 <style>
@@ -32,16 +32,16 @@
                 </style>
                 <button
                     class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all active-tab bg-white shadow-sm text-primary whitespace-nowrap shrink-0"
-                    data-tab="products" type="button" onclick="switchTab('products')">Products</button>
+                    data-tab="products" type="button" onclick="switchTab('products')">Sản phẩm</button>
                 <button
                     class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
-                    data-tab="categories" type="button" onclick="switchTab('categories')">Categories</button>
+                    data-tab="categories" type="button" onclick="switchTab('categories')">Danh mục</button>
                 <button
                     class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
                     data-tab="recipes" type="button" onclick="switchTab('recipes')">Quản lý Topping</button>
                 <button
                     class="tab-btn px-4 py-1.5 rounded-md font-label-md transition-all text-on-surface-variant hover:text-on-surface whitespace-nowrap shrink-0"
-                    data-tab="sizes" type="button" onclick="switchTab('sizes')">Sizes</button>
+                    data-tab="sizes" type="button" onclick="switchTab('sizes')">Kích cỡ</button>
             </div>
         </div>
 
@@ -50,7 +50,7 @@
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
                 <input name="search" value="{{ request('search') }}"
                     class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-body-md w-full xl:w-64 transition-all"
-                    placeholder="Search items..." type="text" />
+                    placeholder="Tìm kiếm..." type="text" />
                 @if(request()->filled('category_id'))
                     <input type="hidden" name="category_id" value="{{ request('category_id') }}">
                 @endif
@@ -77,9 +77,9 @@
                         <span class="material-symbols-outlined text-body-md shrink-0">filter_list</span>
                         <div class="flex-1">
                             <select name="status" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface">
-                                <option value="">Status: All</option>
-                                <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Active</option>
-                                <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Inactive</option>
+                                <option value="">Trạng thái: Tất cả</option>
+                                <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Hoạt động</option>
+                                <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Tạm ẩn</option>
                             </select>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                         <span class="material-symbols-outlined text-body-md shrink-0">category</span>
                         <div class="flex-1">
                             <select name="category_id" onchange="this.form.submit()" class="w-full border-none bg-transparent focus:ring-0 cursor-pointer py-1 pr-6 text-body-md text-on-surface no-choices">
-                                <option value="">Category: All</option>
+                                <option value="">Danh mục: Tất cả</option>
                                 @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                                 @endforeach
@@ -98,14 +98,12 @@
 
                 <div class="flex gap-2">
                     <button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/30 rounded-lg text-on-surface-variant font-label-md hover:bg-surface-container-low transition-all" type="button">
-                        <span class="material-symbols-outlined">download</span> Export
-                    </button>
+                        <span class="material-symbols-outlined">download</span>{{ __('Export') }}</button>
                     @if(check_permission('create_products'))
                     <button
                         class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
                         type="button" onclick="toggleModal('productModal')">
-                        <span class="material-symbols-outlined">add</span> Add Product
-                    </button>
+                        <span class="material-symbols-outlined">add</span>Thêm Sản Phẩm</button>
                     @endif
                 </div>
             </div>
@@ -118,11 +116,11 @@
                             <th class="p-4 w-10">
                                 <input class="rounded text-primary focus:ring-primary border-outline" type="checkbox" />
                             </th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Product</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Category</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Price</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Inventory</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Sản phẩm</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Danh mục</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Giá</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('Kho') }}</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
                             <th class="p-4 w-10"></th>
                         </tr>
                     </thead>
@@ -148,7 +146,7 @@
                                 </td>
                                 <td class="p-4">
                                     <span class="px-2 py-1 bg-secondary-container/20 text-secondary text-label-md rounded-full">
-                                        {{ $product->category->name ?? '' }}
+                                        {{ $product->category->name ?? __('') }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-on-surface font-semibold">
@@ -158,24 +156,22 @@
                                     @if($defaultSize)
                                         {{ number_format($defaultSize->selling_price, 0, ',', '.') }} đ
                                     @else
-                                        <span class="text-on-surface-variant text-label-sm">No size</span>
+                                        <span class="text-on-surface-variant text-label-sm">Không có kích cỡ</span>
                                     @endif
                                 </td>
                                 <td class="p-4 text-on-surface-variant text-body-md">
                                     {{ $product->stock !== null ? $product->stock : 0 }} 
                                     @if($product->is_auto_stock)
-                                        <span class="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1" title="Tự động tính toán">Auto</span>
+                                        <span class="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1" title="Tự động tính toán">Tự động</span>
                                     @endif
                                 </td>
                                 <td class="p-4">
                                     @if($product->status)
                                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-label-md font-bold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
-                                        </span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Hoạt động</span>
                                     @else
                                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-error text-label-md font-bold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Inactive
-                                        </span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-error"></span>Tạm ẩn</span>
                                     @endif
                                 </td>
                                 <td class="p-4 text-right">
@@ -202,7 +198,7 @@
                                                 type="button"
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
                                                 onclick="openEditModalFromButton(this)"
-                                            >Edit</button>
+                                            >Sửa</button>
                                             @endif
                                             
                                             <button
@@ -211,11 +207,11 @@
                                                 onclick="openProductSizeModal(this)"
                                                 data-id="{{ $product->id }}"
                                                 data-sizes="{{ $product->productSizes->toJson() }}"
-                                            >Manage Sizes</button>
+                                            >Quản lý kích cỡ</button>
                                             <a
                                                 href="/admin/product/{{ $product->id }}/recipe"
                                                 class="block w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-tertiary"
-                                            >Manage Recipes</a>
+                                            >Quản lý công thức</a>
                                             
                                             @if(check_permission('delete_products'))
                                             <form action="/admin/product/{{ $product->id }}/delete" method="POST" class="m-0">
@@ -223,8 +219,8 @@
                                                 <button
                                                     type="submit"
                                                     class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-error"
-                                                    onclick="return confirm('Are you sure you want to delete this product?')"
-                                                >Delete</button>
+                                                    onclick="customConfirm(event, this, 'Bạn có chắc chắn muốn xóa sản phẩm này?')"
+                                                >Xóa</button>
                                             </form>
                                             @endif
                                         </div>
@@ -233,7 +229,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="p-4 text-on-surface-variant">No products found.</td>
+                                <td colspan="7" class="p-4 text-on-surface-variant">Không tìm thấy sản phẩm nào.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -250,13 +246,12 @@
         <!-- Categories/Recipes/Sizes placeholders giữ nguyên từ giao diện hiện tại -->
         <section class="tab-pane hidden space-y-lg pb-32" id="categories-content">
             <div class="flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Manage Categories</h3>
+                <h3 class="font-headline-md text-headline-md">Quản lý Danh mục</h3>
                 @if(check_permission('create_categories'))
                 <button
                     class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
                     type="button" onclick="toggleModal('categoryModal')">
-                    <span class="material-symbols-outlined">add</span> Add Category
-                </button>
+                    <span class="material-symbols-outlined">add</span>{{ __('Add Category') }}</button>
                 @endif
             </div>
             
@@ -295,12 +290,12 @@
                                             data-image="{{ $category->image }}"
                                             data-status="{{ $category->status }}"
                                             data-display-order="{{ $category->display_order }}"
-                                        >Edit</button>
+                                        >Sửa</button>
                                         @endif
                                         @if(check_permission('delete_categories'))
                                         <form action="/admin/category/{{ $category->id }}/delete" method="POST" class="m-0">
                                             @csrf
-                                            <button type="submit" class="w-full text-left px-3 py-2 text-label-md text-error hover:bg-surface-container-low transition-colors" onclick="return confirm('Delete this category?')">Delete</button>
+                                            <button type="submit" class="w-full text-left px-3 py-2 text-label-md text-error hover:bg-surface-container-low transition-colors" onclick="customConfirm(event, this, 'Xóa danh mục này?')">Xóa</button>
                                         </form>
                                         @endif
                                     </div>
@@ -311,20 +306,16 @@
                             <div class="mt-auto">
                                 @if($category->status)
                                     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-label-sm font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
-                                    </span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Hoạt động</span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-error text-label-sm font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Inactive
-                                    </span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-error"></span>Tạm ẩn</span>
                                 @endif
                             </div>
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full p-8 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
-                        No categories found.
-                    </div>
+                    <div class="col-span-full p-8 text-center text-on-surface-variant bg-surface-container-lowest rounded-2xl border border-outline-variant/30">Không tìm thấy danh mục nào.</div>
                 @endforelse
             </div>
         </section>
@@ -340,7 +331,7 @@
             <table class="w-full text-left border-collapse min-w-[800px]">
             <thead>
             <tr class="bg-surface-container-low border-b border-outline-variant/30">
-            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
+            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('ID') }}</th>
             <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tên Topping</th>
             <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Giá tiền</th>
             <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Trạng thái</th>
@@ -363,7 +354,7 @@
                 </td>
                 <td class="p-4 text-right flex gap-2">
                     <button class="text-primary hover:bg-primary/10 p-2 rounded transition-colors" onclick="editTopping({{ $topping }})"><span class="material-symbols-outlined">edit</span></button>
-                    <form action="/admin/toppings/{{ $topping->id }}/delete" method="POST" onsubmit="return confirm('Xóa topping này?');" class="inline">
+                    <form action="/admin/toppings/{{ $topping->id }}/delete" method="POST" onsubmit="customConfirm(event, this, 'Xóa topping này?');" class="inline">
                         @csrf
                         <button class="text-error hover:bg-error/10 p-2 rounded transition-colors"><span class="material-symbols-outlined">delete</span></button>
                     </form>
@@ -377,13 +368,12 @@
         </section>
         <section class="tab-pane hidden space-y-lg pb-32" id="sizes-content">
             <div class="flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Manage Sizes</h3>
+                <h3 class="font-headline-md text-headline-md">Quản lý kích cỡ</h3>
                 @if(check_permission('create_sizes'))
                 <button
                     class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-sm hover:opacity-90 active:scale-95 transition-all"
                     type="button" onclick="toggleModal('sizeModal')">
-                    <span class="material-symbols-outlined">add</span> Add Size
-                </button>
+                    <span class="material-symbols-outlined">add</span>{{ __('Add Size') }}</button>
                 @endif
             </div>
             
@@ -391,10 +381,10 @@
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-surface-container-low border-b border-outline-variant/30">
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">ID</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Name</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Volume (ml)</th>
-                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Description</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('ID') }}</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('Name') }}</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('Volume (ml)') }}</th>
+                            <th class="p-4 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Mô tả</th>
                             <th class="p-4 w-10"></th>
                         </tr>
                     </thead>
@@ -403,7 +393,7 @@
                             <tr class="hover:bg-surface-container-lowest transition-colors group">
                                 <td class="p-4 text-on-surface-variant">{{ $size->id }}</td>
                                 <td class="p-4 font-semibold text-on-surface">{{ $size->name }}</td>
-                                <td class="p-4 text-on-surface">{{ $size->volume_ml ?? 'N/A' }}</td>
+                                <td class="p-4 text-on-surface">{{ $size->volume_ml ?? __('N/A') }}</td>
                                 <td class="p-4 text-on-surface-variant">{{ $size->description }}</td>
                                 <td class="p-4 text-right">
                                     @if(check_permission('edit_sizes') || check_permission('delete_sizes'))
@@ -425,7 +415,7 @@
                                                 type="button"
                                                 class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors"
                                                 onclick="openSizeEditModalFromButton(this)"
-                                            >Edit</button>
+                                            >Sửa</button>
                                             @endif
                                             @if(check_permission('delete_sizes'))
                                             <form action="/admin/size/{{ $size->id }}/delete" method="POST" class="m-0">
@@ -433,8 +423,8 @@
                                                 <button
                                                     type="submit"
                                                     class="w-full text-left px-3 py-2 hover:bg-surface-container-low transition-colors text-error"
-                                                    onclick="return confirm('Are you sure you want to delete this size?')"
-                                                >Delete</button>
+                                                    onclick="customConfirm(event, this, 'Bạn có chắc chắn muốn xóa kích cỡ này?')"
+                                                >Xóa</button>
                                             </form>
                                             @endif
                                         </div>
@@ -444,7 +434,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="p-4 text-on-surface-variant text-center">No sizes found.</td>
+                                <td colspan="5" class="p-4 text-on-surface-variant text-center">Không tìm thấy kích cỡ nào.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -453,11 +443,11 @@
         </section>
     </div>
 
-    <!-- Modal: Edit Product -->
+    <!-- Modal: Sửa Sản Phẩm -->
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productEditModal">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Edit Product</h3>
+                <h3 class="font-headline-md text-headline-md">Sửa Sản Phẩm</h3>
                 <button type="button" onclick="toggleModal('productEditModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -472,20 +462,20 @@
                     @endphp
 
                     <div>
-                        <label class="block mb-2 font-medium">Product Name</label>
-                        <input id="edit_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Enter product name" {{ $isAdmin ? 'required' : 'disabled' }}>
+                        <label class="block mb-2 font-medium">Tên Sản Phẩm</label>
+                        <input id="edit_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Nhập tên sản phẩm" {{ $isAdmin ? 'required' : 'disabled' }}>
                     </div>
 
                     <div class="grid grid-cols-2 gap-lg">
                         <div>
-                            <label class="block mb-2 font-medium">Product Code</label>
-                            <input id="edit_code" type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="CF001" {{ $isAdmin ? 'required' : 'disabled' }}>
+                            <label class="block mb-2 font-medium">Mã Sản Phẩm</label>
+                            <input id="edit_code" type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="{{ __('CF001') }}" {{ $isAdmin ? 'required' : 'disabled' }}>
                         </div>
 
                         <div>
-                            <label class="block mb-2 font-medium">Category</label>
+                            <label class="block mb-2 font-medium">Danh mục</label>
                             <select id="edit_category_id" name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant no-choices" {{ $isAdmin ? 'required' : 'disabled' }}>
-                                <option value="">Select category</option>
+                                <option value="">{{ __('Select category') }}</option>
                                 @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
@@ -494,8 +484,8 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 font-medium">Description</label>
-                        <textarea id="edit_description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Product description" {{ $isAdmin ? '' : 'disabled' }}></textarea>
+                        <label class="block mb-2 font-medium">Mô tả</label>
+                        <textarea id="edit_description" name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none disabled:bg-surface-container disabled:text-on-surface-variant" placeholder="Mô tả sản phẩm" {{ $isAdmin ? '' : 'disabled' }}></textarea>
                     </div>
 
                     <div>
@@ -508,34 +498,30 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 font-medium">Current Image</label>
+                        <label class="block mb-2 font-medium">Ảnh hiện tại</label>
                         <div id="edit_current_image_preview" class="hidden w-24 h-24 rounded-lg bg-surface-container-high overflow-hidden">
                             <img class="w-full h-full object-cover" src="" />
                         </div>
                     </div>
 
                     <div>
-                        <label class="block mb-2 font-medium">Product Image (optional)</label>
+                        <label class="block mb-2 font-medium">Ảnh Sản Phẩm (tùy chọn)</label>
                         <input type="file" name="image" accept="image/*" class="block w-full border border-gray-300 rounded-xl p-3 disabled:opacity-50" {{ $isAdmin ? '' : 'disabled' }}>
                     </div>
 
                     <div>
-                        <label class="block mb-3 font-medium">Status</label>
+                        <label class="block mb-3 font-medium">Trạng thái</label>
                         <div class="flex gap-6">
                             <label class="flex items-center gap-2">
-                                <input id="edit_status_active" type="radio" name="status" value="1" required>
-                                Active
-                            </label>
+                                <input id="edit_status_active" type="radio" name="status" value="1" required>Hoạt động</label>
                             <label class="flex items-center gap-2">
-                                <input id="edit_status_inactive" type="radio" name="status" value="0" required>
-                                Inactive
-                            </label>
+                                <input id="edit_status_inactive" type="radio" name="status" value="0" required>Tạm ẩn</label>
                         </div>
                     </div>
 
                     <div class="px-xl py-lg border-t flex justify-end gap-3">
-                        <button onclick="toggleModal('productEditModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
-                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Product</button>
+                        <button onclick="toggleModal('productEditModal')" type="button" class="px-6 py-2 rounded-xl border">Hủy</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Lưu Sản Phẩm</button>
                     </div>
                 </form>
             </div>
@@ -546,7 +532,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productModal">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Add Product</h3>
+                <h3 class="font-headline-md text-headline-md">Thêm Sản Phẩm</h3>
                 <button type="button" onclick="toggleModal('productModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -557,20 +543,20 @@
                     @csrf
 
                     <div>
-                        <label class="block mb-2 font-medium">Product Name</label>
-                        <input type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Enter product name" required>
+                        <label class="block mb-2 font-medium">Tên Sản Phẩm</label>
+                        <input type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Nhập tên sản phẩm" required>
                     </div>
 
                     <div class="grid grid-cols-2 gap-lg">
                         <div>
-                            <label class="block mb-2 font-medium">Product Code</label>
-                            <input type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="CF001" required>
+                            <label class="block mb-2 font-medium">Mã Sản Phẩm</label>
+                            <input type="text" name="code" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="{{ __('CF001') }}" required>
                         </div>
 
                         <div>
-                            <label class="block mb-2 font-medium">Category</label>
+                            <label class="block mb-2 font-medium">Danh mục</label>
                             <select name="category_id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none no-choices" required>
-                                <option value="">Select category</option>
+                                <option value="">{{ __('Select category') }}</option>
                                 @foreach($allCategories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
@@ -579,8 +565,8 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 font-medium">Description</label>
-                        <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Product description"></textarea>
+                        <label class="block mb-2 font-medium">Mô tả</label>
+                        <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Mô tả sản phẩm"></textarea>
                     </div>
 
                     <div>
@@ -593,31 +579,27 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 font-medium">Product Image</label>
+                        <label class="block mb-2 font-medium">Ảnh Sản Phẩm</label>
                         <input type="file" name="image" accept="image/*" class="block w-full border border-gray-300 rounded-xl p-3" required>
                     </div>
 
                     <div>
-                        <label class="block mb-3 font-medium">Status</label>
+                        <label class="block mb-3 font-medium">Trạng thái</label>
                         <div class="flex gap-6">
                             <label class="flex items-center gap-2">
-                                <input type="radio" name="status" value="1" checked required>
-                                Active
-                            </label>
+                                <input type="radio" name="status" value="1" checked required>Hoạt động</label>
                             <label class="flex items-center gap-2">
-                                <input type="radio" name="status" value="0" required>
-                                Inactive
-                            </label>
+                                <input type="radio" name="status" value="0" required>Tạm ẩn</label>
                         </div>
                     </div>
 
                     <div class="px-xl py-lg border-t flex justify-end gap-3">
-                        <button onclick="toggleModal('productModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
-                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Product</button>
+                        <button onclick="toggleModal('productModal')" type="button" class="px-6 py-2 rounded-xl border">Hủy</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Lưu Sản Phẩm</button>
                     </div>
 
                     <p class="text-xs text-on-surface-variant">
-                        Nếu bị lỗi <b>"The code has already been taken"</b> thì bạn đang nhập <b>Product Code</b> trùng (cột <b>code</b> unique trong database) — hãy nhập code khác.
+                        Nếu bị lỗi <b>"The code has already been taken"</b> thì bạn đang nhập <b>Mã Sản Phẩm</b> trùng (cột <b>{{ __('code') }}</b> unique trong database) — hãy nhập code khác.
                     </p>
                 </form>
             </div>
@@ -628,7 +610,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="productSizeManageModal">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Manage Sizes & Prices</h3>
+                <h3 class="font-headline-md text-headline-md">Quản lý Kích cỡ & Giá</h3>
                 <button type="button" onclick="toggleModal('productSizeManageModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -640,11 +622,11 @@
                     <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr class="bg-surface-container-low border-b border-outline-variant/30">
-                                <th class="p-3 w-10">Active</th>
-                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Size</th>
-                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Price (Sell)</th>
-                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Price (Cost)</th>
-                                <th class="p-3 w-10 font-label-sm text-label-sm text-on-surface-variant uppercase text-center">Default</th>
+                                <th class="p-3 w-10">Hoạt động</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">Kích cỡ</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">GIÁ BÁN</th>
+                                <th class="p-3 font-label-sm text-label-sm text-on-surface-variant uppercase">GIÁ VỐN</th>
+                                <th class="p-3 w-10 font-label-sm text-label-sm text-on-surface-variant uppercase text-center">MẶC ĐỊNH</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -672,9 +654,9 @@
                     </div>
 
                     <div class="pt-4 border-t flex justify-end gap-3 mt-lg">
-                        <button onclick="toggleModal('productSizeManageModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
+                        <button onclick="toggleModal('productSizeManageModal')" type="button" class="px-6 py-2 rounded-xl border">Hủy</button>
                         @if(check_permission('edit_products'))
-                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Sizes</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Lưu Kích Cỡ</button>
                         @endif
                     </div>
                 </form>
@@ -686,7 +668,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="categoryModal">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Add Category</h3>
+                <h3 class="font-headline-md text-headline-md">{{ __('Add Category') }}</h3>
                 <button type="button" onclick="toggleModal('categoryModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -695,28 +677,28 @@
                 <form action="/admin/category/store" method="POST" class="space-y-lg" enctype="multipart/form-data">
                     @csrf
                     <div>
-                        <label class="block font-label-md mb-2">Category Name *</label>
-                        <input name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="E.g. Coffee">
+                        <label class="block font-label-md mb-2">{{ __('Category Name *') }}</label>
+                        <input name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="{{ __('E.g. Coffee') }}">
                     </div>
                     <div>
                         <label class="block font-label-md mb-2">Thứ tự hiển thị (Priority)</label>
                         <input name="display_order" type="number" min="1" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="Ví dụ: 1">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Category Image</label>
+                        <label class="block font-label-md mb-2">{{ __('Category Image') }}</label>
                         <input name="image" type="file" accept="image/*" class="block w-full border border-outline-variant/50 rounded-xl p-2">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Description</label>
-                        <textarea name="description" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl h-24" placeholder="Brief description"></textarea>
+                        <label class="block font-label-md mb-2">Mô tả</label>
+                        <textarea name="description" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl h-24" placeholder="{{ __('Brief description') }}"></textarea>
                     </div>
                     <div class="flex items-center gap-3">
                         <input name="status" type="checkbox" checked value="1" class="rounded w-5 h-5 text-primary border-outline focus:ring-primary">
-                        <label class="font-label-md">Active Category</label>
+                        <label class="font-label-md">{{ __('Active Category') }}</label>
                     </div>
                     <div class="flex justify-end gap-md pt-4">
-                        <button onclick="toggleModal('categoryModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Save</button>
+                        <button onclick="toggleModal('categoryModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Hủy</button>
+                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -727,7 +709,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="categoryEditModal">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Edit Category</h3>
+                <h3 class="font-headline-md text-headline-md">{{ __('Edit Category') }}</h3>
                 <button type="button" onclick="toggleModal('categoryEditModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -736,7 +718,7 @@
                 <form id="categoryEditForm" method="POST" class="space-y-lg" enctype="multipart/form-data">
                     @csrf
                     <div>
-                        <label class="block font-label-md mb-2">Category Name *</label>
+                        <label class="block font-label-md mb-2">{{ __('Category Name *') }}</label>
                         <input id="edit_category_name" name="name" type="text" required class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl">
                     </div>
                     <div>
@@ -744,26 +726,26 @@
                         <input id="edit_category_display_order" name="display_order" type="number" min="1" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl" placeholder="Ví dụ: 1">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Current Image</label>
+                        <label class="block font-label-md mb-2">Ảnh hiện tại</label>
                         <div id="edit_current_category_image_preview" class="hidden w-24 h-24 rounded-lg bg-surface-container-high overflow-hidden">
                             <img class="w-full h-full object-cover" src="" />
                         </div>
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">New Image (optional)</label>
+                        <label class="block font-label-md mb-2">{{ __('New Image (optional)') }}</label>
                         <input id="edit_category_image" name="image" type="file" accept="image/*" class="block w-full border border-outline-variant/50 rounded-xl p-2">
                     </div>
                     <div>
-                        <label class="block font-label-md mb-2">Description</label>
+                        <label class="block font-label-md mb-2">Mô tả</label>
                         <textarea id="edit_category_description" name="description" class="w-full px-4 py-2 border border-outline-variant/50 rounded-xl h-24"></textarea>
                     </div>
                     <div class="flex items-center gap-3">
                         <input id="edit_category_status" name="status" type="checkbox" value="1" class="rounded w-5 h-5 text-primary border-outline focus:ring-primary">
-                        <label class="font-label-md">Active Category</label>
+                        <label class="font-label-md">{{ __('Active Category') }}</label>
                     </div>
                     <div class="flex justify-end gap-md pt-4">
-                        <button onclick="toggleModal('categoryEditModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Update</button>
+                        <button onclick="toggleModal('categoryEditModal')" type="button" class="px-6 py-2 rounded-xl border border-outline-variant/50">Hủy</button>
+                        <button type="submit" class="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold">Cập nhật</button>
                     </div>
                 </form>
             </div>
@@ -774,7 +756,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="sizeModal">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Add Size</h3>
+                <h3 class="font-headline-md text-headline-md">{{ __('Add Size') }}</h3>
                 <button type="button" onclick="toggleModal('sizeModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -783,20 +765,20 @@
                 <form action="/admin/size/store" method="POST" class="space-y-lg">
                     @csrf
                     <div>
-                        <label class="block mb-2 font-medium">Name</label>
-                        <input type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="e.g. M, L, XL" required>
+                        <label class="block mb-2 font-medium">{{ __('Name') }}</label>
+                        <input type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="{{ __('e.g. M, L, XL') }}" required>
                     </div>
                     <div>
-                        <label class="block mb-2 font-medium">Volume (ml)</label>
-                        <input type="number" name="volume_ml" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="e.g. 500">
+                        <label class="block mb-2 font-medium">{{ __('Volume (ml)') }}</label>
+                        <input type="number" name="volume_ml" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="{{ __('e.g. 500') }}">
                     </div>
                     <div>
-                        <label class="block mb-2 font-medium">Description</label>
-                        <textarea name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="Optional description"></textarea>
+                        <label class="block mb-2 font-medium">Mô tả</label>
+                        <textarea name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" placeholder="{{ __('Optional description') }}"></textarea>
                     </div>
                     <div class="pt-4 border-t flex justify-end gap-3">
-                        <button onclick="toggleModal('sizeModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
-                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save</button>
+                        <button onclick="toggleModal('sizeModal')" type="button" class="px-6 py-2 rounded-xl border">Hủy</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -807,7 +789,7 @@
     <div class="fixed inset-0 z-50 hidden bg-on-surface/40 backdrop-blur-sm flex items-center justify-center p-4" id="sizeEditModal">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="px-xl py-lg bg-surface-container-low border-b border-outline-variant/30 flex justify-between items-center">
-                <h3 class="font-headline-md text-headline-md">Edit Size</h3>
+                <h3 class="font-headline-md text-headline-md">{{ __('Edit Size') }}</h3>
                 <button type="button" onclick="toggleModal('sizeEditModal')" class="p-2 hover:bg-surface-container rounded-full">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -816,20 +798,20 @@
                 <form id="edit_size_form" action="" method="POST" class="space-y-lg">
                     @csrf
                     <div>
-                        <label class="block mb-2 font-medium">Name</label>
+                        <label class="block mb-2 font-medium">{{ __('Name') }}</label>
                         <input id="edit_size_name" type="text" name="name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none" required>
                     </div>
                     <div>
-                        <label class="block mb-2 font-medium">Volume (ml)</label>
+                        <label class="block mb-2 font-medium">{{ __('Volume (ml)') }}</label>
                         <input id="edit_size_volume" type="number" name="volume_ml" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none">
                     </div>
                     <div>
-                        <label class="block mb-2 font-medium">Description</label>
+                        <label class="block mb-2 font-medium">Mô tả</label>
                         <textarea id="edit_size_description" name="description" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-green-500 outline-none"></textarea>
                     </div>
                     <div class="pt-4 border-t flex justify-end gap-3">
-                        <button onclick="toggleModal('sizeEditModal')" type="button" class="px-6 py-2 rounded-xl border">Cancel</button>
-                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">Save Changes</button>
+                        <button onclick="toggleModal('sizeEditModal')" type="button" class="px-6 py-2 rounded-xl border">Hủy</button>
+                        <button type="submit" class="px-8 py-2 rounded-xl bg-green-600 text-white">{{ __('Save Changes') }}</button>
                     </div>
                 </form>
             </div>
@@ -1000,19 +982,19 @@
             if (!id) return;
 
             document.getElementById('edit_product_id').value = id;
-            document.getElementById('edit_name').value = button.getAttribute('data-name') ?? '';
-            document.getElementById('edit_code').value = button.getAttribute('data-code') ?? '';
-            document.getElementById('edit_category_id').value = button.getAttribute('data-category-id') ?? '';
-            document.getElementById('edit_description').value = button.getAttribute('data-description') ?? '';
+            document.getElementById('edit_name').value = button.getAttribute('data-name') ?? __('');
+            document.getElementById('edit_code').value = button.getAttribute('data-code') ?? __('');
+            document.getElementById('edit_category_id').value = button.getAttribute('data-category-id') ?? __('');
+            document.getElementById('edit_description').value = button.getAttribute('data-description') ?? __('');
             
-            const stock = button.getAttribute('data-stock') ?? '';
+            const stock = button.getAttribute('data-stock') ?? __('');
             document.getElementById('edit_stock').value = stock;
 
-            const isAutoStock = button.getAttribute('data-is-auto-stock') ?? '0';
+            const isAutoStock = button.getAttribute('data-is-auto-stock') ?? __('0');
             document.getElementById('edit_is_auto_stock').checked = (String(isAutoStock) === '1');
             calculateStockAuto('edit');
 
-            const statusVal = button.getAttribute('data-status') ?? '0';
+            const statusVal = button.getAttribute('data-status') ?? __('0');
 
             const normalizedStatus = String(statusVal) === '1' ? '1' : '0';
 
@@ -1074,9 +1056,9 @@
             const id = button.getAttribute('data-id');
             if (!id) return;
 
-            document.getElementById('edit_size_name').value = button.getAttribute('data-name') ?? '';
-            document.getElementById('edit_size_volume').value = button.getAttribute('data-volume') ?? '';
-            document.getElementById('edit_size_description').value = button.getAttribute('data-description') ?? '';
+            document.getElementById('edit_size_name').value = button.getAttribute('data-name') ?? __('');
+            document.getElementById('edit_size_volume').value = button.getAttribute('data-volume') ?? __('');
+            document.getElementById('edit_size_description').value = button.getAttribute('data-description') ?? __('');
 
             const form = document.getElementById('edit_size_form');
             form.action = `/admin/size/${id}/update`;
@@ -1229,7 +1211,7 @@
                         <select name="ingredient_id" id="toppingIngredientId" class="no-choices w-full p-3 bg-surface-container-low border border-outline-variant/50 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                             <option value="" data-category="all">-- Không liên kết --</option>
                             @foreach($ingredients as $ing)
-                                <option value="{{ $ing->id }}" data-category="{{ $ing->category ?: 'Khác' }}">{{ $ing->name }} ({{ $ing->unit->name ?? 'đơn vị' }}) - Tồn: {{ $ing->current_stock }}</option>
+                                <option value="{{ $ing->id }}" data-category="{{ $ing->category ?: 'Khác' }}">{{ $ing->name }} ({{ $ing->unit->name ?? __('đơn vị') }}) - Tồn: {{ $ing->current_stock }}</option>
                             @endforeach
                         </select>
                     </div>

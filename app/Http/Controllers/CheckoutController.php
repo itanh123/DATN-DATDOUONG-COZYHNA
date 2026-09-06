@@ -13,7 +13,7 @@ class CheckoutController extends Controller
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập để tiếp tục thanh toán.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập để tiếp tục thanh toán.'));
         }
 
         $user = \App\Models\User::find($userId);
@@ -44,7 +44,7 @@ class CheckoutController extends Controller
                     $item = new \stdClass();
                     $item->cart_item_id = $model->id;
                     $item->quantity = $model->quantity;
-                    $item->product_name = $model->product ? $model->product->name : 'Unknown';
+                    $item->product_name = $model->product ? $model->product->name : __('Unknown');
                     $item->product_image = $model->product ? $model->product->image : '';
                     $item->size_name = $model->productSize && $model->productSize->size ? $model->productSize->size->name : 'N/A';
                     
@@ -203,7 +203,7 @@ class CheckoutController extends Controller
             ]
         ]);
 
-        return back()->with('success', 'Áp dụng mã giảm giá thành công!');
+        return back()->with('success', __('Áp dụng mã giảm giá thành công!'));
     }
 
     public function addToCart(Request $request)
@@ -339,13 +339,13 @@ class CheckoutController extends Controller
     {
         $userId = session('user_id');
         if (!$userId) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập để đặt hàng.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập để đặt hàng.'));
         }
 
         $user = \App\Models\User::find($userId);
         $customerProfile = DB::table('customer_profiles')->where('user_id', $user->id)->first();
         if (!$customerProfile) {
-            return back()->with('error', 'Hồ sơ khách hàng không hợp lệ.');
+            return back()->with('error', __('Hồ sơ khách hàng không hợp lệ.'));
         }
 
         $receiverName = $request->input('receiver_name');
@@ -357,7 +357,7 @@ class CheckoutController extends Controller
         $specificAddress = $request->input('address');
 
         if (!$receiverName || !$receiverPhone || !$province || !$district || !$specificAddress) {
-            return back()->with('error', 'Vui lòng nhập đầy đủ thông tin giao hàng.');
+            return back()->with('error', __('Vui lòng nhập đầy đủ thông tin giao hàng.'));
         }
 
         $shippingAddress = "{$specificAddress}";
@@ -411,7 +411,7 @@ class CheckoutController extends Controller
         $paymentMethod = $request->input('payment', 'cash');
 
         if ($user->is_restricted && $paymentMethod === 'cash') {
-            return back()->with('error', 'Tài khoản của bạn đang bị hạn chế và không thể chọn phương thức thanh toán COD.');
+            return back()->with('error', __('Tài khoản của bạn đang bị hạn chế và không thể chọn phương thức thanh toán COD.'));
         }
 
         $validPayments = ['cash', 'momo', 'vnpay', 'bank'];
@@ -421,7 +421,7 @@ class CheckoutController extends Controller
 
         $cart = DB::table('carts')->where('customer_id', $customerProfile->id)->first();
         if (!$cart) {
-            return back()->with('error', 'Giỏ hàng trống.');
+            return back()->with('error', __('Giỏ hàng trống.'));
         }
 
         $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)
@@ -429,7 +429,7 @@ class CheckoutController extends Controller
             ->get();
 
         if ($cartItems->isEmpty()) {
-            return back()->with('error', 'Giỏ hàng trống.');
+            return back()->with('error', __('Giỏ hàng trống.'));
         }
 
         $cartTotal = 0;
@@ -537,7 +537,7 @@ class CheckoutController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại sau.');
+            return back()->with('error', __('Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại sau.'));
         }
     }
 }

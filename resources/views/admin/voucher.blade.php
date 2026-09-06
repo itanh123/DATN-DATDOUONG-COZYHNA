@@ -19,7 +19,7 @@
                 @endif
                 <form action="/admin/voucher" method="GET" class="relative hidden lg:block m-0">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                    <input name="search" value="{{ request('search') }}" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Search promo codes..." type="text" />
+                    <input name="search" value="{{ request('search') }}" class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 text-body-md focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="{{ __('Search promo codes...') }}" type="text" />
                 </form>
             </div>
         </div>
@@ -88,23 +88,17 @@
                         <thead>
                             <tr class="bg-surface-container-low/50">
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Voucher Name</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">{{ __('Voucher Name') }}</th>
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Code</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">{{ __('Code') }}</th>
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Discount Type</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">{{ __('Discount Type') }}</th>
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Status</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">Trạng thái</th>
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Usage</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">{{ __('Usage') }}</th>
                                 <th
-                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
-                                    Expiry Date</th>
+                                    class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">{{ __('Expiry Date') }}</th>
                                 <th
                                     class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold border-b border-outline-variant/30">
                                 </th>
@@ -139,16 +133,13 @@
                                 <td class="px-lg py-lg">
                                     @if($voucher->status && $voucher->end_date > now())
                                     <span class="px-sm py-1 rounded-full bg-primary/10 text-primary text-label-sm font-bold flex items-center w-fit gap-xs">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Active
-                                    </span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Hoạt động</span>
                                     @elseif(!$voucher->status)
                                     <span class="px-sm py-1 rounded-full bg-surface-container-high text-on-surface-variant text-label-sm font-bold flex items-center w-fit gap-xs">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Inactive
-                                    </span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>Tạm ẩn</span>
                                     @else
                                     <span class="px-sm py-1 rounded-full bg-error/10 text-error text-label-sm font-bold flex items-center w-fit gap-xs">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Expired
-                                    </span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-error"></span>{{ __('Expired') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-lg py-lg">
@@ -170,7 +161,7 @@
                                         <a href="/admin/voucher/{{ $voucher->id }}/edit" class="p-2 text-on-surface-variant hover:text-primary transition-colors bg-surface-container-low rounded-lg" title="Sửa">
                                             <span class="material-symbols-outlined text-[20px]">edit</span>
                                         </a>
-                                        <form method="POST" action="/admin/voucher/{{ $voucher->id }}/delete" onsubmit="return confirm('Bạn có chắc muốn xóa voucher này?');" class="inline-block">
+                                        <form method="POST" action="/admin/voucher/{{ $voucher->id }}/delete" onsubmit="customConfirm(event, this, 'Bạn có chắc muốn xóa voucher này?');" class="inline-block">
                                             @csrf
                                             <button type="submit" class="p-2 text-error hover:bg-error-container hover:text-error transition-colors rounded-lg" title="Xóa">
                                                 <span class="material-symbols-outlined text-[20px]">delete</span>
@@ -200,14 +191,13 @@
                 <div
                     class="lg:col-span-2 bg-gradient-to-br from-primary-container/20 to-secondary-container/20 p-xl rounded-2xl border border-primary/10 flex items-center justify-between overflow-hidden relative">
                     <div class="relative z-10 space-y-md">
-                        <h4 class="font-headline-md text-headline-md text-primary-fixed-variant">Optimize Your Campaigns
-                        </h4>
-                        <p class="text-body-lg text-on-surface-variant max-w-md">Our AI analyzed your recent vouchers.
+                        <h4 class="font-headline-md text-headline-md text-primary-fixed-variant">{{ __('Optimize Your Campaigns') }}</h4>
+                        <p class="text-body-lg text-on-surface-variant max-w-md">{{ __('Our AI analyzed your recent vouchers.
                             Codes using "COZY" as a prefix have a 34% higher conversion rate. Try applying this to your
-                            next campaign.</p>
+                            next campaign.') }}</p>
                         <button
-                            class="bg-primary text-on-primary px-lg py-2 rounded-lg font-title-lg active:scale-95 transition-all">View
-                            Insights</button>
+                            class="bg-primary text-on-primary px-lg py-2 rounded-lg font-title-lg active:scale-95 transition-all">{{ __('View
+                            Insights') }}</button>
                     </div>
                     <div class="absolute -right-12 -bottom-12 opacity-10 transform rotate-12">
                         <span class="material-symbols-outlined text-[240px] text-primary">analytics</span>
@@ -215,11 +205,10 @@
                 </div>
                 <div
                     class="bg-surface-container-highest/40 p-xl rounded-2xl border border-outline-variant/30 space-y-md flex flex-col justify-center">
-                    <h4 class="font-title-lg text-title-lg text-on-surface">Need Help?</h4>
-                    <p class="text-body-md text-on-surface-variant">Check out our documentation on how to set up tiered
-                        discounts and usage limits for high-volume periods.</p>
-                    <a class="flex items-center gap-xs text-primary font-bold group" href="#">
-                        User Guide <span
+                    <h4 class="font-title-lg text-title-lg text-on-surface">{{ __('Need Help?') }}</h4>
+                    <p class="text-body-md text-on-surface-variant">{{ __('Check out our documentation on how to set up tiered
+                        discounts and usage limits for high-volume periods.') }}</p>
+                    <a class="flex items-center gap-xs text-primary font-bold group" href="#">{{ __('User Guide') }}<span
                             class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </a>
                 </div>

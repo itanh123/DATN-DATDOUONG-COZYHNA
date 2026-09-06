@@ -14,16 +14,14 @@
 <!-- Page Title & Thao tác -->
 <div class="flex justify-between items-end mb-xl">
 <div>
-<h1 class="font-headline-lg text-headline-lg text-on-surface">New Product Entry</h1>
-<p class="font-body-md text-body-md text-on-surface-variant">Set up a new premium beverage in your catalog</p>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">{{ __('New Product Entry') }}</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">{{ __('Set up a new premium beverage in your catalog') }}</p>
 </div>
 <div class="flex gap-md">
 <button class="px-lg py-md rounded-lg border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors">
                         Hủy
                     </button>
-<button class="px-lg py-md rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 shadow-sm transition-all transform active:scale-95">
-                        Add Product
-                    </button>
+<button class="px-lg py-md rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 shadow-sm transition-all transform active:scale-95">Thêm Sản Phẩm</button>
 </div>
 </div>
 <!-- Bento Grid Layout -->
@@ -34,30 +32,30 @@
 <section class="bg-surface-container-lowest rounded-xl p-xl border border-outline-variant shadow-sm">
 <div class="flex items-center gap-sm mb-lg">
 <span class="material-symbols-outlined text-primary">info</span>
-<h3 class="font-title-lg text-title-lg">General Information</h3>
+<h3 class="font-title-lg text-title-lg">{{ __('General Information') }}</h3>
 </div>
 <div class="grid grid-cols-2 gap-lg">
 <div class="col-span-2">
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Product Name</label>
-<input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="e.g. Organic Sparkling Matcha" type="text"/>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Tên Sản Phẩm</label>
+<input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="{{ __('e.g. Organic Sparkling Matcha') }}" type="text"/>
 </div>
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Category</label>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Danh mục</label>
 <select class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md">
-<option>Select Category</option>
-<option>Sparkling Tea</option>
-<option>Fresh Juices</option>
-<option>Wellness Shots</option>
-<option>Kombucha</option>
+<option>{{ __('Select Category') }}</option>
+<option>{{ __('Sparkling Tea') }}</option>
+<option>{{ __('Fresh Juices') }}</option>
+<option>{{ __('Wellness Shots') }}</option>
+<option>{{ __('Kombucha') }}</option>
 </select>
 </div>
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">SKU</label>
-<input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="O-MAT-330" type="text"/>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">{{ __('SKU') }}</label>
+<input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="{{ __('O-MAT-330') }}" type="text"/>
 </div>
 <div class="col-span-2">
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Description</label>
-<textarea class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="Highlight the natural ingredients and health benefits..." rows="4"></textarea>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Mô tả</label>
+<textarea class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="{{ __('Highlight the natural ingredients and health benefits...') }}" rows="4"></textarea>
 </div>
 </div>
 </section>
@@ -69,20 +67,20 @@
 </div>
 <div class="grid grid-cols-3 gap-lg">
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Initial Stock</label>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">{{ __('Initial Stock') }}</label>
 <input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="0" type="number"/>
 </div>
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Low Stock Alert</label>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">{{ __('Low Stock Alert') }}</label>
 <input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="10" type="number"/>
 </div>
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Unit Type</label>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-xs">{{ __('Unit Type') }}</label>
 <select class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md">
-<option>Bottle</option>
+<option>{{ __('Bottle') }}</option>
 <option>Case (12ct)</option>
-<option>Kg</option>
-<option>Liter</option>
+<option>{{ __('Kg') }}</option>
+<option>{{ __('Liter') }}</option>
 </select>
 </div>
 </div>
@@ -94,14 +92,14 @@
 <section class="bg-surface-container-lowest rounded-xl p-xl border border-outline-variant shadow-sm">
 <div class="flex items-center gap-sm mb-lg">
 <span class="material-symbols-outlined text-primary">image</span>
-<h3 class="font-title-lg text-title-lg">Product Media</h3>
+<h3 class="font-title-lg text-title-lg">{{ __('Product Media') }}</h3>
 </div>
 <div class="border-2 border-dashed border-outline-variant rounded-xl p-xl text-center hover:bg-surface-container-low transition-colors cursor-pointer group">
 <span class="material-symbols-outlined text-[48px] text-outline mb-md group-hover:text-primary transition-colors">cloud_upload</span>
-<p class="font-body-md text-body-md text-on-surface-variant mb-xs">Drag and drop images here</p>
+<p class="font-body-md text-body-md text-on-surface-variant mb-xs">{{ __('Drag and drop images here') }}</p>
 <p class="font-label-sm text-label-sm text-outline">Supports PNG, JPG (Max 5MB)</p>
 <input class="hidden" id="file-upload" type="file"/>
-<label class="mt-md inline-block px-md py-xs bg-surface-container-high text-primary rounded-lg font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all" for="file-upload">Browse Files</label>
+<label class="mt-md inline-block px-md py-xs bg-surface-container-high text-primary rounded-lg font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all" for="file-upload">{{ __('Browse Files') }}</label>
 </div>
 <div class="mt-md grid grid-cols-3 gap-xs">
 <div class="aspect-square bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant">
@@ -121,13 +119,13 @@
 <input class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md" placeholder="0.00" type="text"/>
 </div>
 <div>
-<label class="block font-label-md text-label-md text-on-surface-variant mb-md">Product Tags</label>
+<label class="block font-label-md text-label-md text-on-surface-variant mb-md">{{ __('Product Tags') }}</label>
 <div class="flex flex-wrap gap-xs">
-<button class="px-md py-xs rounded-full border border-primary bg-primary-container text-on-primary-container font-label-sm text-label-sm">Organic</button>
-<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">Sugar-Free</button>
-<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">Vegan</button>
-<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">Seasonal</button>
-<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">Locally Sourced</button>
+<button class="px-md py-xs rounded-full border border-primary bg-primary-container text-on-primary-container font-label-sm text-label-sm">{{ __('Organic') }}</button>
+<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">{{ __('Sugar-Free') }}</button>
+<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">{{ __('Vegan') }}</button>
+<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">{{ __('Seasonal') }}</button>
+<button class="px-md py-xs rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:border-primary hover:text-primary">{{ __('Locally Sourced') }}</button>
 <button class="p-xs rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">
 <span class="material-symbols-outlined text-[16px]">add</span>
 </button>
@@ -148,7 +146,7 @@
 <!-- Footer Form Info -->
 <div class="mt-xl flex items-center justify-center gap-sm text-on-surface-variant opacity-60">
 <span class="material-symbols-outlined text-[18px]">lock</span>
-<p class="font-label-sm text-label-sm">Changes will be logged to the audit trail for manager review.</p>
+<p class="font-label-sm text-label-sm">{{ __('Changes will be logged to the audit trail for manager review.') }}</p>
 </div>
 </div>
 </main>

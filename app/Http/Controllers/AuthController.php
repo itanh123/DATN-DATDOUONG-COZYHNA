@@ -100,7 +100,13 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $roleCode = $request->session()->get('role_code');
         $request->session()->forget(['user_id', 'role_code']);
+
+        if (in_array($roleCode, ['admin', 'staff', 'shipper'])) {
+            return redirect('/login/admin');
+        }
+
         return redirect('/');
     }
 
@@ -298,7 +304,7 @@ class AuthController extends Controller
 
         $user->save();
 
-        return redirect('/customer/account')->with('success', 'Cập nhật thông tin thành công!');
+        return redirect('/customer/account')->with('success', __('Cập nhật thông tin thành công!'));
     }
 
     public function showForgotPassword()

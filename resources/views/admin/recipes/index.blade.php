@@ -59,7 +59,7 @@
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <p class="font-label-md text-on-surface line-clamp-1" title="{{ $ingredient->name }}">{{ $ingredient->name }}</p>
-                                        <p class="text-label-sm text-on-surface-variant">Tồn: {{ $ingredient->current_stock }} {{ $ingredient->unit->name ?? '' }}</p>
+                                        <p class="text-label-sm text-on-surface-variant">Tồn: {{ $ingredient->current_stock }} {{ $ingredient->unit->name ?? __('') }}</p>
                                     </div>
                                     @if(check_permission('edit_products'))
                                     <button type="button" class="text-error hover:bg-error/10 p-1 rounded transition-colors remove-ingredient-btn absolute top-2 right-2">
@@ -69,7 +69,7 @@
                                 </div>
                                 <div class="flex items-center gap-2 mt-auto pt-2">
                                     <input type="number" step="0.01" name="recipes[{{ $ps->id }}][ingredients][{{ $ingredient->id }}][quantity]" value="{{ $qty }}" class="w-full px-2 py-1 border border-outline-variant rounded focus:border-primary outline-none bg-surface text-sm" placeholder="0" {{ !check_permission('edit_products') ? 'disabled' : '' }}>
-                                    <span class="text-label-sm text-on-surface-variant flex-shrink-0 w-8">{{ $ingredient->unit->name ?? '' }}</span>
+                                    <span class="text-label-sm text-on-surface-variant flex-shrink-0 w-8">{{ $ingredient->unit->name ?? __('') }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -129,12 +129,12 @@
                 @foreach($ingredients as $ingredient)
                 <label class="modal-ingredient-item flex items-start gap-3 p-3 border border-outline-variant/50 rounded-xl hover:bg-primary/5 cursor-pointer transition-colors" data-name="{{ mb_strtolower($ingredient->name, 'UTF-8') }}" data-category="{{ $ingredient->category }}">
                     <div class="pt-1">
-                        <input type="checkbox" class="ingredient-checkbox w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" value="{{ $ingredient->id }}" data-name="{{ $ingredient->name }}" data-unit="{{ $ingredient->unit->name ?? '' }}" data-stock="{{ $ingredient->current_stock }}">
+                        <input type="checkbox" class="ingredient-checkbox w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" value="{{ $ingredient->id }}" data-name="{{ $ingredient->name }}" data-unit="{{ $ingredient->unit->name ?? __('') }}" data-stock="{{ $ingredient->current_stock }}">
                     </div>
                     <div>
                         <p class="font-label-md text-on-surface">{{ $ingredient->name }}</p>
-                        <p class="text-label-sm text-on-surface-variant">Nhóm: {{ $ingredient->category ?? 'Khác' }}</p>
-                        <p class="text-label-sm {{ $ingredient->current_stock > 0 ? 'text-primary' : 'text-error' }}">Tồn kho: {{ $ingredient->current_stock }} {{ $ingredient->unit->name ?? '' }}</p>
+                        <p class="text-label-sm text-on-surface-variant">Nhóm: {{ $ingredient->category ?? __('Khác') }}</p>
+                        <p class="text-label-sm {{ $ingredient->current_stock > 0 ? 'text-primary' : 'text-error' }}">Tồn kho: {{ $ingredient->current_stock }} {{ $ingredient->unit->name ?? __('') }}</p>
                     </div>
                 </label>
                 @endforeach

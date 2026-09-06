@@ -50,7 +50,7 @@ class RoleController extends Controller
         $permissionIds = $request->input('permissions', []);
 
         if (!$roleId) {
-            return back()->with('error', 'Chưa chọn chức vụ để phân quyền.');
+            return back()->with('error', __('Chưa chọn chức vụ để phân quyền.'));
         }
 
         DB::beginTransaction();
@@ -71,7 +71,7 @@ class RoleController extends Controller
             }
 
             DB::commit();
-            return back()->with('success', 'Đã lưu thay đổi phân quyền thành công!');
+            return back()->with('success', __('Đã lưu thay đổi phân quyền thành công!'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi khi cập nhật phân quyền: ' . $e->getMessage());
@@ -98,7 +98,7 @@ class RoleController extends Controller
                 'status' => 1
             ]);
             
-            return back()->with('success', 'Đã thêm chức vụ mới thành công!');
+            return back()->with('success', __('Đã thêm chức vụ mới thành công!'));
         } catch (\Exception $e) {
             return back()->with('error', 'Lỗi khi thêm chức vụ: ' . $e->getMessage());
         }
@@ -107,11 +107,11 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         if (in_array($role->code, ['admin', 'customer'])) {
-            return back()->with('error', 'Không thể xóa chức vụ hệ thống mặc định.');
+            return back()->with('error', __('Không thể xóa chức vụ hệ thống mặc định.'));
         }
 
         if ($role->users()->count() > 0) {
-            return back()->with('error', 'Không thể xóa chức vụ đang có người dùng. Vui lòng đổi chức vụ của họ trước.');
+            return back()->with('error', __('Không thể xóa chức vụ đang có người dùng. Vui lòng đổi chức vụ của họ trước.'));
         }
 
         try {
@@ -120,7 +120,7 @@ class RoleController extends Controller
             $role->delete();
             DB::commit();
 
-            return back()->with('success', 'Đã xóa chức vụ thành công!');
+            return back()->with('success', __('Đã xóa chức vụ thành công!'));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Lỗi khi xóa chức vụ: ' . $e->getMessage());

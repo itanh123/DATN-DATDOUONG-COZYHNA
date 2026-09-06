@@ -93,9 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _loginWithGoogle() async {
     try {
       final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
-      if (googleUser != null) {
-        _handleGoogleSignIn(googleUser);
-      }
+      _handleGoogleSignIn(googleUser);
     } catch (e) {
       print("Lỗi Google Sign In: $e");
       ScaffoldMessenger.of(context).showSnackBar(

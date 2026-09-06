@@ -17,13 +17,13 @@ class OrderComplaintController extends Controller
     public function store(Request $request, $orderId)
     {
         $userId = session('user_id');
-        if (!$userId) return redirect('/login')->with('error', 'Vui lòng đăng nhập.');
+        if (!$userId) return redirect('/login')->with('error', __('Vui lòng đăng nhập.'));
 
         $customer = CustomerProfile::where('user_id', $userId)->first();
-        if (!$customer) return redirect('/')->with('error', 'Lỗi tài khoản.');
+        if (!$customer) return redirect('/')->with('error', __('Lỗi tài khoản.'));
 
         $order = Order::where('id', $orderId)->where('customer_id', $customer->id)->first();
-        if (!$order) return back()->with('error', 'Đơn hàng không hợp lệ.');
+        if (!$order) return back()->with('error', __('Đơn hàng không hợp lệ.'));
 
         $request->validate([
             'incident_time' => 'required|date',
@@ -49,7 +49,7 @@ class OrderComplaintController extends Controller
             'images' => $imagePaths,
         ]);
 
-        return back()->with('success', 'Đã gửi khiếu nại tới bộ phận Quản lý. Chúng tôi sẽ phản hồi sớm nhất qua Email của bạn.');
+        return back()->with('success', __('Đã gửi khiếu nại tới bộ phận Quản lý. Chúng tôi sẽ phản hồi sớm nhất qua Email của bạn.'));
     }
 
     // API cho Admin kiểm tra khiếu nại mới
@@ -91,14 +91,14 @@ class OrderComplaintController extends Controller
     // Admin gửi email phản hồi
     public function reply(Request $request, $id)
     {
-        if (session('role_code') !== 'admin') return back()->with('error', 'Không có quyền truy cập.');
+        if (session('role_code') !== 'admin') return back()->with('error', __('Không có quyền truy cập.'));
 
         $request->validate([
             'reply_content' => 'required|string'
         ]);
 
         $complaint = OrderComplaint::with('customer.user')->find($id);
-        if (!$complaint) return back()->with('error', 'Không tìm thấy khiếu nại.');
+        if (!$complaint) return back()->with('error', __('Không tìm thấy khiếu nại.'));
 
         $complaint->update([
             'admin_reply' => $request->reply_content,
@@ -120,6 +120,6 @@ class OrderComplaintController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Đã gửi phản hồi khiếu nại thành công!']);
         }
-        return back()->with('success', 'Đã gửi phản hồi khiếu nại thành công!');
+        return back()->with('success', __('Đã gửi phản hồi khiếu nại thành công!'));
     }
 }

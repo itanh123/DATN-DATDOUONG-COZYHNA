@@ -8,9 +8,9 @@
 {{-- Header / Stats Bar --}}
 <header class="sticky top-0 z-30 bg-surface/80 backdrop-blur-md px-lg py-md border-b border-outline-variant/30 flex justify-between items-center">
     <div>
-        <h2 class="font-headline-md text-headline-md text-on-surface">Delivery Board</h2>
+        <h2 class="font-headline-md text-headline-md text-on-surface">{{ __('Delivery Board') }}</h2>
         <p class="font-body-md text-body-md text-on-surface-variant">
-            Xin chào, <strong>{{ $shipper->user->full_name ?? $shipper->user->username ?? 'Shipper' }}</strong> — Quản lý chuyến giao hàng của bạn
+            Xin chào, <strong>{{ $shipper->user->full_name ?? $shipper->user->username ?? __('Shipper') }}</strong> — Quản lý chuyến giao hàng của bạn
         </p>
     </div>
     <div class="hidden lg:flex items-center gap-lg">
@@ -120,7 +120,7 @@
 
                             <p class="font-body-md text-body-md text-on-surface-variant">
                                 <span class="material-symbols-outlined text-[16px] align-middle">person</span>
-                                {{ $order->customer->user->username ?? $order->customer->full_name ?? 'Khách hàng' }}
+                                {{ $order->customer->user->username ?? $order->customer->full_name ?? __('Khách hàng') }}
                                 &bull; {{ number_format($order->total_amount, 0, ',', '.') }}đ
                             </p>
 
@@ -147,7 +147,7 @@
                                     <li class="flex justify-between items-start py-xs border-b border-outline-variant/10 text-body-sm last:border-0 gap-md">
                                         <div class="flex-1">
                                             <div class="text-on-surface">
-                                                {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
+                                                {{ $item->product_name ?? $item->productSize?->product?->name ?? __('Sản phẩm') }}
                                                 @if($item->size_name || $item->productSize?->size)
                                                     ({{ $item->size_name ?? $item->productSize->size->name }})
                                                 @endif
@@ -156,7 +156,7 @@
                                                 <div class="text-[11px] text-on-surface-variant mt-1">
                                                     + Topping: 
                                                     @foreach($item->toppings as $index => $t)
-                                                        {{ $t->topping?->name ?? 'Topping' }} x{{ $t->quantity }}@if(!$loop->last), @endif
+                                                        {{ $t->topping?->name ?? __('Topping') }} x{{ $t->quantity }}@if(!$loop->last), @endif
                                                     @endforeach
                                                 </div>
                                             @endif
@@ -178,14 +178,13 @@
                         <div class="flex items-center justify-between">
                             <p class="font-label-md text-on-surface-variant flex items-center gap-xs">
                                 <span class="material-symbols-outlined text-[16px]">map</span>
-                                Khoảng cách: {{ $order->distance_km ?? 0 }} km ({{ $order->route_duration_minutes ?? '--' }} phút)
+                                Khoảng cách: {{ $order->distance_km ?? 0 }} km ({{ $order->route_duration_minutes ?? __('--') }} phút)
                             </p>
                             <div class="flex gap-sm">
                                 <a href="https://www.google.com/maps/dir/?api=1&destination={{ $order->delivery_latitude }},{{ $order->delivery_longitude }}&travelmode=driving" 
                                    target="_blank" 
                                    class="px-sm py-xs border border-blue-200 text-blue-600 rounded-lg text-label-sm hover:bg-blue-50 flex items-center gap-xs">
-                                    <span class="material-symbols-outlined text-[14px]">directions</span> Google Maps
-                                </a>
+                                    <span class="material-symbols-outlined text-[14px]">directions</span>{{ __('Google Maps') }}</a>
                                 <button onclick="toggleMap({{ $order->id }}, {{ $order->delivery_latitude }}, {{ $order->delivery_longitude }})"
                                     class="px-sm py-xs border border-primary text-primary rounded-lg text-label-sm hover:bg-primary/10 flex items-center gap-xs">
                                     <span class="material-symbols-outlined text-[14px]">route</span> Lộ trình
@@ -241,13 +240,13 @@
                         @forelse($historyItems as $history)
                             <tr class="hover:bg-surface-container-lowest transition-colors">
                                 <td class="px-lg py-md font-label-md">
-                                    #{{ $history->order->order_code ?? '—' }}
+                                    #{{ $history->order->order_code ?? __('—') }}
                                 </td>
                                 <td class="px-lg py-md text-on-surface-variant text-body-md">
                                     {{ $history->created_at->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-lg py-md text-on-surface-variant text-body-md hidden md:table-cell max-w-[200px] truncate">
-                                    {{ $history->order->address->address ?? '—' }}
+                                    {{ $history->order->address->address ?? __('—') }}
                                 </td>
                                 <td class="px-lg py-md">
                                     <span class="px-sm py-[2px] rounded-full text-label-sm font-medium {{ $history->status_color }}">
@@ -255,7 +254,7 @@
                                     </span>
                                 </td>
                                 <td class="px-lg py-md text-on-surface-variant text-body-md hidden lg:table-cell">
-                                    {{ $history->note ?? '—' }}
+                                    {{ $history->note ?? __('—') }}
                                 </td>
                             </tr>
                         @empty

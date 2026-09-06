@@ -12,7 +12,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if (!check_permission('view_users')) {
-            return redirect('/login')->with('error', 'Bạn không có quyền truy cập trang này.');
+            return redirect('/login')->with('error', __('Bạn không có quyền truy cập trang này.'));
         }
 
         $roles = DB::table('roles')->get();
@@ -71,7 +71,7 @@ class UserController extends Controller
 
         $this->ensureShipperProfile($user);
 
-        return back()->with('success', 'Đã tạo người dùng mới thành công!');
+        return back()->with('success', __('Đã tạo người dùng mới thành công!'));
     }
 
     public function updateRole(Request $request, User $user)
@@ -86,7 +86,7 @@ class UserController extends Controller
 
         $this->ensureShipperProfile($user);
 
-        return back()->with('success', 'Cập nhật quyền hạn thành công!');
+        return back()->with('success', __('Cập nhật quyền hạn thành công!'));
     }
 
     public function updatePassword(Request $request, User $user)
@@ -107,7 +107,7 @@ class UserController extends Controller
             'password' => Hash::make($request->input('new_password'))
         ]);
 
-        return back()->with('success', 'Đổi mật khẩu thành công!');
+        return back()->with('success', __('Đổi mật khẩu thành công!'));
     }
 
     public function toggleStatus(Request $request, User $user)

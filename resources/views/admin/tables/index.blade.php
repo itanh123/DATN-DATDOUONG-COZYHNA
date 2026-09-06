@@ -284,7 +284,7 @@
                                             'disabled'  => 'Không dùng',
                                             'merged'    => 'Đã ghép',
                                         ];
-                                        $pStatusLabel = $statusLabelsMap[$pStatus] ?? 'Đã ghép';
+                                        $pStatusLabel = $statusLabelsMap[$pStatus] ?? __('Đã ghép');
                                         
                                         $xs = []; $ys = [];
                                         foreach($groupData['coords'] as $coord) {

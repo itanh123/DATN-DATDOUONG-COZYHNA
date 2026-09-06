@@ -54,10 +54,10 @@
                                     {{ $order->completed_at ? \Carbon\Carbon::parse($order->completed_at)->format('d/m/Y H:i') : $order->updated_at->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-lg py-md text-on-surface-variant text-body-md">
-                                    {{ $order->customer->user->username ?? $order->customer->full_name ?? 'Khách hàng' }}
+                                    {{ $order->customer->user->username ?? $order->customer->full_name ?? __('Khách hàng') }}
                                 </td>
                                 <td class="px-lg py-md text-on-surface-variant text-body-md hidden md:table-cell max-w-[250px] truncate">
-                                    {{ $order->delivery_address ?: ($order->address->address ?? '—') }}
+                                    {{ $order->delivery_address ?: ($order->address->address ?? __('—')) }}
                                 </td>
                                 <td class="px-lg py-md hidden lg:table-cell">
                                     @if($order->distance_km > 0)

@@ -54,7 +54,7 @@ class AdminIngredientController extends Controller
             'status' => true,
         ]);
 
-        return redirect()->back()->with('success', 'Thêm nguyên liệu thành công.');
+        return redirect()->back()->with('success', __('Thêm nguyên liệu thành công.'));
     }
 
     public function update(Request $request, $id)
@@ -80,14 +80,14 @@ class AdminIngredientController extends Controller
             'category' => $request->category,
         ]);
 
-        return redirect()->back()->with('success', 'Cập nhật nguyên liệu thành công.');
+        return redirect()->back()->with('success', __('Cập nhật nguyên liệu thành công.'));
     }
 
     public function destroy($id)
     {
         $ingredient = \App\Models\Ingredient::findOrFail($id);
         $ingredient->delete();
-        return redirect()->back()->with('success', 'Xóa nguyên liệu thành công.');
+        return redirect()->back()->with('success', __('Xóa nguyên liệu thành công.'));
     }
 
     public function import(Request $request)
@@ -121,6 +121,6 @@ class AdminIngredientController extends Controller
             'created_by' => auth()->id() ?? null,
         ]);
 
-        return redirect()->back()->with('success', 'Nhập kho nguyên liệu thành công.');
+        return redirect()->back()->with('success', __('Nhập kho nguyên liệu thành công.'));
     }
 }

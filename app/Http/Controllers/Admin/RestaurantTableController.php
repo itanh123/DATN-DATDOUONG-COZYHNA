@@ -87,17 +87,17 @@ class RestaurantTableController extends Controller
             'status'        => true,
         ]);
 
-        return back()->with('success', 'Đã thêm tầng mới!');
+        return back()->with('success', __('Đã thêm tầng mới!'));
     }
 
     public function destroyFloor(Floor $floor)
     {
         if ($floor->tables()->count() > 0) {
-            return back()->with('error', 'Không thể xóa tầng đang có bàn!');
+            return back()->with('error', __('Không thể xóa tầng đang có bàn!'));
         }
         $floor->areas()->delete();
         $floor->delete();
-        return back()->with('success', 'Đã xóa tầng!');
+        return back()->with('success', __('Đã xóa tầng!'));
     }
 
     // ─── Table CRUD ─────────────────────────────────────────────────
@@ -135,7 +135,7 @@ class RestaurantTableController extends Controller
             'location_y' => $y,
         ]);
 
-        return back()->with('success', 'Đã thêm bàn mới!');
+        return back()->with('success', __('Đã thêm bàn mới!'));
     }
 
     public function updateTableStatus(Request $request, RestaurantTable $table)
@@ -201,14 +201,14 @@ class RestaurantTableController extends Controller
     public function destroyTable(RestaurantTable $table)
     {
         if (in_array($table->status, ['occupied', 'reserved'])) {
-            return back()->with('error', 'Không thể xóa bàn đang có khách hoặc đã đặt trước!');
+            return back()->with('error', __('Không thể xóa bàn đang có khách hoặc đã đặt trước!'));
         }
 
         // Tách khỏi bàn ghép nếu có
         MergedTableItem::where('table_id', $table->id)->delete();
 
         $table->delete();
-        return back()->with('success', 'Đã xóa bàn!');
+        return back()->with('success', __('Đã xóa bàn!'));
     }
 
     // ─── Merge/Unmerge ─────────────────────────────────────────────
@@ -438,6 +438,6 @@ class RestaurantTableController extends Controller
             'status'        => true,
         ]);
 
-        return back()->with('success', 'Đã thêm khu vực mới!');
+        return back()->with('success', __('Đã thêm khu vực mới!'));
     }
 }

@@ -215,7 +215,7 @@ class Order extends Model
             'DELIVERING'         => 'Đang giao hàng',
             'COMPLETED'          => 'Hoàn thành',
             'CANCELLED'          => 'Đã hủy',
-            default              => $this->order_status ?? 'Không rõ',
+            default              => $this->order_status ?? __('Không rõ'),
         };
     }
 

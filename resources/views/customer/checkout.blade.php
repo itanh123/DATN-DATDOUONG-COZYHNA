@@ -83,8 +83,8 @@
                         @endif
                     </div>
                     <div class="flex-grow">
-                        <h3 class="font-body-lg text-body-lg font-semibold">{{ $product->name ?? 'Sản phẩm' }}</h3>
-                        <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $size->name ?? 'Mặc định' }}</p>
+                        <h3 class="font-body-lg text-body-lg font-semibold">{{ $product->name ?? __('Sản phẩm') }}</h3>
+                        <p class="font-label-md text-label-md text-on-surface-variant">Size: {{ $size->name ?? __('Mặc định') }}</p>
                         @if(isset($item->toppings) && count($item->toppings) > 0)
                             <div class="mt-1">
                                 @foreach($item->toppings as $topping)
@@ -139,14 +139,14 @@
                 <div>
                     <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Tên người nhận *</label>
                     <input type="text" id="receiver_name" name="receiver_name" required
-                        value="{{ old('receiver_name', optional($defaultAddr)->receiver_name ?? '') }}"
+                        value="{{ old('receiver_name', optional($defaultAddr)->receiver_name ?? __('')) }}"
                         class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
                         placeholder="Nhập tên người nhận"/>
                 </div>
                 <div>
                     <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Số điện thoại *</label>
                     <input type="text" id="receiver_phone" name="receiver_phone" required
-                        value="{{ old('receiver_phone', optional($defaultAddr)->receiver_phone ?? '') }}"
+                        value="{{ old('receiver_phone', optional($defaultAddr)->receiver_phone ?? __('')) }}"
                         class="w-full p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
                         placeholder="Số điện thoại"/>
                 </div>
@@ -178,7 +178,7 @@
                 <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs block">Địa chỉ cụ thể *</label>
                 <div class="flex gap-2">
                     <input type="text" id="specific_address" name="address" required
-                        value="{{ old('address', optional($defaultAddr)->address ?? '') }}"
+                        value="{{ old('address', optional($defaultAddr)->address ?? __('')) }}"
                         class="flex-1 p-md rounded-xl bg-surface-container-low border border-outline-variant focus:border-primary focus:ring-0 text-body-md transition-colors"
                         placeholder="Số nhà, ngõ, mô tả vị trí để shipper đọc..."/>
                     <button type="button" id="btn_find_location" class="px-4 bg-secondary text-on-secondary rounded-xl hover:bg-secondary/90 transition-colors flex items-center justify-center whitespace-nowrap" title="Tìm trên bản đồ">
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parse shipping tiers passed from backend
     let shippingTiers = [];
     try {
-        shippingTiers = {!! $shippingTiers ?? '[]' !!};
+        shippingTiers = {!! $shippingTiers ?? __('[]') !!};
     } catch(e) { console.error('Lỗi parse shipping tiers'); }
 
     function validateMarkerPosition(lat, lng) {
@@ -722,15 +722,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const lat = parseFloat(
                 residentialObj.Latitude ??
                 residentialObj.latitude ??
-                residentialObj.lat ??
-                ''
+                residentialObj.lat ?? __('')
             );
             const lon = parseFloat(
                 residentialObj.Longitude ??
                 residentialObj.longitude ??
                 residentialObj.lng ??
-                residentialObj.lon ??
-                ''
+                residentialObj.lon ?? __('')
             );
 
             if (!isNaN(lat) && !isNaN(lon)) {
@@ -866,8 +864,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('display_shipping_fee').innerText = '...';
 
         if (!storeCoords) {
-            const storeLat = "{{ $storeLat ?? '' }}";
-            const storeLon = "{{ $storeLon ?? '' }}";
+            const storeLat = "{{ $storeLat ?? __('') }}";
+            const storeLon = "{{ $storeLon ?? __('') }}";
             
             if (storeLat && storeLon) {
                 storeCoords = { lat: parseFloat(storeLat), lon: parseFloat(storeLon) };

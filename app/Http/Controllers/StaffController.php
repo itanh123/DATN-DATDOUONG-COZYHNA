@@ -14,7 +14,7 @@ class StaffController extends Controller
     public function dashboard()
     {
         if (!check_permission('view_dashboard')) {
-            return redirect('/login/admin')->with('error', 'Tài khoản của bạn không có quyền truy cập.');
+            return redirect('/login/admin')->with('error', __('Tài khoản của bạn không có quyền truy cập.'));
         }
 
         $pendingOrders = Order::where(function($q) {

@@ -28,13 +28,13 @@
 </div>
 <div class="flex-1 pb-2">
 <div class="flex items-center gap-xs">
-<h1 class="font-headline-lg text-headline-lg">Marcus Chen</h1>
+<h1 class="font-headline-lg text-headline-lg">{{ __('Marcus Chen') }}</h1>
 <span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-md flex items-center gap-1">
 <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                             Hoạt động
                         </span>
 </div>
-<p class="text-on-surface-variant font-body-lg">Senior Logistics Specialist • ID: COZY-9920</p>
+<p class="text-on-surface-variant font-body-lg">{{ __('Senior Logistics Specialist • ID: COZY-9920') }}</p>
 </div>
 <div class="pb-2">
 <button onclick="document.getElementById('editShipperModal').classList.remove('hidden')" class="bg-surface-container-highest text-on-surface border border-outline-variant px-md py-2 rounded-xl font-title-lg flex items-center gap-2 hover:bg-surface-container-high transition-colors">
@@ -50,7 +50,7 @@
 <div class="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-md">
 <div class="glass-card p-lg rounded-2xl flex flex-col items-center text-center">
 <span class="material-symbols-outlined text-primary bg-primary-container p-3 rounded-full mb-md" data-icon="check_circle">check_circle</span>
-<p class="text-on-surface-variant text-label-md uppercase tracking-wider">Lifetime Deliveries</p>
+<p class="text-on-surface-variant text-label-md uppercase tracking-wider">{{ __('Lifetime Deliveries') }}</p>
 <h3 class="text-headline-lg font-headline-lg mt-xs">1,284</h3>
 <div class="text-primary text-label-sm mt-2 flex items-center gap-1">
 <span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> 12% vs last month
@@ -58,33 +58,30 @@
 </div>
 <div class="glass-card p-lg rounded-2xl flex flex-col items-center text-center">
 <span class="material-symbols-outlined text-tertiary bg-tertiary-container p-3 rounded-full mb-md" data-icon="star">star</span>
-<p class="text-on-surface-variant text-label-md uppercase tracking-wider">Average Rating</p>
+<p class="text-on-surface-variant text-label-md uppercase tracking-wider">{{ __('Average Rating') }}</p>
 <h3 class="text-headline-lg font-headline-lg mt-xs">4.95</h3>
-<p class="text-on-surface-variant text-label-sm mt-2">Based on 840 reviews</p>
+<p class="text-on-surface-variant text-label-sm mt-2">{{ __('Based on 840 reviews') }}</p>
 </div>
 <div class="glass-card p-lg rounded-2xl flex flex-col items-center text-center">
 <span class="material-symbols-outlined text-secondary bg-secondary-container p-3 rounded-full mb-md" data-icon="schedule">schedule</span>
-<p class="text-on-surface-variant text-label-md uppercase tracking-wider">On-Time Rate</p>
+<p class="text-on-surface-variant text-label-md uppercase tracking-wider">{{ __('On-Time Rate') }}</p>
 <h3 class="text-headline-lg font-headline-lg mt-xs">98%</h3>
 <div class="text-secondary text-label-sm mt-2 flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span> Elite Performer
-                    </div>
+<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span>{{ __('Elite Performer') }}</div>
 </div>
 </div>
 <!-- Digital Wallet (Bento Span 4) -->
 <div class="md:col-span-4 glass-card rounded-2xl flex flex-col overflow-hidden">
 <div class="organic-gradient p-lg text-on-primary">
 <div class="flex justify-between items-start mb-md">
-<p class="text-label-md opacity-80 uppercase tracking-widest">Available Balance</p>
+<p class="text-label-md opacity-80 uppercase tracking-widest">{{ __('Available Balance') }}</p>
 <span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
 </div>
 <h2 class="text-display-lg font-display-lg">$2,450.80</h2>
-<button class="mt-md w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-2 rounded-lg font-title-lg transition-colors">
-                        Payout Now
-                    </button>
+<button class="mt-md w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-2 rounded-lg font-title-lg transition-colors">{{ __('Payout Now') }}</button>
 </div>
 <div class="p-lg">
-<h4 class="font-title-lg text-title-lg mb-md">Recent Transactions</h4>
+<h4 class="font-title-lg text-title-lg mb-md">{{ __('Recent Transactions') }}</h4>
 <div class="space-y-md">
 <div class="flex justify-between items-center">
 <div class="flex items-center gap-3">
@@ -92,8 +89,8 @@
 <span class="material-symbols-outlined text-[18px] text-primary" data-icon="add">add</span>
 </div>
 <div>
-<p class="text-body-md font-bold">Delivery Earnings</p>
-<p class="text-label-sm text-on-surface-variant">Oct 24, 2023</p>
+<p class="text-body-md font-bold">{{ __('Delivery Earnings') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Oct 24, 2023') }}</p>
 </div>
 </div>
 <span class="font-title-lg text-primary">+$142.50</span>
@@ -104,8 +101,8 @@
 <span class="material-symbols-outlined text-[18px] text-secondary" data-icon="card_giftcard">card_giftcard</span>
 </div>
 <div>
-<p class="text-body-md font-bold">Tip - Route 82</p>
-<p class="text-label-sm text-on-surface-variant">Oct 23, 2023</p>
+<p class="text-body-md font-bold">{{ __('Tip - Route 82') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Oct 23, 2023') }}</p>
 </div>
 </div>
 <span class="font-title-lg text-primary">+$25.00</span>
@@ -117,25 +114,25 @@
 <div class="md:col-span-6 glass-card rounded-2xl p-lg">
 <div class="flex justify-between items-start mb-lg">
 <div>
-<h4 class="font-title-lg text-title-lg">Assigned Vehicle</h4>
-<p class="text-on-surface-variant text-body-md">{{ $shipper->vehicle_type ?? 'Chưa cập nhật loại xe' }}</p>
+<h4 class="font-title-lg text-title-lg">{{ __('Assigned Vehicle') }}</h4>
+<p class="text-on-surface-variant text-body-md">{{ $shipper->vehicle_type ?? __('Chưa cập nhật loại xe') }}</p>
 </div>
-<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-sm">In Good Standing</span>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-sm">{{ __('In Good Standing') }}</span>
 </div>
 <div class="relative w-full h-48 rounded-xl overflow-hidden mb-lg">
 <img class="w-full h-full object-cover" data-alt="A modern, sleek electric delivery van in a clean white and forest green livery parked in a sunlit urban charging station. The van features the 'CozyHNA' logo on the side. The scene is bright and professional, emphasizing eco-friendly logistics and modern technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkrInxMgFfQ7ostrznlj2Duzh_aNhddnMzKrVBeXgjcGDmAltUuJVZ58xcn3vbzdeKN2jqLS_WwXWapWgB9SVbesp_XDVzscnh9nac1oPwdw2pZ3AVISu0FD-55v6UB7_Y772BtZEl-luPU2VsxF04YJe0o6SOnz32omnvLPBLqNRwTo5_V991o-ADmhDs5OjqQyFyRxEvxvxUWiySh4igrp4QSR7xqFCP9SJBnegS9XZvn9ajXCg8R4W3RjBZMydGL9mh80uE"/>
 <div class="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md px-4 py-2 rounded-lg text-white">
-<p class="text-label-sm opacity-80">Plate Number</p>
-<p class="font-bold tracking-widest">{{ $shipper->license_plate ?? 'N/A' }}</p>
+<p class="text-label-sm opacity-80">{{ __('Plate Number') }}</p>
+<p class="font-bold tracking-widest">{{ $shipper->license_plate ?? __('N/A') }}</p>
 </div>
 </div>
 <div class="grid grid-cols-2 gap-lg">
 <div>
-<p class="text-label-md text-on-surface-variant">Last Maintenance</p>
-<p class="font-body-lg font-bold">Sep 12, 2023</p>
+<p class="text-label-md text-on-surface-variant">{{ __('Last Maintenance') }}</p>
+<p class="font-body-lg font-bold">{{ __('Sep 12, 2023') }}</p>
 </div>
 <div>
-<p class="text-label-md text-on-surface-variant">Battery Health</p>
+<p class="text-label-md text-on-surface-variant">{{ __('Battery Health') }}</p>
 <div class="flex items-center gap-2">
 <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
 <div class="h-full bg-primary w-[94%]"></div>
@@ -154,57 +151,55 @@
 <span class="material-symbols-outlined text-primary" data-icon="badge">badge</span>
 <div>
 <p class="font-body-md font-bold">Driver's License (Class B)</p>
-<p class="text-label-sm text-on-surface-variant">Expires: Dec 2025</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Expires: Dec 2025') }}</p>
 </div>
 </div>
 <div class="flex items-center gap-1 text-primary">
 <span class="material-symbols-outlined text-[18px]" data-icon="verified">verified</span>
-<span class="text-label-sm">Verified</span>
+<span class="text-label-sm">{{ __('Verified') }}</span>
 </div>
 </div>
 <div class="p-md bg-surface-container-low rounded-xl flex items-center justify-between">
 <div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+<span class="material-symbols-outlined text-primary" data-icon="description">Mô tả</span>
 <div>
-<p class="font-body-md font-bold">Vehicle Insurance</p>
-<p class="text-label-sm text-on-surface-variant">Expires: Jun 2024</p>
+<p class="font-body-md font-bold">{{ __('Vehicle Insurance') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Expires: Jun 2024') }}</p>
 </div>
 </div>
 <div class="flex items-center gap-1 text-primary">
 <span class="material-symbols-outlined text-[18px]" data-icon="verified">verified</span>
-<span class="text-label-sm">Verified</span>
+<span class="text-label-sm">{{ __('Verified') }}</span>
 </div>
 </div>
 <div class="p-md bg-surface-container-low rounded-xl flex items-center justify-between">
 <div class="flex items-center gap-4">
 <span class="material-symbols-outlined text-primary" data-icon="medical_services">medical_services</span>
 <div>
-<p class="font-body-md font-bold">Health Certification</p>
+<p class="font-body-md font-bold">{{ __('Health Certification') }}</p>
 <p class="text-label-sm text-on-surface-variant">Current &amp; Compliant</p>
 </div>
 </div>
 <div class="flex items-center gap-1 text-primary">
 <span class="material-symbols-outlined text-[18px]" data-icon="verified">verified</span>
-<span class="text-label-sm">Verified</span>
+<span class="text-label-sm">{{ __('Verified') }}</span>
 </div>
 </div>
 </div>
-<button class="mt-lg text-primary font-title-lg flex items-center gap-2 self-start hover:underline">
-                    Upload New Document
-                    <span class="material-symbols-outlined text-[18px]" data-icon="upload">upload</span>
+<button class="mt-lg text-primary font-title-lg flex items-center gap-2 self-start hover:underline">{{ __('Upload New Document') }}<span class="material-symbols-outlined text-[18px]" data-icon="upload">upload</span>
 </button>
 </div>
 <!-- Settings & Preferences (Full Width Span) -->
 <div class="md:col-span-12 glass-card rounded-2xl p-lg">
-<h4 class="font-title-lg text-title-lg mb-lg">Personal Settings</h4>
+<h4 class="font-title-lg text-title-lg mb-lg">{{ __('Personal Settings') }}</h4>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-2xl">
 <div>
-<h5 class="text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-md">Notification Preferences</h5>
+<h5 class="text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-md">{{ __('Notification Preferences') }}</h5>
 <div class="space-y-lg">
 <div class="flex items-center justify-between">
 <div>
-<p class="font-body-md font-bold">Push Notifications</p>
-<p class="text-label-sm text-on-surface-variant">Receive new delivery alerts</p>
+<p class="font-body-md font-bold">{{ __('Push Notifications') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Receive new delivery alerts') }}</p>
 </div>
 <label class="relative inline-flex items-center cursor-pointer">
 <input checked="" class="sr-only peer" type="checkbox"/>
@@ -213,8 +208,8 @@
 </div>
 <div class="flex items-center justify-between">
 <div>
-<p class="font-body-md font-bold">SMS Updates</p>
-<p class="text-label-sm text-on-surface-variant">Emergency route changes only</p>
+<p class="font-body-md font-bold">{{ __('SMS Updates') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Emergency route changes only') }}</p>
 </div>
 <label class="relative inline-flex items-center cursor-pointer">
 <input class="sr-only peer" type="checkbox"/>
@@ -224,15 +219,15 @@
 </div>
 </div>
 <div>
-<h5 class="text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-md">Emergency Contact</h5>
+<h5 class="text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-md">{{ __('Emergency Contact') }}</h5>
 <div class="space-y-md">
 <div class="grid grid-cols-2 gap-md">
 <div>
-<label class="block text-label-sm text-on-surface-variant mb-1">Name</label>
+<label class="block text-label-sm text-on-surface-variant mb-1">{{ __('Name') }}</label>
 <input class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="Sarah Chen"/>
 </div>
 <div>
-<label class="block text-label-sm text-on-surface-variant mb-1">Relationship</label>
+<label class="block text-label-sm text-on-surface-variant mb-1">{{ __('Relationship') }}</label>
 <input class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-2 text-body-md focus:ring-primary focus:border-primary" type="text" value="Spouse"/>
 </div>
 </div>
@@ -244,8 +239,8 @@
 </div>
 </div>
 <div class="mt-xl pt-xl border-t border-outline-variant flex justify-end gap-md">
-<button class="px-lg py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low transition-colors">Discard Changes</button>
-<button class="px-lg py-2 rounded-xl bg-primary text-on-primary font-title-lg active:scale-95 transition-transform">Save Preferences</button>
+<button class="px-lg py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low transition-colors">{{ __('Discard Changes') }}</button>
+<button class="px-lg py-2 rounded-xl bg-primary text-on-primary font-title-lg active:scale-95 transition-transform">{{ __('Save Preferences') }}</button>
 </div>
 </div>
 </div>

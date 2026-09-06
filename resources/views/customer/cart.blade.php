@@ -167,9 +167,15 @@
 <div class="pt-20 pb-24 cart-bg">
     <main class="max-w-6xl mx-auto px-4 md:px-lg pb-24 md:pb-8">
         
-        <div class="mb-8">
-            <h1 class="text-[28px] font-bold text-on-surface">Giỏ hàng của bạn</h1>
-            <p class="text-[14px] text-on-surface-variant mt-1">Kiểm tra lại các món đồ uống tuyệt vời trước khi thanh toán.</p>
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-[28px] font-bold text-on-surface">Giỏ hàng của bạn</h1>
+                <p class="text-[14px] text-on-surface-variant mt-1">Kiểm tra lại các món đồ uống tuyệt vời trước khi thanh toán.</p>
+            </div>
+            <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant/30 rounded-xl text-on-surface font-semibold hover:bg-surface-container-low transition-colors shadow-sm self-start md:self-auto">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                Quay lại Menu
+            </a>
         </div>
 
         @if($cartItems->isEmpty())
@@ -208,7 +214,7 @@
                             @endphp
                             <div class="p-4 md:p-5 flex gap-4 cart-item-row relative" 
                                  data-id="{{ $item->id }}" 
-                                 data-product-id="{{ $product->id ?? '' }}"
+                                 data-product-id="{{ $product->id ?? __('') }}"
                                  data-price="{{ $price }}" 
                                  data-quantity="{{ $item->quantity }}"
                                  data-server-quantity="{{ $item->quantity }}"
@@ -221,7 +227,7 @@
                                     <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" class="item-checkbox custom-checkbox" checked>
                                 </div>
 
-                                <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-outline-variant/20 hover:opacity-90 transition-opacity bg-white">
+                                <a href="/customer/product_detail?id={{ $product->id ?? __('') }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-outline-variant/20 hover:opacity-90 transition-opacity bg-white">
                                     @if($product && $product->image)
                                         <img class="w-full h-full object-cover" src="{{ str_starts_with($product->image, 'http') ? $product->image : asset($product->image) }}" alt=""/>
                                     @else
@@ -234,8 +240,8 @@
                                 <div class="flex-1 min-w-0 flex flex-col justify-between">
                                     <div>
                                         <div class="flex justify-between items-start gap-2">
-                                            <a href="/customer/product_detail?id={{ $product->id ?? '' }}" class="text-[16px] font-bold text-on-surface hover:text-primary transition-colors truncate">
-                                                {{ $product->name ?? 'Sản phẩm' }}
+                                            <a href="/customer/product_detail?id={{ $product->id ?? __('') }}" class="text-[16px] font-bold text-on-surface hover:text-primary transition-colors truncate">
+                                                {{ $product->name ?? __('Sản phẩm') }}
                                             </a>
                                             {{-- Delete Button (Desktop) --}}
                                             <button type="button" class="btn-remove hidden md:block text-error hover:bg-error-container p-1.5 rounded-lg transition-colors" data-id="{{ $item->id }}">
@@ -246,7 +252,7 @@
                                         {{-- Variant info & Edit Button --}}
                                         <div class="mt-1 flex items-start gap-2 flex-wrap">
                                             <div class="text-[12px] text-on-surface-variant flex flex-wrap items-center gap-1.5">
-                                                <span>Size: <span class="font-semibold">{{ $size->name ?? 'Mặc định' }}</span></span>
+                                                <span>{{ __('Size:') }}<span class="font-semibold">{{ $size->name ?? __('Mặc định') }}</span></span>
                                                 @if(!empty($item->toppings))
                                                     <span class="mx-0.5">•</span>
                                                     @foreach($item->toppings as $topping)

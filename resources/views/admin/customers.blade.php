@@ -8,7 +8,7 @@
 <header class="h-16 flex items-center justify-between px-gutter bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-40">
 <div class="flex items-center gap-md bg-surface-container-low px-md py-xs rounded-full border border-outline-variant focus-within:ring-2 focus-within:ring-primary transition-all w-96">
 <span class="material-symbols-outlined text-on-surface-variant">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline" placeholder="Search customers, orders, or tier status..." type="text"/>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline" placeholder="{{ __('Search customers, orders, or tier status...') }}" type="text"/>
 </div>
 <div class="flex items-center gap-md">
 <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors relative">
@@ -22,8 +22,8 @@
 <div class="flex items-center gap-sm cursor-pointer hover:bg-surface-container-high p-xs rounded-full transition-all">
 <img class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional headshot of a friendly female administrator with a clean business background. Her expression is welcoming and organized. The lighting is bright and clear, reflecting a modern corporate aesthetic with subtle organic tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0YJAWWyB6_3Cxc3MfpNAo_RZMQI3vilbh_rSIG2rwhPq_5GcPMwJBUZUGr5cfJwwyJMnnI0Lk5lYtbjGkWg9uAwhp6CP76IsVHJIX5xS2bxveo41n3ofRktcVP3hr1q9Mm4oTYOTtWXwdy7erPtS1t6d8JxGSIjsYpSfKOjBSu7P6AiDjccxXXFeyH5Q18zHoBl8zZJ9CiNRzqIr7w8I4MLxjD1PcSxTArLQW8SDV7TeHfoZvt_-AY8UJoLCx1OsIFeAQjVWO"/>
 <div class="hidden lg:block text-left">
-<p class="text-label-sm font-bold text-on-surface leading-tight">Admin User</p>
-<p class="text-[10px] text-on-surface-variant">Manager</p>
+<p class="text-label-sm font-bold text-on-surface leading-tight">{{ __('Admin User') }}</p>
+<p class="text-[10px] text-on-surface-variant">{{ __('Manager') }}</p>
 </div>
 </div>
 </div>
@@ -34,17 +34,13 @@
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
 <div>
 <h2 class="text-headline-lg font-headline-lg text-on-surface">Khách hàng Directory</h2>
-<p class="text-body-lg text-on-surface-variant">Manage relationships, loyalty tiers, and purchasing behavior.</p>
+<p class="text-body-lg text-on-surface-variant">{{ __('Manage relationships, loyalty tiers, and purchasing behavior.') }}</p>
 </div>
 <div class="flex items-center gap-sm">
 <button class="flex items-center gap-xs px-md py-sm bg-surface border border-outline text-on-surface-variant rounded-xl hover:bg-surface-container transition-colors font-body-md">
-<span class="material-symbols-outlined text-[18px]">ios_share</span>
-                        Export
-                    </button>
+<span class="material-symbols-outlined text-[18px]">ios_share</span>{{ __('Export') }}</button>
 <button class="flex items-center gap-xs px-md py-sm bg-secondary-container text-on-secondary-container rounded-xl hover:shadow-md transition-all font-body-md">
-<span class="material-symbols-outlined text-[18px]">mail</span>
-                        Broadcast
-                    </button>
+<span class="material-symbols-outlined text-[18px]">mail</span>{{ __('Broadcast') }}</button>
 <button class="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-xl hover:shadow-lg transition-all font-body-md">
 <span class="material-symbols-outlined text-[18px]">person_add</span>
                         Add Khách hàng
@@ -86,7 +82,7 @@
 <span class="material-symbols-outlined text-[12px]">trending_down</span> 2.1%
                         </span>
 </div>
-<p class="text-label-md text-on-surface-variant uppercase tracking-wider">Avg. LTV</p>
+<p class="text-label-md text-on-surface-variant uppercase tracking-wider">{{ __('Avg. LTV') }}</p>
 <h3 class="text-display-lg font-display-lg text-on-surface leading-tight mt-xs">$242.50</h3>
 </div>
 <div class="bg-surface border border-outline-variant p-md rounded-2xl shadow-sm hover:shadow-md transition-all group">
@@ -94,11 +90,9 @@
 <div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
 <span class="material-symbols-outlined">person_add_alt</span>
 </div>
-<span class="text-primary font-bold text-label-sm flex items-center gap-xs bg-primary/10 px-xs py-[2px] rounded-full">
-                            New
-                        </span>
+<span class="text-primary font-bold text-label-sm flex items-center gap-xs bg-primary/10 px-xs py-[2px] rounded-full">{{ __('New') }}</span>
 </div>
-<p class="text-label-md text-on-surface-variant uppercase tracking-wider">New This Month</p>
+<p class="text-label-md text-on-surface-variant uppercase tracking-wider">{{ __('New This Month') }}</p>
 <h3 class="text-display-lg font-display-lg text-on-surface leading-tight mt-xs">482</h3>
 </div>
 </section>
@@ -123,7 +117,7 @@
 <thead class="sticky top-0 bg-surface-container-low z-10">
 <tr>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Khách hàng</th>
-<th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Tier</th>
+<th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('Tier') }}</th>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Đơn hàng</th>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng cộng Spent</th>
 <th class="px-lg py-md text-label-sm text-on-surface-variant uppercase tracking-wider">Last Hoạt động</th>
@@ -137,13 +131,13 @@
 <div class="flex items-center gap-md">
 <img class="w-10 h-10 rounded-full object-cover" data-alt="A portrait of a cheerful man in his early 30s with a neat beard and glasses. He is holding a reusable coffee cup in a brightly lit, organic cafe setting with green plants in the background. High-key lighting, soft focus, professional aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEYvzhk3v203RBkWom6AucCCzkgVngNEbbcTIFzUR7UONTeXjvkYh-5WbOq9DTLU_HGr1ry3uEl5QV88TOzd6jxhNBSQLlq8sdo6NWAydlbEQ1SSdeoW6GnkvlSN2sNtYaJEh9KbrNwQy-whRgKxRFo6yQd2ajkbOoionyyGs_eR4CNAZqcLEOYICsnS8K0YPW-BjlWyLTwmayNdS94zUvb2jzPjHSaOcbzXF_IdvOJ6nRcQi5z9whBt9YXH54tQuMGIzSoDPC"/>
 <div>
-<p class="text-body-md font-bold text-on-surface">Julian Rivers</p>
+<p class="text-body-md font-bold text-on-surface">{{ __('Julian Rivers') }}</p>
 <p class="text-label-sm text-on-surface-variant">julian.r@email.com</p>
 </div>
 </div>
 </td>
 <td class="px-lg py-md">
-<span class="px-sm py-1 bg-tertiary-container/20 text-tertiary-container font-bold text-[10px] rounded-full uppercase border border-tertiary-container/30">Gold</span>
+<span class="px-sm py-1 bg-tertiary-container/20 text-tertiary-container font-bold text-[10px] rounded-full uppercase border border-tertiary-container/30">{{ __('Gold') }}</span>
 </td>
 <td class="px-lg py-md text-center text-body-md font-medium">42</td>
 <td class="px-lg py-md text-body-md font-bold text-primary">$1,240.45</td>
@@ -158,17 +152,17 @@
 <div class="flex items-center gap-md">
 <img class="w-10 h-10 rounded-full object-cover" data-alt="A portrait of a serene woman with braided hair wearing a beige linen shirt. She is sitting in a sunlit conservatory filled with organic textures and warm light. The image captures a clean, premium, and healthy lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiB5IB4s6UoSAs4B0X16kpIlY1YzvaHWb4aL-4yAOJ0iPfDGvTVPWTPa7ptqOHvT5suEXhEU2Tw_WNzxMoM5zGuxHbKAHXIeKHLjjsdiCYAqoFVSBO8rN1QFCskN-6r7f0pzTfyWBdQ9zAmSX19etV55OrX3LO27x9kqGvINmBVi8X8CoyBAlyPWgT-BR3MYCOYFvVy3lecDn7vO-MunDuTNpw5hkInHstNS4CIZP083BsbSXoLum6nER60tOw31NNdalalhhj"/>
 <div>
-<p class="text-body-md font-bold text-on-surface">Sarah Jennings</p>
+<p class="text-body-md font-bold text-on-surface">{{ __('Sarah Jennings') }}</p>
 <p class="text-label-sm text-on-surface-variant">s.jennings@web.com</p>
 </div>
 </div>
 </td>
 <td class="px-lg py-md">
-<span class="px-sm py-1 bg-outline-variant/30 text-outline font-bold text-[10px] rounded-full uppercase border border-outline-variant">Silver</span>
+<span class="px-sm py-1 bg-outline-variant/30 text-outline font-bold text-[10px] rounded-full uppercase border border-outline-variant">{{ __('Silver') }}</span>
 </td>
 <td class="px-lg py-md text-center text-body-md font-medium">18</td>
 <td class="px-lg py-md text-body-md font-bold text-primary">$532.10</td>
-<td class="px-lg py-md text-body-md text-on-surface-variant">Yesterday</td>
+<td class="px-lg py-md text-body-md text-on-surface-variant">{{ __('Yesterday') }}</td>
 <td class="px-lg py-md text-right">
 <button class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">chevron_right</button>
 </td>
@@ -177,15 +171,15 @@
 <tr class="hover:bg-surface-container-low transition-colors cursor-pointer group">
 <td class="px-lg py-md">
 <div class="flex items-center gap-md">
-<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold">MK</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold">{{ __('MK') }}</div>
 <div>
-<p class="text-body-md font-bold text-on-surface">Marcus Knight</p>
+<p class="text-body-md font-bold text-on-surface">{{ __('Marcus Knight') }}</p>
 <p class="text-label-sm text-on-surface-variant">mknight@mail.org</p>
 </div>
 </div>
 </td>
 <td class="px-lg py-md">
-<span class="px-sm py-1 bg-secondary-container/20 text-secondary font-bold text-[10px] rounded-full uppercase border border-secondary/30">Bronze</span>
+<span class="px-sm py-1 bg-secondary-container/20 text-secondary font-bold text-[10px] rounded-full uppercase border border-secondary/30">{{ __('Bronze') }}</span>
 </td>
 <td class="px-lg py-md text-center text-body-md font-medium">5</td>
 <td class="px-lg py-md text-body-md font-bold text-primary">$112.50</td>
@@ -200,13 +194,13 @@
 <div class="flex items-center gap-md">
 <img class="w-10 h-10 rounded-full object-cover" data-alt="A portrait of an elderly gentleman with a kind expression and silver hair, wearing a high-quality green sweater. He is in a clean, modern architecture setting with wood accents and lots of natural light. High-end lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuEKx1rPOUiSnyzTPKO0SiLiVN8it1_sY9WfumObGipGmEK2zQIbziKHSZ_BkUr2WoYWeP2_LIanLqR4EMCeGfMQG0Fw-INNtYi4Blf2xK64S-IUiu8FZqxq0Uatz9ihj7GbkNZaC-DFgWcfanDmLXs37PeSSJCyHyjYXIE2dZIFkYG5Cg3E_5FsjBvYVXWv8rYjw4xS1R5EYeVrpcaOyT3pzzaxgkwiZDhHAsNUYGu-0vn73NCXYrdww5oeiwdiJo3gI5sH71"/>
 <div>
-<p class="text-body-md font-bold text-on-surface">Robert Chen</p>
+<p class="text-body-md font-bold text-on-surface">{{ __('Robert Chen') }}</p>
 <p class="text-label-sm text-on-surface-variant">robert.chen@p-mail.com</p>
 </div>
 </div>
 </td>
 <td class="px-lg py-md">
-<span class="px-sm py-1 bg-tertiary-container/20 text-tertiary-container font-bold text-[10px] rounded-full uppercase border border-tertiary-container/30">Gold</span>
+<span class="px-sm py-1 bg-tertiary-container/20 text-tertiary-container font-bold text-[10px] rounded-full uppercase border border-tertiary-container/30">{{ __('Gold') }}</span>
 </td>
 <td class="px-lg py-md text-center text-body-md font-medium">84</td>
 <td class="px-lg py-md text-body-md font-bold text-primary">$2,890.00</td>
@@ -219,10 +213,10 @@
 </table>
 </div>
 <div class="px-lg py-sm bg-surface-container-low flex justify-between items-center text-label-sm">
-<span class="text-on-surface-variant">Showing 4 of 12,842 customers</span>
+<span class="text-on-surface-variant">{{ __('Showing 4 of 12,842 customers') }}</span>
 <div class="flex gap-xs">
-<button class="px-sm py-1 border border-outline-variant rounded-md hover:bg-surface transition-colors disabled:opacity-50">Prev</button>
-<button class="px-sm py-1 bg-primary text-on-primary rounded-md shadow-sm">Next</button>
+<button class="px-sm py-1 border border-outline-variant rounded-md hover:bg-surface transition-colors disabled:opacity-50">{{ __('Prev') }}</button>
+<button class="px-sm py-1 bg-primary text-on-primary rounded-md shadow-sm">{{ __('Next') }}</button>
 </div>
 </div>
 </div>
@@ -232,7 +226,7 @@
 <!-- Quick Khách hàng View Sidebar Placeholder -->
 <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm p-lg relative overflow-hidden">
 <div class="absolute top-0 right-0 p-md">
-<button class="material-symbols-outlined text-on-surface-variant hover:text-primary">edit</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary">Sửa</button>
 </div>
 <div class="flex flex-col items-center text-center space-y-sm mb-lg">
 <div class="relative">
@@ -242,23 +236,23 @@
 </div>
 </div>
 <div>
-<h3 class="text-title-lg font-title-lg text-on-surface">Julian Rivers</h3>
+<h3 class="text-title-lg font-title-lg text-on-surface">{{ __('Julian Rivers') }}</h3>
 <p class="text-body-md text-on-surface-variant">Thành viên từ Jan 2023</p>
 </div>
 <div class="flex gap-xs">
-<span class="bg-primary/10 text-primary px-sm py-1 rounded-full text-label-sm font-bold">Top 5% Spender</span>
-<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-label-sm font-bold">Health Conscious</span>
+<span class="bg-primary/10 text-primary px-sm py-1 rounded-full text-label-sm font-bold">{{ __('Top 5% Spender') }}</span>
+<span class="bg-secondary/10 text-secondary px-sm py-1 rounded-full text-label-sm font-bold">{{ __('Health Conscious') }}</span>
 </div>
 </div>
 <div class="space-y-md">
-<h4 class="text-label-sm font-bold uppercase tracking-widest text-on-surface-variant">Recent Activity</h4>
+<h4 class="text-label-sm font-bold uppercase tracking-widest text-on-surface-variant">{{ __('Recent Activity') }}</h4>
 <div class="space-y-sm">
 <div class="flex items-start gap-sm">
 <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary">
 <span class="material-symbols-outlined text-[16px]">local_cafe</span>
 </div>
 <div class="flex-1">
-<p class="text-body-md font-medium text-on-surface">Ordered 'Organic Matcha Latte'</p>
+<p class="text-body-md font-medium text-on-surface">{{ __('Ordered \'Organic Matcha Latte\'') }}</p>
 <p class="text-label-sm text-on-surface-variant">2 hours ago • $6.50</p>
 </div>
 </div>
@@ -267,8 +261,8 @@
 <span class="material-symbols-outlined text-[16px]">redeem</span>
 </div>
 <div class="flex-1">
-<p class="text-body-md font-medium text-on-surface">Redeemed 'Free Pastry' reward</p>
-<p class="text-label-sm text-on-surface-variant">Yesterday • 500 pts</p>
+<p class="text-body-md font-medium text-on-surface">{{ __('Redeemed \'Free Pastry\' reward') }}</p>
+<p class="text-label-sm text-on-surface-variant">{{ __('Yesterday • 500 pts') }}</p>
 </div>
 </div>
 <div class="flex items-start gap-sm">
@@ -276,21 +270,21 @@
 <span class="material-symbols-outlined text-[16px]">shopping_basket</span>
 </div>
 <div class="flex-1">
-<p class="text-body-md font-medium text-on-surface">Ordered 'Acai Smoothie Bowl'</p>
+<p class="text-body-md font-medium text-on-surface">{{ __('Ordered \'Acai Smoothie Bowl\'') }}</p>
 <p class="text-label-sm text-on-surface-variant">3 days ago • $12.00</p>
 </div>
 </div>
 </div>
-<button class="w-full py-sm bg-surface-container hover:bg-surface-container-high rounded-xl text-primary font-bold text-body-md transition-all">View Full Profile</button>
+<button class="w-full py-sm bg-surface-container hover:bg-surface-container-high rounded-xl text-primary font-bold text-body-md transition-all">{{ __('View Full Profile') }}</button>
 </div>
 </div>
 <!-- Engagement Tiers Visual -->
 <div class="bg-surface rounded-2xl border border-outline-variant shadow-sm p-lg">
-<h4 class="text-title-lg font-title-lg text-on-surface mb-md">Tier Distribution</h4>
+<h4 class="text-title-lg font-title-lg text-on-surface mb-md">{{ __('Tier Distribution') }}</h4>
 <div class="space-y-md">
 <div class="space-y-xs">
 <div class="flex justify-between text-label-sm font-bold">
-<span class="text-tertiary-container">Gold (Top Tier)</span>
+<span class="text-tertiary-container">{{ __('Gold (Top Tier)') }}</span>
 <span class="text-on-surface">15%</span>
 </div>
 <div class="w-full bg-surface-container rounded-full h-2">
@@ -299,7 +293,7 @@
 </div>
 <div class="space-y-xs">
 <div class="flex justify-between text-label-sm font-bold">
-<span class="text-outline">Silver (Standard)</span>
+<span class="text-outline">{{ __('Silver (Standard)') }}</span>
 <span class="text-on-surface">35%</span>
 </div>
 <div class="w-full bg-surface-container rounded-full h-2">
@@ -308,7 +302,7 @@
 </div>
 <div class="space-y-xs">
 <div class="flex justify-between text-label-sm font-bold">
-<span class="text-secondary">Bronze (Entry)</span>
+<span class="text-secondary">{{ __('Bronze (Entry)') }}</span>
 <span class="text-on-surface">50%</span>
 </div>
 <div class="w-full bg-surface-container rounded-full h-2">
@@ -322,11 +316,11 @@
 <span class="material-symbols-outlined">campaign</span>
 </div>
 <div>
-<p class="text-body-md font-bold text-on-surface">Opportunity Detected</p>
+<p class="text-body-md font-bold text-on-surface">{{ __('Opportunity Detected') }}</p>
 <p class="text-label-sm text-on-surface-variant">1,240 Silver users are close to Gold status.</p>
 </div>
 </div>
-<button class="w-full mt-md py-sm border-2 border-primary/20 text-primary font-bold rounded-xl hover:bg-primary/5 transition-all text-body-md">Create Promotion</button>
+<button class="w-full mt-md py-sm border-2 border-primary/20 text-primary font-bold rounded-xl hover:bg-primary/5 transition-all text-body-md">{{ __('Create Promotion') }}</button>
 </div>
 </div>
 </div>

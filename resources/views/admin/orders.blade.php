@@ -102,11 +102,9 @@
         </form>
         <div class="flex items-center gap-sm">
             <button class="bg-surface-container-lowest border border-outline-variant text-on-surface px-md py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-surface-container-low transition-colors">
-                <span class="material-symbols-outlined">file_download</span> Export CSV
-            </button>
+                <span class="material-symbols-outlined">file_download</span>{{ __('Export CSV') }}</button>
             <a href="{{ route('admin.orders.index') }}" class="bg-primary text-on-primary px-lg py-sm rounded-xl font-semibold flex items-center gap-xs hover:bg-opacity-90 transition-opacity shadow-md">
-                <span class="material-symbols-outlined">refresh</span> Refresh Data
-            </a>
+                <span class="material-symbols-outlined">refresh</span>{{ __('Refresh Data') }}</a>
         </div>
     </section>
 
@@ -137,7 +135,7 @@
                         <td class="px-lg py-lg">
                             <span class="font-body-md text-on-surface-variant">
                                 @if($order->items->count() > 0)
-                                    {{ $order->items->first()->quantity }}x {{ $order->items->first()->product_name ?? 'Sản phẩm' }}
+                                    {{ $order->items->first()->quantity }}x {{ $order->items->first()->product_name ?? __('Sản phẩm') }}
                                     @if($order->items->count() > 1)
                                         <br><span class="text-xs italic text-on-surface-variant opacity-70">+ {{ $order->items->count() - 1 }} sản phẩm khác</span>
                                     @endif
@@ -332,7 +330,7 @@
                     <option value="">-- Chọn Shipper --</option>
                     @if(isset($shippers) && count($shippers) > 0)
                         @foreach($shippers as $sh)
-                            <option value="{{ $sh->id }}">{{ $sh->user->full_name ?? $sh->user->username ?? 'Shipper ' . $sh->id }}</option>
+                            <option value="{{ $sh->id }}">{{ $sh->user->full_name ?? $sh->user->username ?? __('Shipper ') . $sh->id }}</option>
                         @endforeach
                     @else
                         <option value="" disabled>Không có Shipper nào đang Available</option>
@@ -498,7 +496,7 @@
                 
                 if (order.delivery_latitude && order.delivery_longitude && order.order_type === 'DELIVERY') {
                     mapWrapper.classList.remove('hidden');
-                    mapDistance.innerHTML = `Khoảng cách: ${order.distance_km || 0} km (${order.route_duration_minutes || '--'} phút) &bull; <a href="https://www.google.com/maps/dir/?api=1&origin={{ \App\Models\Setting::get('store_lat', '0') }},{{ \App\Models\Setting::get('store_lon', '0') }}&destination=${order.delivery_latitude},${order.delivery_longitude}&travelmode=driving" target="_blank" class="text-primary hover:underline">Google Maps</a>`;
+                    mapDistance.innerHTML = `Khoảng cách: ${order.distance_km || 0} km (${order.route_duration_minutes || '--'} phút) &bull; <a href="https://www.google.com/maps/dir/?api=1&origin={{ \App\Models\Setting::get('store_lat', '0') }},{{ \App\Models\Setting::get('store_lon', '0') }}&destination=${order.delivery_latitude},${order.delivery_longitude}&travelmode=driving" target="_blank" class="text-primary hover:underline">{{ __('Google Maps') }}</a>`;
                     
                     // Initialize Leaflet map if it hasn't been created
                     if (!window.adminMap) {

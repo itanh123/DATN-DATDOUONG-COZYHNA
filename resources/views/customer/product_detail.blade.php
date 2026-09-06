@@ -5,7 +5,7 @@
 @section('content')
 <main class="max-w-container-max mx-auto px-md pt-lg pb-24 md:pb-lg">
 <header class="flex justify-between items-center mb-xl">
-<h1 class="font-headline-lg text-headline-lg text-primary">CozyHNA</h1>
+<h1 class="font-headline-lg text-headline-lg text-primary">{{ __('CozyHNA') }}</h1>
 <div class="flex gap-md">
 <span class="material-symbols-outlined text-on-surface-variant">search</span>
 <span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
@@ -64,33 +64,31 @@
                 <!-- Product Info Header -->
                 <section class="px-lg pt-lg pb-md border-b border-outline-variant/10">
                     <div class="flex justify-between items-start mb-xs">
-                        <h2 class="font-headline-md text-headline-md text-on-surface">Honey Lavender Cold Brew</h2>
+                        <h2 class="font-headline-md text-headline-md text-on-surface">{{ __('Honey Lavender Cold Brew') }}</h2>
                         <span class="font-headline-md text-headline-md text-primary">$4.20</span>
                     </div>
                     <div class="flex items-center gap-xs mb-md">
                         <span class="material-symbols-outlined text-tertiary text-sm"
                             style="font-variation-settings: 'FILL' 1;">star</span>
                         <span class="font-label-sm text-label-sm text-on-surface font-bold">4.9</span>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">(1.2k reviews)</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant">{{ __('(1.2k reviews)') }}</span>
                     </div>
-                    <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
-                        Our signature brew with floral notes and natural honey. Hand-crafted daily for a smooth,
-                        refreshing experience that balances organic sweetness with bold caffeine.
-                    </p>
+                    <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">{{ __('Our signature brew with floral notes and natural honey. Hand-crafted daily for a smooth,
+                        refreshing experience that balances organic sweetness with bold caffeine.') }}</p>
                 </section>
                 <!-- Customization Options -->
                 <section class="px-lg py-md space-y-xl">
                     <!-- Size Selector -->
                     <div>
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Size</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Kích cỡ</label>
                         <div class="flex gap-sm">
                             <button
-                                class="flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all">Small</button>
+                                class="flex-1 py-md rounded-2xl border-2 border-primary bg-primary-container text-on-primary-container font-bold text-label-md active:scale-95 transition-all">{{ __('Small') }}</button>
                             <button
-                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">Medium</button>
+                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">{{ __('Medium') }}</button>
                             <button
-                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">Large</button>
+                                class="flex-1 py-md rounded-2xl border border-outline-variant text-on-surface-variant hover:border-primary active:scale-95 transition-all">{{ __('Large') }}</button>
                         </div>
                     </div>
                     
@@ -101,44 +99,42 @@
                             <summary
                                 class="flex justify-between items-center py-md cursor-pointer list-none border-b border-outline-variant/10">
                                 <span
-                                    class="font-label-md text-label-md text-on-surface font-semibold">Ingredients</span>
+                                    class="font-label-md text-label-md text-on-surface font-semibold">{{ __('Ingredients') }}</span>
                                 <span
                                     class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
                             </summary>
-                            <div class="py-md text-body-md text-on-surface-variant leading-relaxed px-base">
-                                Organic cold brew coffee beans, pure spring water, lavender blossom extract, raw
-                                wildflower honey, a splash of oat milk.
-                            </div>
+                            <div class="py-md text-body-md text-on-surface-variant leading-relaxed px-base">{{ __('Organic cold brew coffee beans, pure spring water, lavender blossom extract, raw
+                                wildflower honey, a splash of oat milk.') }}</div>
                         </details>
                         <details class="group">
                             <summary
                                 class="flex justify-between items-center py-md cursor-pointer list-none border-b border-outline-variant/10">
-                                <span class="font-label-md text-label-md text-on-surface font-semibold">Nutrition
-                                    Facts</span>
+                                <span class="font-label-md text-label-md text-on-surface font-semibold">{{ __('Nutrition
+                                    Facts') }}</span>
                                 <span
                                     class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
                             </summary>
                             <div class="py-md text-body-md text-on-surface-variant px-base">
-                                <div class="flex justify-between mb-xs"><span>Calories</span><span>120 kcal</span></div>
-                                <div class="flex justify-between mb-xs"><span>Total Sugar</span><span>14g</span></div>
-                                <div class="flex justify-between"><span>Caffeine</span><span>180mg</span></div>
+                                <div class="flex justify-between mb-xs"><span>{{ __('Calories') }}</span><span>120 kcal</span></div>
+                                <div class="flex justify-between mb-xs"><span>{{ __('Total Sugar') }}</span><span>14g</span></div>
+                                <div class="flex justify-between"><span>{{ __('Caffeine') }}</span><span>180mg</span></div>
                             </div>
                         </details>
                     </div>
                     <!-- Special Notes -->
                     <div>
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">Special
-                            Notes</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm block">{{ __('Special
+                            Notes') }}</label>
                         <textarea
                             class="w-full p-md rounded-2xl bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-0 text-body-md placeholder:text-outline h-24 transition-colors"
-                            placeholder="e.g., extra lavender sprig, separate honey..."></textarea>
+                            placeholder="{{ __('e.g., extra lavender sprig, separate honey...') }}"></textarea>
                     </div>
                     <!-- Related Products Section -->
                     <div class="pb-xl">
                         <label
-                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">You
-                            May Also Like</label>
+                            class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-md block">{{ __('You
+                            May Also Like') }}</label>
                         <div class="flex gap-md overflow-x-auto hide-scrollbar pb-xs">
                             <div class="min-w-[140px] group cursor-pointer">
                                 <div
@@ -148,7 +144,7 @@
                                         style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLEH1KcISZu2xppB1WP_8so5ZEL9HehNCi9tuAFQJpITDBX7I0Q4IbYpSDtIDBun7uRAB73H5TjaSnco9hrc7LVW75MkTBMkkPk3UmAnNueyGmon9w6g5qkDKyyG8IFQnBj8DNAL3SoBR4igkcGzDClu5fIO2aQfnkbTdddq4kbe8pn1WVssXe6PFSZeQFsvgvU7OTZ-pttiAjbx1cdQAtTHXbWMUDuWHrYYDjsEkhKIfKN2zAXhK9ljwYDOLeni860MdN_erX')">
                                     </div>
                                 </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Matcha Latte</p>
+                                <p class="text-label-md font-bold text-on-surface truncate">{{ __('Matcha Latte') }}</p>
                                 <p class="text-label-sm text-primary">$5.50</p>
                             </div>
                             <div class="min-w-[140px] group cursor-pointer">
@@ -159,7 +155,7 @@
                                         style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkVljJ2rohy2SC6VjitJmpOYPd1ZXc-cfX1UOg0NJBUJ2pI6iJ3isNE7ZvQPZH8QIQq01H9KAkSpdnil8WuHxK4EVjkoArlTPAZf2ndD3x_JgadJlHYWT1GWJjdsCT0L06GxiMwX_pIuD1lG1xWZIVK_tvsncCeMzr0p_3a1QkPs3T2anmh44lqDRa4EHy1MfNOe4zI4AH0DlRPcgEDCw8ZK1skO8LMCznos3owr_nJ8DRU5tX6sCGgAsmM4hqsn45Vzl2-aV-')">
                                     </div>
                                 </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Cinnamon Swirl</p>
+                                <p class="text-label-md font-bold text-on-surface truncate">{{ __('Cinnamon Swirl') }}</p>
                                 <p class="text-label-sm text-primary">$4.80</p>
                             </div>
                             <div class="min-w-[140px] group cursor-pointer">
@@ -170,7 +166,7 @@
                                         style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0G_2FJ_ZJj7MH8dQRKX0wsoiEontRx7TCDMVnzCXjRUSq6IQxi_rDSkad0C9A7f3VlAsDivzAXuhu74WIlAuHDbTti8vaePW9vMKNIiIuoPHzcIXe4-6Efglton9Mu7yVgwgR8tFUGdVhb8OSl1SO1RClPgoMWOSKQE6qdeC0I2sfe_X-eevOs2R6_ANx5Ij1O5ZWtA_O4Srv2czdf65L2Mr0j1YNKcXv1nHs7E-9pH8zYkLkbtAGwcvQ8ZsL8nbQyddifUUx')">
                                     </div>
                                 </div>
-                                <p class="text-label-md font-bold text-on-surface truncate">Hibiscus Rose</p>
+                                <p class="text-label-md font-bold text-on-surface truncate">{{ __('Hibiscus Rose') }}</p>
                                 <p class="text-label-sm text-primary">$4.50</p>
                             </div>
                         </div>
@@ -191,13 +187,13 @@
                             onclick="incrementQty()"><span class="material-symbols-outlined text-md">add</span></button>
                     </div>
                     <div class="text-right">
-                        <span class="text-label-sm text-on-surface-variant block">Total Price</span>
+                        <span class="text-label-sm text-on-surface-variant block">Tổng Giá</span>
                         <span class="font-headline-md text-headline-md text-on-surface" id="totalPrice">$4.20</span>
                     </div>
                 </div>
                 <button
                     class="w-full py-lg bg-primary text-on-primary font-bold rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all flex justify-center items-center gap-md">
-                    <span>Add to Cart</span>
+                    <span>Thêm vào giỏ</span>
                     <span class="material-symbols-outlined">shopping_bag</span>
                 </button>
             </footer>

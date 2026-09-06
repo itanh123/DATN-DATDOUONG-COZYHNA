@@ -30,7 +30,7 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+            return redirect('/login/admin')->with('error', __('Vui lòng đăng nhập với tài khoản Shipper.'));
         }
 
         // Tab "Available": đơn hàng đã sẵn sàng giao, chưa có shipper nhận
@@ -184,7 +184,7 @@ class ShipperController extends Controller
                     'old_status' => $order->order_status,
                     'new_status' => 'COMPLETED',
                     'changed_by' => session('user_id'),
-                    'note'       => $request->note ?? 'Giao hàng thành công',
+                    'note'       => $request->note ?? __('Giao hàng thành công'),
                 ]);
 
                 $order->order_status = 'COMPLETED';
@@ -205,7 +205,7 @@ class ShipperController extends Controller
                     'old_status' => $order->order_status,
                     'new_status' => 'PREPARING',
                     'changed_by' => session('user_id'),
-                    'note'       => $request->note ?? 'Giao hàng thất bại',
+                    'note'       => $request->note ?? __('Giao hàng thất bại'),
                 ]);
                 $order->order_status = 'PREPARING';
                 $order->status = 'preparing';
@@ -220,7 +220,7 @@ class ShipperController extends Controller
                     'old_status' => $order->order_status,
                     'new_status' => $order->order_status,
                     'changed_by' => session('user_id'),
-                    'note'       => $request->note ?? 'Đã lấy hàng và bắt đầu đi giao',
+                    'note'       => $request->note ?? __('Đã lấy hàng và bắt đầu đi giao'),
                 ]);
             }
             elseif ($request->status === 'DELIVERING') {
@@ -229,7 +229,7 @@ class ShipperController extends Controller
                     'old_status' => $order->order_status,
                     'new_status' => $order->order_status,
                     'changed_by' => session('user_id'),
-                    'note'       => $request->note ?? 'Đang trên đường giao đến khách hàng',
+                    'note'       => $request->note ?? __('Đang trên đường giao đến khách hàng'),
                 ]);
             }
         });
@@ -243,7 +243,7 @@ class ShipperController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $statusLabels[$request->status] ?? 'Đã cập nhật trạng thái.',
+            'message' => $statusLabels[$request->status] ?? __('Đã cập nhật trạng thái.'),
         ]);
     }
 
@@ -254,7 +254,7 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+            return redirect('/login/admin')->with('error', __('Vui lòng đăng nhập với tài khoản Shipper.'));
         }
 
         $orders = Order::where('shipper_id', $shipper->id)
@@ -274,7 +274,7 @@ class ShipperController extends Controller
     {
         $shipper = $this->getShipperProfile();
         if (!$shipper) {
-            return redirect('/login/admin')->with('error', 'Vui lòng đăng nhập với tài khoản Shipper.');
+            return redirect('/login/admin')->with('error', __('Vui lòng đăng nhập với tài khoản Shipper.'));
         }
 
         $ordersWithReviews = Order::where('shipper_id', $shipper->id)

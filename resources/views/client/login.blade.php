@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>CozyHNA - Authentication</title>
+    <title>{{ __('CozyHNA - Authentication') }}</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
         rel="stylesheet" />
@@ -180,9 +180,9 @@
             <!-- Hero Image Container -->
             <div class="relative z-20 w-full h-full flex flex-col justify-between p-2xl text-on-primary">
                 <div>
-                    <h1 class="font-display-lg text-display-lg tracking-tight mb-md">CozyHNA</h1>
-                    <p class="font-headline-md text-headline-md max-w-md opacity-90">Experience the art of artisanal
-                        brewing, delivered with organic vitality.</p>
+                    <h1 class="font-display-lg text-display-lg tracking-tight mb-md">{{ __('CozyHNA') }}</h1>
+                    <p class="font-headline-md text-headline-md max-w-md opacity-90">{{ __('Experience the art of artisanal
+                        brewing, delivered with organic vitality.') }}</p>
                 </div>
                 <div
                     class="relative w-full aspect-[4/3] rounded-xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
@@ -204,7 +204,7 @@
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuChSk_HS1Q-bEcncDPyL1KqMM6hGXvNvfdCY2nFWS2rES_nBug7BKvFCAwtQnG6LGq5-2YYM7--C-CGQOjRks3ayWpre1ZZHXCUxoxEWMKXhKMV0VuSpcT7Q7r18qml8_3BpOyQXEEqVZPfpCJ44mbaDkf6Ijaoj9JGOPmKsPHpAmQp1t48QydohTsjpkHZaqJGJ-ozvW2Gu7wODb3SeP6UQqtOzFF7BYRIq2usXmubQB7U0gwdwUChVUnpqarm-JqjKgHmpP8C" />
                         </div>
                     </div>
-                    <p class="font-label-md text-label-md">Join over 10,000+ beverage enthusiasts.</p>
+                    <p class="font-label-md text-label-md">{{ __('Join over 10,000+ beverage enthusiasts.') }}</p>
                 </div>
             </div>
         </section>
@@ -212,27 +212,23 @@
         <section class="w-full lg:w-1/2 bg-surface flex items-center justify-center p-md md:p-xl relative">
             <!-- Mobile Logo -->
             <div class="absolute top-lg left-lg lg:hidden">
-                <span class="font-title-lg text-title-lg font-bold text-primary">CozyHNA</span>
+                <span class="font-title-lg text-title-lg font-bold text-primary">{{ __('CozyHNA') }}</span>
             </div>
             <div class="w-full max-w-md">
                 <!-- Toggle Tabs -->
                 <div class="flex bg-surface-container-low p-base rounded-xl mb-xl border border-outline-variant/20">
                     <button
                         class="flex-1 py-sm font-label-md text-label-md rounded-lg transition-all duration-300 bg-surface shadow-sm text-primary"
-                        id="loginTab" onclick="toggleAuth('login')">
-                        Login
-                    </button>
+                        id="loginTab" onclick="toggleAuth('login')">{{ __('Login') }}</button>
                     <button
                         class="flex-1 py-sm font-label-md text-label-md rounded-lg transition-all duration-300 text-on-surface-variant hover:text-on-surface"
-                        id="signupTab" onclick="toggleAuth('signup')">
-                        Create Account
-                    </button>
+                        id="signupTab" onclick="toggleAuth('signup')">{{ __('Create Account') }}</button>
                 </div>
                 <div class="form-transition" id="authContent">
                     <header class="mb-lg">
-                        <h2 class="font-headline-lg text-headline-lg mb-xs" id="authHeading">Welcome Back</h2>
-                        <p class="font-body-md text-body-md text-on-surface-variant" id="authSubtext">Please enter your
-                            details to access your account.</p>
+                        <h2 class="font-headline-lg text-headline-lg mb-xs" id="authHeading">{{ __('Welcome Back') }}</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant" id="authSubtext">{{ __('Please enter your
+                            details to access your account.') }}</p>
                     </header>
                     @if($errors->any())
                         <div class="mb-md p-sm rounded-lg bg-error-container text-on-error-container font-body-md border border-error/20">
@@ -267,22 +263,22 @@
                     <div class="relative flex items-center justify-center mb-lg">
                         <hr class="w-full border-outline-variant/30" />
                         <span
-                            class="absolute bg-surface px-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">or
-                            email</span>
+                            class="absolute bg-surface px-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">{{ __('or
+                            email') }}</span>
                     </div>
                     <!-- Main Form -->
 <form id="authForm" class="space-y-md" method="POST" action="/login">
                         @csrf
                         <div class="hidden transform transition-all duration-300 space-y-md" id="signupFields">
                             <div>
-                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Full Name</label>
+                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">{{ __('Full Name') }}</label>
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">person</span>
-                                    <input name="username" value="{{ old('username') }}" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="John Doe" type="text" />
+                                    <input name="username" value="{{ old('username') }}" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="{{ __('John Doe') }}" type="text" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Phone Number</label>
+                                <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">{{ __('Phone Number') }}</label>
                                 <div class="relative">
                                     <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 20px;">phone</span>
                                     <input name="phone" value="{{ old('phone') }}" class="w-full pl-11 pr-md py-sm rounded-xl border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-body-md" placeholder="0901234567" type="tel" />
@@ -290,8 +286,8 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">Email
-                                Address</label>
+                            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs ml-base">{{ __('Email
+                                Address') }}</label>
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant"
@@ -304,9 +300,9 @@ placeholder="name@example.com" type="email" name="email" value="{{ old('email') 
                         <div>
                             <div class="flex justify-between items-center mb-xs ml-base mr-base">
                                 <label
-                                    class="block font-label-md text-label-md text-on-surface-variant">Password</label>
+                                    class="block font-label-md text-label-md text-on-surface-variant">{{ __('Password') }}</label>
                                 <a class="font-label-sm text-label-sm text-primary hover:underline transition-opacity"
-                                    href="#" id="forgotPass">Forgot password?</a>
+                                    href="#" id="forgotPass">{{ __('Forgot password?') }}</a>
                             </div>
                             <div class="relative">
                                 <span
@@ -326,22 +322,20 @@ type="password" name="password" required />
                         <div class="hidden items-center gap-sm ml-base" id="termsCheck">
                             <input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
                                 type="checkbox" />
-                            <label class="font-label-sm text-label-sm text-on-surface-variant">I agree to the <a
-                                    class="text-primary hover:underline" href="#">Terms of Service</a> and <a
-                                    class="text-primary hover:underline" href="#">Privacy Policy</a>.</label>
+                            <label class="font-label-sm text-label-sm text-on-surface-variant">{{ __('I agree to the') }}<a
+                                    class="text-primary hover:underline" href="#">{{ __('Terms of Service') }}</a> and <a
+                                    class="text-primary hover:underline" href="#">{{ __('Privacy Policy') }}</a>.</label>
                         </div>
                         <button
                             class="w-full py-md rounded-xl bg-primary-container text-on-primary-container font-headline-md text-headline-md shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-sm mt-xl"
                             id="submitBtn">
-                            <span>Sign In</span>
+                            <span>{{ __('Sign In') }}</span>
                             <span class="material-symbols-outlined">arrow_forward</span>
                         </button>
                     </form>
                     <footer class="mt-xl text-center">
-                        <p class="font-body-md text-body-md text-on-surface-variant" id="toggleHint">
-                            Don't have an account?
-                            <button class="text-primary font-bold hover:underline" onclick="toggleAuth('signup')">Sign
-                                up for free</button>
+                        <p class="font-body-md text-body-md text-on-surface-variant" id="toggleHint">{{ __('Don\'t have an account?') }}<button class="text-primary font-bold hover:underline" onclick="toggleAuth('signup')">{{ __('Sign
+                                up for free') }}</button>
                         </p>
                     </footer>
                 </div>
@@ -349,9 +343,9 @@ type="password" name="password" required />
             <!-- Footer Links -->
             <div
                 class="absolute bottom-lg left-1/2 -translate-x-1/2 flex gap-lg opacity-40 hover:opacity-100 transition-opacity whitespace-nowrap">
-                <a class="font-label-sm text-label-sm hover:text-primary" href="#">Help Center</a>
-                <a class="font-label-sm text-label-sm hover:text-primary" href="#">Legal</a>
-                <a class="font-label-sm text-label-sm hover:text-primary" href="#">Contact</a>
+                <a class="font-label-sm text-label-sm hover:text-primary" href="#">{{ __('Help Center') }}</a>
+                <a class="font-label-sm text-label-sm hover:text-primary" href="#">{{ __('Legal') }}</a>
+                <a class="font-label-sm text-label-sm hover:text-primary" href="#">{{ __('Contact') }}</a>
             </div>
         </section>
     </main>
@@ -385,7 +379,7 @@ type="password" name="password" required />
             forgotPass.classList.add('opacity-0', 'pointer-events-none');
             submitBtn.querySelector('span:first-child').innerText = 'Get Started';
             toggleHint.innerHTML =
-                'Already have an account? <button type="button" onclick="toggleAuth(\'login\')" class="text-primary font-bold hover:underline">Log in here</button>';
+                'Already have an account? <button type="button" onclick="toggleAuth(\'login')" class="text-primary font-bold hover:underline">{{ __('Log in here') }}</button>';
             authForm.action = '/register';
         } else {
             // Style Tabs
@@ -404,7 +398,7 @@ type="password" name="password" required />
             forgotPass.classList.remove('opacity-0', 'pointer-events-none');
             submitBtn.querySelector('span:first-child').innerText = 'Sign In';
             toggleHint.innerHTML =
-                "Don't have an account? <button type=\"button\" onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">Sign up for free</button>";
+                "Don't have an account? <button type=\"button\" onclick=\"toggleAuth('signup')\" class=\"text-primary font-bold hover:underline\">{{ __('Sign up for free') }}</button>";
             authForm.action = '/login';
         }
     }

@@ -7,7 +7,7 @@
                 </h3>
                 <p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-xs mt-xs">
                     <span class="material-symbols-outlined text-[18px]">person</span>
-                    {{ $order->customer->user->username ?? $order->customer->full_name ?? 'Khách hàng' }}
+                    {{ $order->customer->user->username ?? $order->customer->full_name ?? __('Khách hàng') }}
                 </p>
             </div>
             <span class="bg-secondary-container text-on-secondary-container px-sm py-[2px] rounded-full font-label-sm text-label-sm">
@@ -28,7 +28,7 @@
                 <div class="flex justify-between text-body-sm text-on-surface-variant border-b border-outline-variant/10 pb-xs last:border-0 last:pb-0 gap-md">
                     <div class="flex-1">
                         <div class="text-on-surface">
-                            {{ $item->product_name ?? $item->productSize?->product?->name ?? 'Sản phẩm' }}
+                            {{ $item->product_name ?? $item->productSize?->product?->name ?? __('Sản phẩm') }}
                             @if($item->size_name || $item->productSize?->size)
                                 ({{ $item->size_name ?? $item->productSize->size->name }})
                             @endif
@@ -37,7 +37,7 @@
                             <div class="text-[11px] text-on-surface-variant mt-1">
                                 + Topping: 
                                 @foreach($item->toppings as $index => $t)
-                                    {{ $t->topping?->name ?? 'Topping' }} x{{ $t->quantity }}@if(!$loop->last), @endif
+                                    {{ $t->topping?->name ?? __('Topping') }} x{{ $t->quantity }}@if(!$loop->last), @endif
                                 @endforeach
                             </div>
                         @endif

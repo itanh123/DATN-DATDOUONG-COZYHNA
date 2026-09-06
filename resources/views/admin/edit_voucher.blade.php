@@ -7,7 +7,7 @@
 <div class="max-w-[1100px] mx-auto">
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-xs py-md text-on-surface-variant mb-md">
-        <a class="font-label-md text-label-md hover:text-primary" href="/admin/voucher">Voucher</a>
+        <a class="font-label-md text-label-md hover:text-primary" href="/admin/voucher">{{ __('Voucher') }}</a>
         <span class="material-symbols-outlined text-[16px]">chevron_right</span>
         <span class="font-label-md text-label-md text-primary font-bold">Cập nhật Voucher</span>
     </nav>
@@ -80,7 +80,7 @@
                         <div>
                             <label class="block font-label-md text-label-md text-on-surface-variant mb-xs">Loại giảm giá <span class="text-error">*</span></label>
                             <select name="discount_type" class="w-full border-outline-variant rounded-lg p-md focus:border-primary focus:ring-1 focus:ring-primary text-body-md">
-                                <option value="percent" {{ old('discount_type', $voucher->discount_type) == 'percent' ? 'selected' : '' }}>Phần trăm (%)</option>
+                                <option value="{{ __('percent') }}" {{ old('discount_type', $voucher->discount_type) == 'percent' ? 'selected' : '' }}>Phần trăm (%)</option>
                                 <option value="fixed" {{ old('discount_type', $voucher->discount_type) == 'fixed' ? 'selected' : '' }}>Số tiền cố định (VNĐ)</option>
                             </select>
                         </div>

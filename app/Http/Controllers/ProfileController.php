@@ -81,7 +81,7 @@ class ProfileController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return back()->with('success', 'Cập nhật hồ sơ thành công!');
+        return back()->with('success', __('Cập nhật hồ sơ thành công!'));
     }
 
     public function updateShipper(Request $request)
@@ -106,7 +106,7 @@ class ProfileController extends Controller
             ]
         );
 
-        return back()->with('success', 'Cập nhật hồ sơ thành công!');
+        return back()->with('success', __('Cập nhật hồ sơ thành công!'));
     }
 
     public function updatePassword(Request $request)
@@ -231,7 +231,7 @@ class ProfileController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return back()->with('success', 'Thêm địa chỉ thành công!');
+        return back()->with('success', __('Thêm địa chỉ thành công!'));
     }
 
     public function updateAddress(Request $request, $id)
@@ -251,10 +251,10 @@ class ProfileController extends Controller
         ]);
 
         $profile = CustomerProfile::where('user_id', $userId)->first();
-        if (!$profile) return back()->with('error', 'Không tìm thấy hồ sơ.');
+        if (!$profile) return back()->with('error', __('Không tìm thấy hồ sơ.'));
 
         $addressModel = CustomerAddress::where('id', $id)->where('customer_id', $profile->id)->first();
-        if (!$addressModel) return back()->with('error', 'Không tìm thấy địa chỉ.');
+        if (!$addressModel) return back()->with('error', __('Không tìm thấy địa chỉ.'));
 
         // If is_default, unset existing defaults
         if ($request->boolean('is_default')) {
@@ -277,7 +277,7 @@ class ProfileController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return back()->with('success', 'Cập nhật địa chỉ thành công!');
+        return back()->with('success', __('Cập nhật địa chỉ thành công!'));
     }
 
     public function deleteAddress(Request $request, $addressId)
@@ -286,12 +286,12 @@ class ProfileController extends Controller
         if (!$userId) return response()->json(['error' => 'Unauthorized'], 401);
 
         $profile = CustomerProfile::where('user_id', $userId)->first();
-        if (!$profile) return back()->with('error', 'Không tìm thấy hồ sơ.');
+        if (!$profile) return back()->with('error', __('Không tìm thấy hồ sơ.'));
 
         CustomerAddress::where('id', $addressId)
             ->where('customer_id', $profile->id)
             ->delete();
 
-        return back()->with('success', 'Đã xóa địa chỉ.');
+        return back()->with('success', __('Đã xóa địa chỉ.'));
     }
 }

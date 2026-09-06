@@ -63,7 +63,7 @@ class VoucherController extends Controller
 
         Voucher::create($data);
 
-        return redirect('/admin/voucher')->with('success', 'Tạo voucher thành công.');
+        return redirect('/admin/voucher')->with('success', __('Tạo voucher thành công.'));
     }
 
     public function edit(Voucher $voucher)
@@ -100,12 +100,12 @@ class VoucherController extends Controller
 
         $voucher->update($data);
 
-        return redirect('/admin/voucher')->with('success', 'Cập nhật voucher thành công.');
+        return redirect('/admin/voucher')->with('success', __('Cập nhật voucher thành công.'));
     }
 
     public function destroy(Voucher $voucher)
     {
         $voucher->delete();
-        return redirect('/admin/voucher')->with('success', 'Xóa voucher thành công.');
+        return redirect('/admin/voucher')->with('success', __('Xóa voucher thành công.'));
     }
 }

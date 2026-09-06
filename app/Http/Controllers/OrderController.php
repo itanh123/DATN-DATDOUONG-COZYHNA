@@ -20,7 +20,7 @@ class OrderController extends Controller
     {
         $userId = session('user_id');
         if (!$userId) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập.'));
         }
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
@@ -123,7 +123,7 @@ class OrderController extends Controller
     {
         $userId = session('user_id');
         if (!$userId) {
-            return redirect('/login')->with('error', 'Vui lòng đăng nhập.');
+            return redirect('/login')->with('error', __('Vui lòng đăng nhập.'));
         }
 
         $request->validate([
@@ -141,7 +141,7 @@ class OrderController extends Controller
 
         $profile = CustomerProfile::where('user_id', $userId)->first();
         if (!$profile) {
-            return back()->with('error', 'Không tìm thấy hồ sơ khách hàng.');
+            return back()->with('error', __('Không tìm thấy hồ sơ khách hàng.'));
         }
 
         $cartItemsRaw = session('cart', []);
@@ -155,7 +155,7 @@ class OrderController extends Controller
         }
 
         if (empty($cartItems)) {
-            return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào được chọn để thanh toán.');
+            return redirect()->route('cart.index')->with('error', __('Không có sản phẩm nào được chọn để thanh toán.'));
         }
 
         $createdOrderCode = null;
@@ -392,7 +392,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return redirect()->route('customer.orders')->with('success', 'Đặt hàng thành công!');
+        return redirect()->route('customer.orders')->with('success', __('Đặt hàng thành công!'));
     }
 
     public function cancelOrder(Request $request, $orderId)
@@ -401,19 +401,19 @@ class OrderController extends Controller
         if (!$userId) return redirect('/login');
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
-        if (!$customerProfile) return back()->with('error', 'Không tìm thấy thông tin khách hàng');
+        if (!$customerProfile) return back()->with('error', __('Không tìm thấy thông tin khách hàng'));
 
         $order = Order::where('id', $orderId)
             ->where('customer_id', $customerProfile->id)
             ->first();
 
         if (!$order) {
-            return back()->with('error', 'Đơn hàng không tồn tại hoặc bạn không có quyền hủy.');
+            return back()->with('error', __('Đơn hàng không tồn tại hoặc bạn không có quyền hủy.'));
         }
 
         $status = strtolower($order->status ?? $order->order_status ?? '');
         if (in_array($status, ['preparing', 'shipping', 'delivering', 'completed', 'cancelled'])) {
-            return back()->with('error', 'Đơn hàng đang chuẩn bị hoặc đã giao, không thể hủy.');
+            return back()->with('error', __('Đơn hàng đang chuẩn bị hoặc đã giao, không thể hủy.'));
         }
 
         $cancelReason = request('cancel_reason') ?: 'Không có lý do';
@@ -443,7 +443,7 @@ class OrderController extends Controller
         if (!$userId) return redirect('/login');
 
         $customerProfile = DB::table('customer_profiles')->where('user_id', $userId)->first();
-        if (!$customerProfile) return redirect('/')->with('error', 'Không tìm thấy hồ sơ');
+        if (!$customerProfile) return redirect('/')->with('error', __('Không tìm thấy hồ sơ'));
 
         $order = Order::where('id', $orderId)
             ->where('customer_id', $customerProfile->id)
@@ -465,7 +465,7 @@ class OrderController extends Controller
         // Check if status is completed
         $status = strtolower($order->order_status ?? $order->status ?? '');
         if ($status !== 'completed' && $status !== 'hoàn thành') {
-            return redirect()->route('customer.orders')->with('error', 'Chỉ có thể đánh giá đơn hàng đã hoàn thành.');
+            return redirect()->route('customer.orders')->with('error', __('Chỉ có thể đánh giá đơn hàng đã hoàn thành.'));
         }
 
         return view('customer.review', compact('order'));
@@ -484,7 +484,7 @@ class OrderController extends Controller
 
         $status = strtolower($order->order_status ?? $order->status ?? '');
         if ($status !== 'completed' && $status !== 'hoàn thành') {
-            return redirect()->route('customer.orders')->with('error', 'Đơn hàng chưa hoàn thành.');
+            return redirect()->route('customer.orders')->with('error', __('Đơn hàng chưa hoàn thành.'));
         }
 
         $request->validate([
@@ -525,7 +525,7 @@ class OrderController extends Controller
             }
         }
 
-        return redirect()->route('customer.orders')->with('success', 'Cảm ơn bạn đã gửi đánh giá!');
+        return redirect()->route('customer.orders')->with('success', __('Cảm ơn bạn đã gửi đánh giá!'));
     }
 }
 
