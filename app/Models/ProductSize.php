@@ -27,7 +27,7 @@ class ProductSize extends Model
             return $product->stock;
         }
 
-        $recipe = $this->recipes()->first();
+        $recipe = $this->recipes->first();
         if (!$recipe || $recipe->ingredients->isEmpty()) {
             return 0;
         }

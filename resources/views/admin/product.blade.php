@@ -134,8 +134,8 @@
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-lg bg-surface-container-high overflow-hidden">
-                                            @if($product->image)
-                                                <img class="w-full h-full object-cover" src="{{ $product->image }}" />
+                                            @if($product->image_url)
+                                                <img class="w-full h-full object-cover" src="{{ $product->image_url }}" />
                                             @endif
                                         </div>
                                         <div>
@@ -184,7 +184,7 @@
                                         data-category-id="{{ $product->category_id }}"
                                         data-description="{{ $product->description }}"
                                         data-status="{{ $product->status }}"
-                                        data-image="{{ $product->image }}"
+                                        data-image="{{ $product->image_url }}"
                                         data-stock="{{ $product->stock }}"
                                         data-is-auto-stock="{{ $product->is_auto_stock ? 1 : 0 }}"
                                         onclick="openProductActions(this)"

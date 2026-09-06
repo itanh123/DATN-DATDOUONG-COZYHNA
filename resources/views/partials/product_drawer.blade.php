@@ -209,22 +209,7 @@
             }
         }
 
-        function calculateSizeStock(ps) {
-            if (!ps || !ps.recipes || ps.recipes.length === 0) return 0;
-            let recipe = ps.recipes[0];
-            if (!recipe || !recipe.ingredients || recipe.ingredients.length === 0) return 0;
-            let maxStock = Infinity;
-            for (let i = 0; i < recipe.ingredients.length; i++) {
-                let ri = recipe.ingredients[i];
-                if (!ri.ingredient) continue;
-                let requiredQty = parseFloat(ri.quantity) || 0;
-                if (requiredQty <= 0) continue;
-                let currentStock = parseFloat(ri.ingredient.current_stock) || 0;
-                let possibleQuantity = Math.floor(currentStock / requiredQty);
-                if (possibleQuantity < maxStock) maxStock = possibleQuantity;
-            }
-            return maxStock === Infinity ? 0 : maxStock;
-        }
+
 
         function updateStockDisplay(stock) {
             const stockBadge = document.getElementById('drawerStockBadge');
@@ -288,14 +273,30 @@
                     });
                     closeDrawer();
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra');
+                    Swal.fire({
+                        title: 'Sản Phẩm Đang Hết',
+                        text: data.message || 'Sản phẩm này đã hết, vui lòng chọn sản phẩm khác',
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
                     if (data.message === 'Vui lòng đăng nhập') {
                         window.location.href = '/login';
                     }
                 }
             } catch (err) {
                 console.error(err);
-                alert('Lỗi kết nối mạng khi thêm vào giỏ hàng');
+                Swal.fire({
+                    title: 'Lỗi kết nối mạng',
+                    text: 'Vui lòng kiểm tra kết nối mạng',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
         }
 
@@ -349,7 +350,7 @@
                                 currentProductSizeId = ps.id || null;
                                 document.getElementById('drawerProductPrice').innerText = new Intl.NumberFormat('vi-VN').format(unitPrice) + ' đ';
                                 updateTotals();
-                                updateStockDisplay(calculateSizeStock(ps));
+                                updateStockDisplay(ps.stock !== undefined ? parseInt(ps.stock) : 0);
                             };
                             
                             if (sizeSelector) sizeSelector.appendChild(btn);
@@ -375,12 +376,12 @@
                     document.getElementById('drawerProductRating').innerText = product.average_rating ? parseFloat(product.average_rating).toFixed(1) : '0.0';
                     document.getElementById('drawerProductReviews').innerText = `(${product.review_count || 0} reviews)`;
                     
-                    if (product.image) {
+                    if (product.image_url) {
                         const track = document.getElementById('carouselTrack');
                         if (track) {
                             const images = track.querySelectorAll('.bg-cover');
                             images.forEach(img => {
-                                img.style.backgroundImage = `url('${product.image}')`;
+                                img.style.backgroundImage = `url('${product.image_url}')`;
                             });
                         }
                     }
@@ -388,7 +389,7 @@
                     // Stock badge
                     if (product.product_sizes && product.product_sizes.length > 0) {
                         let defaultPs = product.product_sizes.find(ps => ps.is_default) || product.product_sizes[0];
-                        updateStockDisplay(calculateSizeStock(defaultPs));
+                        updateStockDisplay(defaultPs.stock !== undefined ? parseInt(defaultPs.stock) : 0);
                     } else {
                         updateStockDisplay(product.stock !== null ? parseInt(product.stock) : 0);
                     }
@@ -427,7 +428,7 @@
                                 div.innerHTML = `
                                     <div class="aspect-square rounded-2xl bg-surface-container overflow-hidden mb-xs relative">
                                         <div class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                                            style="background-image: url('${rp.image || ''}')">
+                                            style="background-image: url('${rp.image_url || ''}')">
                                         </div>
                                     </div>
                                     <p class="text-label-md font-bold text-on-surface truncate">${rp.name}</p>

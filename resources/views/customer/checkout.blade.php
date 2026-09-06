@@ -74,8 +74,8 @@
                 @endphp
                 <div class="py-md flex items-center gap-md">
                     <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
-                        @if($product && $product->image)
-                            <img class="w-full h-full object-cover" src="{{ $product->image }}" alt="{{ $product->name }}"/>
+                        @if($product && $product->image_url)
+                            <img class="w-full h-full object-cover" src="{{ $product->image_url }}" alt="{{ $product->name }}"/>
                         @else
                             <div class="w-full h-full flex items-center justify-center">
                                 <span class="material-symbols-outlined text-outline-variant text-[36px]">local_cafe</span>

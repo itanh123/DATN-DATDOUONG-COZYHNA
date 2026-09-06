@@ -142,8 +142,8 @@
         <td class="px-lg py-md">
             <div class="flex items-center gap-sm">
                 <div class="w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center overflow-hidden">
-                    @if($product->image)
-                        <img src="{{ $product->image }}" class="w-full h-full object-cover">
+                    @if($product->image_url)
+                        <img src="{{ $product->image_url }}" class="w-full h-full object-cover">
                     @else
                         <span class="material-symbols-outlined text-primary">local_cafe</span>
                     @endif

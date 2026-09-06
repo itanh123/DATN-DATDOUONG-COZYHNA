@@ -95,7 +95,7 @@
 @forelse($topProducts as $product)
 <div class="flex items-center gap-md p-sm hover:bg-surface-container-high rounded-2xl transition-colors cursor-pointer">
 <div class="w-12 h-12 rounded-xl overflow-hidden bg-surface-container">
-<img class="w-full h-full object-cover" src="{{ $product->image }}"/>
+<img class="w-full h-full object-cover" src="{{ $product->image_url }}"/>
 </div>
 <div class="flex-1">
 <h4 class="font-body-lg text-body-lg font-bold">{{ $product->name }}</h4>

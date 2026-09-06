@@ -27,7 +27,19 @@ class Product extends Model
         'is_auto_stock',
     ];
 
-    protected $appends = ['average_rating', 'review_count'];
+    protected $appends = ['average_rating', 'review_count', 'image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+        if (\Illuminate\Support\Str::startsWith($this->image, ['http://', 'https://'])) {
+            return $this->image;
+        }
+        return asset('storage/' . $this->image);
+    }
+
 
     public function getAverageRatingAttribute()
     {
@@ -36,6 +48,16 @@ class Product extends Model
         }
         $approvedReviews = $this->reviews->where('status', 'approved');
         return $approvedReviews->avg('rating') ?? 0;
+    }
+
+    public function getDisplayStockAttribute()
+    {
+        if (!$this->is_auto_stock) {
+            return $this->stock !== null ? $this->stock : 0;
+        }
+
+        $defaultSize = $this->productSizes->firstWhere('is_default', true) ?? $this->productSizes->first();
+        return $defaultSize ? $defaultSize->stock : 0;
     }
 
     public function getReviewCountAttribute()

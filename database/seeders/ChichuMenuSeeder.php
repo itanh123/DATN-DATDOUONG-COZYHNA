@@ -27,144 +27,56 @@ class ChichuMenuSeeder extends Seeder
         $sizeL = Size::create(['name' => 'L']);
         $sizeXL = Size::create(['name' => 'XL']);
 
-        $data = [
-            'SỮA TƯƠI (BEST SELLER)' => [
+                        $data = [
+            '⭐ Bán chạy' => [
                 ['name' => 'Sữa Tươi Trân Châu Đường Đen', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Kem Trứng Nướng TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Kem Trứng Dừa Nướng TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Dừa Nướng TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Nho TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Cacao TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Cacao Kem Trứng TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Đậu Đỏ TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sầu Riêng TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Matcha TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Matcha Xoài TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Khoai Môn TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Kem Trứng Nướng TCDD', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Sữa Dừa Nướng TCDD', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Cacao Kem Trứng TCDD', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Matcha TCDD', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
             ],
-            'SỮA CHUA (SIGNATURE)' => [
-                ['name' => 'Yogurt Hoa Quả Dầm Ngũ Cốc', 'sizes' => ['M' => 35000, 'L' => 40000]],
-                ['name' => 'Sữa Chua Đỏ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Nha Đam', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Xoài TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Việt Quất TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Kiwi TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Dâu TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sữa Chua Chanh Leo TCĐĐ', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-            ],
-            'TRÀ SỮA' => [
+            '🧋 Trà sữa' => [
                 ['name' => 'Trà Sữa Nướng', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
                 ['name' => 'Trà Sữa Gạo Rang', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
                 ['name' => 'Hồng Trà Sữa', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Hồng Trà Kem Trứng Dừa Nướng', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Trà Sữa Hạt Dẻ Độc Biệt', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
-                ['name' => 'Trà Sữa Hokkaido', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Dưa Lưới', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-            ],
-            'TRÀ SỮA VỊ' => [
                 ['name' => 'Trà Sữa Matcha', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Khoai Môn', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Việt Quất', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
                 ['name' => 'Trà Sữa Xoài', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Dâu Tây', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Bạc Hà', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Sữa Socola', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
             ],
-            'TRÀ SỮA 3 TẦNG' => [
-                ['name' => 'Latte Sốt Xoài', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Latte Sốt Dâu', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Latte Sốt Việt Quất', 'sizes' => ['L' => 30000, 'XL' => 35000]],
+            '🍵 Trà & Trà trái cây' => [
+                ['name' => 'Trà Chanh', 'sizes' => ['M' => 15000, 'L' => 20000, 'XL' => 25000]],
+                ['name' => 'Trà Đào', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
+                ['name' => 'Trà Đào Cam Sả', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Trà Vải', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
+                ['name' => 'Trà Hoa Quả Nhiệt Đới', 'sizes' => ['M' => 30000, 'L' => 35000, 'XL' => 40000]],
             ],
-            'MACCHIATO' => [
-                ['name' => 'Hồng Trà Macchiato', 'sizes' => ['M' => 30000, 'L' => 35000]],
-                ['name' => 'Việt Quất Macchiato', 'sizes' => ['M' => 30000, 'L' => 35000]],
-                ['name' => 'Dưa Lưới Macchiato', 'sizes' => ['M' => 30000, 'L' => 35000]],
+            '🥤 Sữa chua & Chè' => [
+                ['name' => 'Yogurt Hoa Quả Dầm Ngũ Cốc', 'sizes' => ['M' => 30000, 'L' => 35000, 'XL' => 40000]],
+                ['name' => 'Sữa Chua Đá', 'sizes' => ['M' => 20000, 'L' => 25000, 'XL' => 30000]],
+                ['name' => 'Sữa Chua Nha Đam', 'sizes' => ['M' => 25000, 'L' => 30000, 'XL' => 35000]],
+                ['name' => 'Chè Sầu', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Chè Dừa Non', 'sizes' => ['M' => 20000, 'L' => 25000]],
             ],
-            'CHÈ' => [
-                ['name' => 'Chè Sầu', 'price' => 30000],
-                ['name' => 'Chè Dừa Non', 'price' => 25000],
-                ['name' => 'Chè Trân Châu Đường Đen', 'price' => 25000],
-                ['name' => 'Sữa Chua Mít', 'price' => 25000],
+            '🥭 Nước ép & Sinh tố' => [
+                ['name' => 'Nước Ép Cam', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Nước Ép Dứa', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Nước Ép Chanh Leo', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Nước Dưa Hấu', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Sinh Tố Xoài', 'sizes' => ['M' => 30000, 'L' => 35000]],
             ],
-            'KEM' => [
-                ['name' => 'Kem Vị Dừa', 'price' => 25000],
-                ['name' => 'Kem Bơ Vị Dừa', 'price' => 30000],
+            '☕ Cà phê & Đồ uống nóng' => [
+                ['name' => 'Đen Đá', 'sizes' => ['M' => 15000, 'L' => 20000]],
+                ['name' => 'Nâu Đá', 'sizes' => ['M' => 18000, 'L' => 22000]],
+                ['name' => 'Bạc Xỉu', 'sizes' => ['M' => 20000, 'L' => 25000]],
+                ['name' => 'Cốt Dừa', 'sizes' => ['M' => 25000, 'L' => 30000]],
+                ['name' => 'Cà Phê Trứng', 'sizes' => ['M' => 30000, 'L' => 35000]],
             ],
-            'TRÀ TRÁI CÂY' => [
-                ['name' => 'Trà Chanh', 'sizes' => ['L' => 10000, 'XL' => 15000]],
-                ['name' => 'Trà Đào', 'sizes' => ['L' => 25000, 'XL' => 30000]],
-                ['name' => 'Trà Đào Cam Sả', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Trà Lài Vải', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Trà Vải Thơm Nhiệt Đới', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Trà Hoa Quả Nhiệt Đới', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Olong Cam Đào', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Olong Sen Vàng', 'sizes' => ['L' => 30000, 'XL' => 35000]],
+            '🍕 Đồ ăn' => [
+                ['name' => 'Mỳ Cay Xúc Xích', 'sizes' => ['M' => 40000]],
+                ['name' => 'Mỳ Cay Bò', 'sizes' => ['M' => 45000]],
+                ['name' => 'Mỳ Cay Hải Sản', 'sizes' => ['M' => 50000]],
+                ['name' => 'Pizza 80K', 'sizes' => ['M' => 80000]],
+                ['name' => 'Tokbokki', 'sizes' => ['M' => 35000]],
             ],
-            'NƯỚC ÉP - SINH TỐ' => [
-                ['name' => 'Nước Ép Cam', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Nước Ép Dứa (Mix Cà Rốt/Hạt Chia)', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Nước Chanh Leo', 'sizes' => ['L' => 25000, 'XL' => 30000]],
-                ['name' => 'Nước Dưa Hấu', 'sizes' => ['L' => 25000, 'XL' => 30000]],
-                ['name' => 'Nước Cà Rốt', 'sizes' => ['L' => 25000, 'XL' => 30000]],
-                ['name' => 'Sinh Tố Xoài (Mix Bơ)', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sinh Tố Mãng Cầu (Mix Bơ)', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Sinh Tố Bơ', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-            ],
-            'ĐÁ XAY' => [
-                ['name' => 'Việt Quất Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Dâu Tây Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Socola Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Matcha Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Cookies Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-                ['name' => 'Đá Sữa Mây Kem Cheese', 'sizes' => ['L' => 30000, 'XL' => 35000]],
-            ],
-            'SODA' => [
-                ['name' => 'Soda Bạc Hà', 'price' => 25000],
-                ['name' => 'Soda Việt Quất', 'price' => 25000],
-                ['name' => 'Soda Dâu Tây', 'price' => 25000],
-                ['name' => 'Soda Biển Xanh', 'price' => 25000],
-            ],
-            'ĐỒ UỐNG NÓNG' => [
-                ['name' => 'Cacao Nóng Kem Trứng', 'price' => 30000],
-                ['name' => 'Bạc Xỉu Nóng', 'price' => 25000],
-                ['name' => 'Trà Đào Cam Sả Nóng', 'price' => 30000],
-                ['name' => 'Đào Cam Dâu Nóng', 'price' => 25000],
-                ['name' => 'Trà Gừng Mật Ong', 'price' => 25000],
-                ['name' => 'Trà Gừng Ô Mai', 'price' => 25000],
-            ],
-            'CAFE' => [
-                ['name' => 'Đen Đá / Nóng', 'price' => 20000],
-                ['name' => 'Nâu Đá / Nóng', 'price' => 25000],
-                ['name' => 'Bạc Xỉu', 'price' => 25000],
-                ['name' => 'Cafe Muối', 'price' => 30000],
-                ['name' => 'Cafe Cốt Dừa', 'price' => 30000],
-                ['name' => 'Cà Phê Trứng', 'price' => 35000],
-            ],
-            'MÌ CAY' => [
-                ['name' => 'Mì Cay Bò', 'price' => 40000],
-                ['name' => 'Mì Cay Xúc Xích', 'price' => 40000],
-                ['name' => 'Mì Cay Hải Sản', 'price' => 45000],
-                ['name' => 'Mì Cay Thập Cẩm', 'price' => 50000],
-            ],
-            'ĐỒ ĂN VẶT' => [
-                ['name' => 'Nem Nướng Nha Trang', 'price' => 30000],
-                ['name' => 'Khoai Lang Kén', 'price' => 25000],
-                ['name' => 'Bánh Mì Nướng Muối Ớt', 'price' => 15000],
-                ['name' => 'Chân Gà Sốt Thái', 'price' => 45000],
-                ['name' => 'Cánh Gà KFC', 'price' => 25000],
-                ['name' => 'Đùi Gà KFC', 'price' => 30000],
-                ['name' => 'Nem Chua Rán', 'price' => 30000],
-                ['name' => 'Khoai Tây Chiên', 'price' => 30000],
-                ['name' => 'Xúc Xích', 'price' => 10000],
-                ['name' => 'Hướng Dương', 'price' => 10000],
-                ['name' => 'Gà Khô / Bò Khô', 'price' => 25000],
-                ['name' => 'Kimbap', 'price' => 30000],
-                ['name' => 'Tokbokki', 'price' => 30000],
-            ],
-            'PIZZA' => [
-                ['name' => 'Pizza', 'price' => 80000],
-            ]
         ];
 
         foreach ($data as $catName => $products) {
@@ -178,7 +90,9 @@ class ChichuMenuSeeder extends Seeder
                     'category_id' => $category->id,
                     'name' => $prodData['name'],
                     'code' => strtoupper(Str::random(6)),
+                    'image' => 'products/' . $prodData['name'] . '.png',
                     'status' => true,
+                    'is_auto_stock' => true,
                 ]);
 
                 if (isset($prodData['sizes'])) {

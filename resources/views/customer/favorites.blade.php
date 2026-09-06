@@ -40,8 +40,8 @@
                 <div class="relative aspect-square rounded-2xl overflow-hidden mb-md shadow-sm">
                     <div
                         class="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700"
-                        @if(!empty($product->image))
-                            style="background-image: url('{{ $product->image }}')"
+                        @if(!empty($product->image_url))
+                            style="background-image: url('{{ $product->image_url }}')"
                         @else
                             style="background-image: none; background-color: rgba(148,249,144,0.15)"
                         @endif

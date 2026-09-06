@@ -96,7 +96,7 @@
                         <div class="flex items-center gap-md">
                             <div class="w-14 h-14 rounded-xl bg-surface-container overflow-hidden flex-shrink-0 border border-outline-variant/10">
                                 @if(isset($item->product_image) && $item->product_image)
-                                    <img class="w-full h-full object-cover" src="{{ $item->product_image }}" alt="{{ $item->product_name }}"/>
+                                    <img class="w-full h-full object-cover" src="{{ asset('storage/' . $item->product_image) }}" alt="{{ $item->product_name }}"/>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center bg-amber-50 text-amber-700">
                                         <span class="material-symbols-outlined text-[24px]">local_cafe</span>

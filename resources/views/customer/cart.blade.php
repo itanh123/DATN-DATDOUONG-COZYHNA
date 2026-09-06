@@ -228,8 +228,8 @@
                                 </div>
 
                                 <a href="/customer/product_detail?id={{ $product->id ?? __('') }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden flex-shrink-0 border border-outline-variant/20 hover:opacity-90 transition-opacity bg-white">
-                                    @if($product && $product->image)
-                                        <img class="w-full h-full object-cover" src="{{ str_starts_with($product->image, 'http') ? $product->image : asset($product->image) }}" alt=""/>
+                                    @if($product && $product->image_url)
+                                        <img class="w-full h-full object-cover" src="{{ $product->image_url }}" alt=""/>
                                     @else
                                         <div class="w-full h-full flex items-center justify-center bg-surface">
                                             <span class="material-symbols-outlined text-outline-variant/50 text-[32px]">local_cafe</span>
